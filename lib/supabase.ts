@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-// 임시: 환경변수가 안 먹히므로 직접 하드코딩 (테스트용)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qurknvhesqtuivipdyyu.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1cmtudmhlc3F0dWl2aXBkeXl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NTE2OTMsImV4cCI6MjA4NjEyNzY5M30.GFlt2rmzZndjyD0CvnXFNTcjgbJx7xVClsCg-rFo9QE'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -35,11 +34,4 @@ export type Document = {
 
 export type ReadingSession = {
   id: string
-  document_id: string
-  reader_id: string
-  reading_time: number
-  current_page: number
-  completed: boolean
-  started_at: string
-  last_read_at: string
-}
+  document_id
