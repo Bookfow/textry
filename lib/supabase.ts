@@ -52,4 +52,4 @@ export type DocumentReaction = {
   reaction_type: 'like' | 'dislike'
   created_at: string
   updated_at: string
-}
+}"// Updated" 
