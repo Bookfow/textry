@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
 import { Document as PDFDocument, Page, pdfjs } from 'react-pdf'
 import { AdBanner } from '@/components/ad-banner'
+import { ReactionButtons } from '@/components/reaction-buttons'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 
@@ -175,20 +176,34 @@ export default function ReadPage() {
     <div className="min-h-screen bg-gray-900">
       {/* 헤더 */}
       <header className="bg-gray-800 text-white border-b border-gray-700">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push('/browse')}
-              className="text-white hover:bg-gray-700"
-            >
-              ← 뒤로
-            </Button>
-            <h1 className="text-lg font-semibold">{document?.title}</h1>
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/browse')}
+                className="text-white hover:bg-gray-700"
+              >
+                ← 뒤로
+              </Button>
+              <h1 className="text-lg font-semibold">{document?.title}</h1>
+            </div>
+            <div className="text-sm text-gray-400">
+              읽기 시간: {Math.floor(totalTime / 60)}분 {totalTime % 60}초
+            </div>
           </div>
-          <div className="text-sm text-gray-400">
-            읽기 시간: {Math.floor(totalTime / 60)}분 {totalTime % 60}초
+
+          {/* 좋아요/싫어요 버튼 */}
+          <div className="flex items-center gap-4">
+            <ReactionButtons
+              documentId={documentId}
+              initialLikes={document?.likes_count || 0}
+              initialDislikes={document?.dislikes_count || 0}
+            />
+            <div className="text-sm text-gray-400">
+              조회수 {document?.view_count.toLocaleString()}회
+            </div>
           </div>
         </div>
       </header>
@@ -239,7 +254,7 @@ export default function ReadPage() {
           </PDFDocument>
         </div>
 
-        {/* 광고 추가 */}
+        {/* 광고 */}
         <div className="mt-8 max-w-4xl w-full px-4">
           <AdBanner position="bottom" documentId={documentId} />
         </div>

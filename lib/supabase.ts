@@ -28,10 +28,28 @@ export type Document = {
   is_published: boolean
   view_count: number
   total_reading_time: number
+  likes_count: number
+  dislikes_count: number
   created_at: string
   updated_at: string
 }
 
 export type ReadingSession = {
   id: string
-  document_id
+  document_id: string
+  reader_id: string
+  reading_time: number
+  current_page: number
+  completed: boolean
+  started_at: string
+  last_read_at: string
+}
+
+export type DocumentReaction = {
+  id: string
+  document_id: string
+  user_id: string
+  reaction_type: 'like' | 'dislike'
+  created_at: string
+  updated_at: string
+}
