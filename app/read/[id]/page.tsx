@@ -195,7 +195,7 @@ export default function ReadPage() {
           </div>
 
           {/* 좋아요/싫어요 버튼 */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 bg-gray-700 p-2 rounded">
             <ReactionButtons
               documentId={documentId}
               initialLikes={document?.likes_count || 0}
