@@ -1,13 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+// 임시: 환경변수가 안 먹히므로 직접 하드코딩 (테스트용)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qurknvhesqtuivipdyyu.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1cmtudmhlc3F0dWl2aXBkeXl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NTE2OTMsImV4cCI6MjA4NjEyNzY5M30.GFlt2rmzZndjyD0CvnXFNTcjgbJx7xVClsCg-rFo9QE'
 
-// 빌드 시점에 환경변수가 없어도 에러 안 나도록 수정
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
-)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // 타입 정의
 export type Profile = {
