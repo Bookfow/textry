@@ -11,7 +11,7 @@ import { TrendingUp, Sparkles, BookOpen, Eye, Clock, ThumbsUp } from 'lucide-rea
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 
 export default function HomePage() {
-  const { user, profile } = useAuth()
+  const { user, profile, loading: authLoading } = useAuth()
   const router = useRouter()
   const [trendingDocs, setTrendingDocs] = useState<Document[]>([])
   const [subscribedDocs, setSubscribedDocs] = useState<Document[]>([])
@@ -21,6 +21,13 @@ export default function HomePage() {
   useEffect(() => {
     loadFeeds()
   }, [user])
+
+  // 로그인 안 한 사용자는 랜딩 페이지로 리다이렉트
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/')
+    }
+  }, [user, authLoading, router])
 
   const loadFeeds = async () => {
     try {
@@ -116,12 +123,16 @@ export default function HomePage() {
     </Card>
   )
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>로딩 중...</p>
       </div>
     )
+  }
+
+  if (!user) {
+    return null
   }
 
   return (
@@ -156,7 +167,7 @@ export default function HomePage() {
                   )}
                   <Button variant="ghost" onClick={() => {
                     supabase.auth.signOut()
-                    router.push('/')  //
+                    router.push('/')
                   }}>
                     로그아웃
                   </Button>
@@ -214,27 +225,6 @@ export default function HomePage() {
               {continueDocs.map((doc) => (
                 <DocumentCard key={doc.id} doc={doc} />
               ))}
-            </div>
-          </section>
-        )}
-
-        {!user && (
-          <section className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white text-center">
-            <h3 className="text-3xl font-bold mb-4">더 많은 기능을 사용하세요</h3>
-            <p className="text-xl mb-8 opacity-90">
-              로그인하고 구독, 읽기 목록, 맞춤 추천을 경험하세요
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link href="/signup">
-                <Button size="lg" variant="secondary">
-                  회원가입
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button size="lg" variant="outline" className="bg-white/10 text-white border-white hover:bg-white/20">
-                  로그인
-                </Button>
-              </Link>
             </div>
           </section>
         )}
