@@ -56,7 +56,7 @@ export default function DashboardPage() {
       {/* 헤더 */}
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/">
+        <Link href="/home">
             <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
           </Link>
           <div className="flex gap-2">

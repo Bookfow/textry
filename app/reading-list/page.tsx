@@ -133,7 +133,7 @@ export default function ReadingListPage() {
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <Link href="/">
+          <Link href="/home">
               <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
             </Link>
             <div className="flex gap-4">

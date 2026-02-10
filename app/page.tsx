@@ -1,293 +1,213 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase, Document } from '@/lib/supabase'
+import { useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { FileText, Eye, Clock, ThumbsUp, TrendingUp, BookOpen, Sparkles } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { FileText, Zap, Users, TrendingUp, BookOpen, MessageCircle, Heart, Bookmark } from 'lucide-react'
 
-export default function HomePage() {
+export default function LandingPage() {
   const { user } = useAuth()
   const router = useRouter()
-  
-  const [trendingDocs, setTrendingDocs] = useState<Document[]>([])
-  const [subscribedDocs, setSubscribedDocs] = useState<Document[]>([])
-  const [continueDocs, setContinueDocs] = useState<Document[]>([])
-  const [recommendedDocs, setRecommendedDocs] = useState<Document[]>([])
-  const [loading, setLoading] = useState(true)
 
+  // 로그인한 사용자는 홈으로 리다이렉트
   useEffect(() => {
-    loadFeed()
-  }, [user])
-
-  const loadFeed = async () => {
-    try {
-      // 1. 인기 문서 (좋아요 + 조회수 기반)
-      const { data: trending } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('is_published', true)
-        .order('likes_count', { ascending: false })
-        .order('view_count', { ascending: false })
-        .limit(6)
-
-      setTrendingDocs(trending || [])
-
-      if (user) {
-        // 2. 구독한 작가의 새 문서
-        const { data: subscriptions } = await supabase
-          .from('subscriptions')
-          .select('author_id')
-          .eq('subscriber_id', user.id)
-
-        if (subscriptions && subscriptions.length > 0) {
-          const authorIds = subscriptions.map(s => s.author_id)
-          
-          const { data: subDocs } = await supabase
-            .from('documents')
-            .select('*')
-            .in('author_id', authorIds)
-            .eq('is_published', true)
-            .order('created_at', { ascending: false })
-            .limit(6)
-
-          setSubscribedDocs(subDocs || [])
-        }
-
-        // 3. 이어 읽기 (완료 안 한 문서)
-        const { data: sessions } = await supabase
-          .from('reading_sessions')
-          .select('document_id, current_page')
-          .eq('reader_id', user.id)
-          .eq('completed', false)
-          .order('last_read_at', { ascending: false })
-          .limit(6)
-
-        if (sessions && sessions.length > 0) {
-          const docIds = sessions.map(s => s.document_id)
-          
-          const { data: continueDocs } = await supabase
-            .from('documents')
-            .select('*')
-            .in('id', docIds)
-            .eq('is_published', true)
-
-          setContinueDocs(continueDocs || [])
-        }
-
-        // 4. 추천 문서 (최근 읽은 카테고리 기반)
-        const { data: recentSessions } = await supabase
-          .from('reading_sessions')
-          .select('document_id')
-          .eq('reader_id', user.id)
-          .order('last_read_at', { ascending: false })
-          .limit(5)
-
-        if (recentSessions && recentSessions.length > 0) {
-          const recentDocIds = recentSessions.map(s => s.document_id)
-          
-          const { data: recentDocs } = await supabase
-            .from('documents')
-            .select('category')
-            .in('id', recentDocIds)
-
-          const categories = recentDocs?.map(d => d.category).filter(Boolean) || []
-
-          if (categories.length > 0) {
-            const { data: recommended } = await supabase
-              .from('documents')
-              .select('*')
-              .in('category', categories)
-              .not('id', 'in', `(${recentDocIds.join(',')})`)
-              .eq('is_published', true)
-              .order('created_at', { ascending: false })
-              .limit(6)
-
-            setRecommendedDocs(recommended || [])
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Error loading feed:', err)
-    } finally {
-      setLoading(false)
+    if (user) {
+      router.push('/home')
     }
-  }
-
-  const DocumentCard = ({ doc }: { doc: Document }) => (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <CardTitle className="line-clamp-2">{doc.title}</CardTitle>
-        <CardDescription className="line-clamp-3">
-          {doc.description || '설명이 없습니다'}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-3 text-sm text-gray-500 mb-4">
-          <span className="flex items-center gap-1">
-            <ThumbsUp className="w-4 h-4" />
-            {doc.likes_count.toLocaleString()}
-          </span>
-          <span className="flex items-center gap-1">
-            <Eye className="w-4 h-4" />
-            {doc.view_count.toLocaleString()}
-          </span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            {Math.floor(doc.total_reading_time / 60)}분
-          </span>
-        </div>
-        <Link href={`/read/${doc.id}`}>
-          <Button className="w-full">읽기</Button>
-        </Link>
-      </CardContent>
-    </Card>
-  )
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>로딩 중...</p>
-      </div>
-    )
-  }
+  }, [user, router])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* 헤더 */}
-      <header className="bg-white border-b sticky top-0 z-10">
+      <header className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <Link href="/">
-              <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
-            </Link>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Textry
+            </h1>
             <div className="flex gap-4">
               <Link href="/browse">
                 <Button variant="ghost">둘러보기</Button>
               </Link>
-              {user && (
-  <Link href="/reading-list">
-    <Button variant="ghost">읽기 목록</Button>
-  </Link>
-)}
-              {user ? (
-                <>
-                  {user.role === 'author' && (
-                    <>
-                      <Link href="/upload">
-                        <Button variant="ghost">업로드</Button>
-                      </Link>
-                      <Link href="/dashboard">
-                        <Button variant="ghost">대시보드</Button>
-                      </Link>
-                    </>
-                  )}
-                  <Button variant="ghost" onClick={() => {
-                    supabase.auth.signOut()
-                    router.push('/login')
-                  }}>
-                    로그아웃
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login">
-                    <Button variant="ghost">로그인</Button>
-                  </Link>
-                  <Link href="/signup">
-                    <Button>회원가입</Button>
-                  </Link>
-                </>
-              )}
+              <Link href="/login">
+                <Button variant="ghost">로그인</Button>
+              </Link>
+              <Link href="/signup">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  시작하기
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12">
-        {/* 인기 문서 */}
-        <section className="mb-12">
-          <div className="flex items-center gap-2 mb-6">
-            <TrendingUp className="w-6 h-6 text-red-500" />
-            <h2 className="text-2xl font-bold">인기 문서</h2>
+      {/* 히어로 섹션 */}
+      <section className="container mx-auto px-4 py-20 text-center">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            문서를 스트리밍하다
+          </h2>
+          <p className="text-xl md:text-2xl text-gray-600 mb-8">
+            유튜브처럼 자유롭게 문서를 읽고, 공유하고, 소통하세요
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Link href="/signup">
+              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8">
+                무료로 시작하기
+              </Button>
+            </Link>
+            <Link href="/browse">
+              <Button size="lg" variant="outline" className="text-lg px-8">
+                문서 둘러보기
+              </Button>
+            </Link>
           </div>
-          {trendingDocs.length === 0 ? (
-            <p className="text-gray-500">인기 문서가 없습니다</p>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trendingDocs.map((doc) => (
-                <DocumentCard key={doc.id} doc={doc} />
-              ))}
-            </div>
-          )}
-        </section>
+        </div>
+      </section>
 
-        {/* 구독한 작가의 새 문서 */}
-        {user && subscribedDocs.length > 0 && (
-          <section className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <Sparkles className="w-6 h-6 text-yellow-500" />
-              <h2 className="text-2xl font-bold">구독 중인 작가</h2>
+      {/* 주요 기능 */}
+      <section className="container mx-auto px-4 py-20">
+        <h3 className="text-3xl font-bold text-center mb-12">왜 Textry인가요?</h3>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+              <FileText className="w-6 h-6 text-blue-600" />
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {subscribedDocs.map((doc) => (
-                <DocumentCard key={doc.id} doc={doc} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 이어 읽기 */}
-        {user && continueDocs.length > 0 && (
-          <section className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <BookOpen className="w-6 h-6 text-green-500" />
-              <h2 className="text-2xl font-bold">이어 읽기</h2>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {continueDocs.map((doc) => (
-                <DocumentCard key={doc.id} doc={doc} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 추천 문서 */}
-        {user && recommendedDocs.length > 0 && (
-          <section className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <FileText className="w-6 h-6 text-purple-500" />
-              <h2 className="text-2xl font-bold">추천 문서</h2>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendedDocs.map((doc) => (
-                <DocumentCard key={doc.id} doc={doc} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 로그인 안 한 사용자 CTA */}
-        {!user && (
-          <section className="text-center py-12">
-            <h2 className="text-3xl font-bold mb-4">더 많은 기능을 사용하세요</h2>
-            <p className="text-gray-600 mb-6">
-              로그인하면 구독, 이어 읽기, 개인 맞춤 추천을 받을 수 있어요
+            <h4 className="text-xl font-semibold mb-2">무료 문서 공유</h4>
+            <p className="text-gray-600">
+              PDF를 업로드하고 전 세계 사람들과 공유하세요
             </p>
-            <div className="flex gap-4 justify-center">
-              <Link href="/signup">
-                <Button size="lg">회원가입</Button>
-              </Link>
-              <Link href="/login">
-                <Button size="lg" variant="outline">로그인</Button>
-              </Link>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+              <Users className="w-6 h-6 text-purple-600" />
             </div>
-          </section>
-        )}
-      </div>
+            <h4 className="text-xl font-semibold mb-2">구독 시스템</h4>
+            <p className="text-gray-600">
+              좋아하는 작가를 구독하고 새 문서를 놓치지 마세요
+            </p>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+              <MessageCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <h4 className="text-xl font-semibold mb-2">댓글 & 토론</h4>
+            <p className="text-gray-600">
+              문서에 댓글을 달고 다른 독자들과 의견을 나누세요
+            </p>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+              <TrendingUp className="w-6 h-6 text-red-600" />
+            </div>
+            <h4 className="text-xl font-semibold mb-2">개인 맞춤 추천</h4>
+            <p className="text-gray-600">
+              읽기 기록을 기반으로 맞춤 문서를 추천받으세요
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 기능 상세 */}
+      <section className="bg-gray-50 py-20">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
+            <div>
+              <h3 className="text-3xl font-bold mb-4">유튜브처럼 쉬운 문서 플랫폼</h3>
+              <p className="text-gray-600 mb-6">
+                좋아요, 구독, 댓글, 읽기 목록... 익숙한 기능으로 문서를 더 재미있게!
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Heart className="w-5 h-5 text-blue-600" />
+                  <span>좋아요/싫어요로 의견 표현</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Bookmark className="w-5 h-5 text-blue-600" />
+                  <span>읽기 목록에 저장</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <BookOpen className="w-5 h-5 text-blue-600" />
+                  <span>이어 읽기 자동 저장</span>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl p-8 h-64 flex items-center justify-center">
+              <FileText className="w-32 h-32 text-blue-600 opacity-20" />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-8 h-64 flex items-center justify-center order-2 md:order-1">
+              <Users className="w-32 h-32 text-purple-600 opacity-20" />
+            </div>
+            <div className="order-1 md:order-2">
+              <h3 className="text-3xl font-bold mb-4">작가와 독자가 함께 성장</h3>
+              <p className="text-gray-600 mb-6">
+                작가는 광고 수익을 얻고, 독자는 무료로 문서를 읽고, 모두가 Win-Win!
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-purple-600" />
+                  <span>조회수와 읽기 시간 기반 수익</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Users className="w-5 h-5 text-purple-600" />
+                  <span>구독자 관리 대시보드</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Zap className="w-5 h-5 text-purple-600" />
+                  <span>실시간 분석 데이터</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="container mx-auto px-4 py-20 text-center">
+        <div className="max-w-3xl mx-auto bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white">
+          <h3 className="text-3xl font-bold mb-4">지금 바로 시작하세요</h3>
+          <p className="text-xl mb-8 opacity-90">
+            5분이면 첫 문서를 업로드하고 독자들을 만날 수 있습니다
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Link href="/signup">
+              <Button size="lg" variant="secondary" className="text-lg px-8">
+                무료 회원가입
+              </Button>
+            </Link>
+            <Link href="/browse">
+              <Button size="lg" variant="outline" className="text-lg px-8 bg-white/10 text-white border-white hover:bg-white/20">
+                문서 둘러보기
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 푸터 */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Textry
+          </h2>
+          <p className="text-gray-400 mb-6">문서를 스트리밍하다</p>
+          <div className="flex gap-6 justify-center text-sm text-gray-400">
+            <Link href="/browse" className="hover:text-white">둘러보기</Link>
+            <Link href="/signup" className="hover:text-white">회원가입</Link>
+            <Link href="/login" className="hover:text-white">로그인</Link>
+          </div>
+          <p className="text-gray-500 text-sm mt-8">© 2026 Textry. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   )
 }
