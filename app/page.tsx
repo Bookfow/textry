@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -8,21 +8,24 @@ import Link from 'next/link'
 import { FileText, Zap, Users, TrendingUp, BookOpen, MessageCircle, Heart, Bookmark } from 'lucide-react'
 
 export default function LandingPage() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
 
   // 로그인한 사용자는 홈으로 리다이렉트
   useEffect(() => {
-    if (user) {
+    if (!loading && user) {
       router.push('/home')
-    } else {
-      setLoading(false)
     }
-  }, [user, router])
+  }, [user, loading, router])
 
+  // 로딩 중이면 아무것도 표시 안 함
   if (loading) {
-    return null // 또는 로딩 스피너
+    return null
+  }
+
+  // 로그인한 사용자면 null (리다이렉트 중)
+  if (user) {
+    return null
   }
 
   return (
