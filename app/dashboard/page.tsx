@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { DollarSign, Eye, Clock, FileText, TrendingUp, Users, Trash2 } from 'lucide-react'
+import { DollarSign, Eye, Clock, FileText, Users, Trash2 } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
+import { NotificationsBell } from '@/components/notifications-bell'
 
 export default function DashboardPage() {
   const { user, profile } = useAuth()
@@ -141,10 +142,11 @@ export default function DashboardPage() {
             <Link href="/home">
               <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
             </Link>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <Link href="/upload">
                 <Button>새 문서 업로드</Button>
               </Link>
+              {user && <NotificationsBell />}
               <Button variant="ghost" onClick={() => {
                 supabase.auth.signOut()
                 router.push('/')

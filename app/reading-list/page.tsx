@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Eye, Clock, ThumbsUp, BookmarkX } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
+import { NotificationsBell } from '@/components/notifications-bell'
 
 export default function ReadingListPage() {
   const { user } = useAuth()
@@ -18,7 +19,7 @@ export default function ReadingListPage() {
 
   useEffect(() => {
     if (!user) {
-        router.push('/')
+      router.push('/')
       return
     }
     loadReadingList()
@@ -143,7 +144,7 @@ export default function ReadingListPage() {
             <Link href="/home">
               <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
             </Link>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <Link href="/browse">
                 <Button variant="ghost">둘러보기</Button>
               </Link>
@@ -157,9 +158,10 @@ export default function ReadingListPage() {
                   </Link>
                 </>
               )}
+              {user && <NotificationsBell />}
               <Button variant="ghost" onClick={() => {
                 supabase.auth.signOut()
-                router.push('/')  //
+                router.push('/')
               }}>
                 로그아웃
               </Button>

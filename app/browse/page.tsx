@@ -13,6 +13,7 @@ import { Eye, Clock, ThumbsUp, Search, Calendar } from 'lucide-react'
 import { ReadingListButton } from '@/components/reading-list-button'
 import { CATEGORIES, getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { LANGUAGES, getLanguageFlag, getLanguageLabel } from '@/lib/languages'
+import { NotificationsBell } from '@/components/notifications-bell'
 
 export default function BrowsePage() {
   const { user } = useAuth()
@@ -181,7 +182,7 @@ export default function BrowsePage() {
             <Link href="/home">
               <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
             </Link>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               {user ? (
                 <>
                   {user.role === 'author' && (
@@ -197,6 +198,7 @@ export default function BrowsePage() {
                   <Link href="/reading-list">
                     <Button variant="ghost">읽기 목록</Button>
                   </Link>
+                  {user && <NotificationsBell />}
                   <Button variant="ghost" onClick={() => {
                     supabase.auth.signOut()
                     router.push('/')

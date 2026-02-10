@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { TrendingUp, Sparkles, BookOpen, Eye, Clock, ThumbsUp } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
+import { NotificationsBell } from '@/components/notifications-bell'
 
 export default function HomePage() {
   const { user, profile, loading: authLoading } = useAuth()
@@ -144,7 +145,7 @@ export default function HomePage() {
             <Link href="/">
               <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
             </Link>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <Link href="/browse">
                 <Button variant="ghost">둘러보기</Button>
               </Link>
@@ -153,35 +154,23 @@ export default function HomePage() {
                   <Button variant="ghost">읽기 목록</Button>
                 </Link>
               )}
-              {user ? (
+              {profile?.role === 'author' && (
                 <>
-                  {profile?.role === 'author' && (
-                    <>
-                      <Link href="/upload">
-                        <Button variant="ghost">업로드</Button>
-                      </Link>
-                      <Link href="/dashboard">
-                        <Button variant="ghost">대시보드</Button>
-                      </Link>
-                    </>
-                  )}
-                  <Button variant="ghost" onClick={() => {
-                    supabase.auth.signOut()
-                    router.push('/')
-                  }}>
-                    로그아웃
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login">
-                    <Button variant="ghost">로그인</Button>
+                  <Link href="/upload">
+                    <Button variant="ghost">업로드</Button>
                   </Link>
-                  <Link href="/signup">
-                    <Button>회원가입</Button>
+                  <Link href="/dashboard">
+                    <Button variant="ghost">대시보드</Button>
                   </Link>
                 </>
               )}
+              {user && <NotificationsBell />}
+              <Button variant="ghost" onClick={() => {
+                supabase.auth.signOut()
+                router.push('/')
+              }}>
+                로그아웃
+              </Button>
             </div>
           </div>
         </div>
