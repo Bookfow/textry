@@ -1,5 +1,5 @@
 'use client'
-
+import { ProfileMenu } from '@/components/profile-menu'
 import { useEffect, useState } from 'react'
 import { supabase, Document } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
@@ -165,12 +165,7 @@ export default function HomePage() {
                 </>
               )}
               {user && <NotificationsBell />}
-              <Button variant="ghost" onClick={() => {
-                supabase.auth.signOut()
-                router.push('/')
-              }}>
-                로그아웃
-              </Button>
+              {user && <ProfileMenu />}
             </div>
           </div>
         </div>

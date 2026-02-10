@@ -1,5 +1,5 @@
 'use client'
-
+import { ProfileMenu } from '@/components/profile-menu'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase, Document } from '@/lib/supabase'
@@ -147,12 +147,7 @@ export default function DashboardPage() {
                 <Button>새 문서 업로드</Button>
               </Link>
               {user && <NotificationsBell />}
-              <Button variant="ghost" onClick={() => {
-                supabase.auth.signOut()
-                router.push('/')
-              }}>
-                로그아웃
-              </Button>
+              {user && <ProfileMenu />}
             </div>
           </div>
         </div>
