@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase, CommentWithProfile, Profile } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -12,26 +12,30 @@ interface CommentsSectionProps {
   documentId: string
 }
 
-// 답글 입력 컴포넌트
+// 답글 입력 컴포넌트 - useRef 사용
 function ReplyInput({ 
   commentId, 
   documentId, 
-  onSuccess 
+  onSuccess,
+  onCancel
 }: { 
   commentId: string
   documentId: string
-  onSuccess: (newReply: CommentWithProfile) => void 
+  onSuccess: (newReply: CommentWithProfile) => void
+  onCancel: () => void
 }) {
   const { user } = useAuth()
-  const [content, setContent] = useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {
-    if (!user || !content.trim()) return
+    if (!user) return
+    
+    const content = textareaRef.current?.value || ''
+    if (!content.trim()) return
 
     setLoading(true)
     try {
-      // 댓글 추가
       const { data: newComment, error } = await supabase
         .from('comments')
         .insert({
@@ -48,14 +52,16 @@ function ReplyInput({
 
       if (error) throw error
 
-      // 프로필 정보 가져오기
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
 
-      setContent('')
+      if (textareaRef.current) {
+        textareaRef.current.value = ''
+      }
+      
       onSuccess({
         ...newComment,
         profile: profile as Profile
@@ -71,20 +77,29 @@ function ReplyInput({
   return (
     <div className="mt-4 flex gap-2">
       <Textarea
+        ref={textareaRef}
         placeholder="답글을 입력하세요..."
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
         className="flex-1"
         rows={2}
         autoFocus
+        defaultValue=""
       />
-      <Button
-        onClick={handleSubmit}
-        disabled={loading || !content.trim()}
-        size="sm"
-      >
-        <Send className="w-4 h-4" />
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button
+          onClick={handleSubmit}
+          disabled={loading}
+          size="sm"
+        >
+          <Send className="w-4 h-4" />
+        </Button>
+        <Button
+          onClick={onCancel}
+          variant="outline"
+          size="sm"
+        >
+          취소
+        </Button>
+      </div>
     </div>
   )
 }
@@ -171,7 +186,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
 
       if (error) throw error
 
-      // 새 댓글을 목록에 추가 (새로고침 없이)
       const newCommentWithProfile: CommentWithProfile = {
         ...comment,
         profile: profile as Profile,
@@ -215,7 +229,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
           .eq('comment_id', commentId)
           .eq('user_id', user.id)
 
-        // 좋아요 수 감소 (새로고침 없이)
         setComments(comments.map(c => 
           c.id === commentId 
             ? { ...c, likes_count: c.likes_count - 1 }
@@ -236,7 +249,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
             user_id: user.id,
           })
 
-        // 좋아요 수 증가 (새로고침 없이)
         setComments(comments.map(c => 
           c.id === commentId 
             ? { ...c, likes_count: c.likes_count + 1 }
@@ -295,7 +307,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
   }
 
   const handleReplySuccess = (parentId: string, newReply: CommentWithProfile) => {
-    // 답글을 해당 댓글의 replies에 추가 (새로고침 없이)
     setComments(comments.map(c => 
       c.id === parentId
         ? { ...c, replies: [...(c.replies || []), newReply] }
@@ -343,11 +354,11 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
           
           {/* 답글 입력 */}
           {replyTo === comment.id && (
-            <ReplyInput
-            key={comment.id}
+            <ReplyInput 
               commentId={comment.id} 
               documentId={documentId}
               onSuccess={(newReply) => handleReplySuccess(comment.id, newReply)}
+              onCancel={() => setReplyTo(null)}
             />
           )}
         </div>
