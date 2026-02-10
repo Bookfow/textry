@@ -11,6 +11,7 @@ export type Profile = {
   email: string
   username: string | null
   role: 'author' | 'reader'
+  subscribers_count: number
   created_at: string
   updated_at: string
 }
@@ -53,6 +54,7 @@ export type DocumentReaction = {
   created_at: string
   updated_at: string
 }
+
 export type Subscription = {
   id: string
   subscriber_id: string
