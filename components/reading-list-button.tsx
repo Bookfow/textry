@@ -84,17 +84,17 @@ export function ReadingListButton({ documentId }: ReadingListButtonProps) {
       size="sm"
       onClick={handleToggle}
       disabled={loading}
-      className="gap-2"
+      className={`gap-2 ${inList ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
     >
       {inList ? (
         <>
           <BookmarkCheck className="w-4 h-4" />
-          읽기 목록에 추가됨
+          <span className="text-white font-semibold">추가됨</span>
         </>
       ) : (
         <>
           <Bookmark className="w-4 h-4" />
-          읽기 목록에 추가
+          <span className="font-semibold">읽기 목록</span>
         </>
       )}
     </Button>
