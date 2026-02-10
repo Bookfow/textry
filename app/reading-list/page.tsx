@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Eye, Clock, ThumbsUp, BookmarkX } from 'lucide-react'
+import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 
 export default function ReadingListPage() {
   const { user } = useAuth()
@@ -81,6 +82,12 @@ export default function ReadingListPage() {
   const DocumentCard = ({ doc }: { doc: Document }) => (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-2xl">{getCategoryIcon(doc.category)}</span>
+          <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
+            {getCategoryLabel(doc.category)}
+          </span>
+        </div>
         <CardTitle className="line-clamp-2">{doc.title}</CardTitle>
         <CardDescription className="line-clamp-3">
           {doc.description || '설명이 없습니다'}
@@ -133,7 +140,7 @@ export default function ReadingListPage() {
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-          <Link href="/home">
+            <Link href="/home">
               <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
             </Link>
             <div className="flex gap-4">

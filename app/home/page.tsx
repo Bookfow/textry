@@ -6,38 +6,36 @@ import { useAuth } from '@/lib/auth-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { FileText, Eye, Clock, ThumbsUp, TrendingUp, BookOpen, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { TrendingUp, Sparkles, BookOpen, FileText, Eye, Clock, ThumbsUp } from 'lucide-react'
+import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 
 export default function HomePage() {
   const { user } = useAuth()
   const router = useRouter()
-  
   const [trendingDocs, setTrendingDocs] = useState<Document[]>([])
   const [subscribedDocs, setSubscribedDocs] = useState<Document[]>([])
   const [continueDocs, setContinueDocs] = useState<Document[]>([])
-  const [recommendedDocs, setRecommendedDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadFeed()
+    loadFeeds()
   }, [user])
 
-  const loadFeed = async () => {
+  const loadFeeds = async () => {
     try {
-      // 1. 인기 문서 (좋아요 + 조회수 기반)
+      // 1. 인기 문서 (좋아요 + 조회수 기준)
       const { data: trending } = await supabase
         .from('documents')
         .select('*')
         .eq('is_published', true)
         .order('likes_count', { ascending: false })
-        .order('view_count', { ascending: false })
         .limit(6)
 
       setTrendingDocs(trending || [])
 
       if (user) {
-        // 2. 구독한 작가의 새 문서
+        // 2. 구독 중인 작가의 문서
         const { data: subscriptions } = await supabase
           .from('subscriptions')
           .select('author_id')
@@ -45,7 +43,6 @@ export default function HomePage() {
 
         if (subscriptions && subscriptions.length > 0) {
           const authorIds = subscriptions.map(s => s.author_id)
-          
           const { data: subDocs } = await supabase
             .from('documents')
             .select('*')
@@ -57,10 +54,10 @@ export default function HomePage() {
           setSubscribedDocs(subDocs || [])
         }
 
-        // 3. 이어 읽기 (완료 안 한 문서)
+        // 3. 이어 읽기 (읽다가 멈춘 문서)
         const { data: sessions } = await supabase
           .from('reading_sessions')
-          .select('document_id, current_page')
+          .select('document_id')
           .eq('reader_id', user.id)
           .eq('completed', false)
           .order('last_read_at', { ascending: false })
@@ -68,50 +65,16 @@ export default function HomePage() {
 
         if (sessions && sessions.length > 0) {
           const docIds = sessions.map(s => s.document_id)
-          
           const { data: continueDocs } = await supabase
             .from('documents')
             .select('*')
             .in('id', docIds)
-            .eq('is_published', true)
 
           setContinueDocs(continueDocs || [])
         }
-
-        // 4. 추천 문서 (최근 읽은 카테고리 기반)
-        const { data: recentSessions } = await supabase
-          .from('reading_sessions')
-          .select('document_id')
-          .eq('reader_id', user.id)
-          .order('last_read_at', { ascending: false })
-          .limit(5)
-
-        if (recentSessions && recentSessions.length > 0) {
-          const recentDocIds = recentSessions.map(s => s.document_id)
-          
-          const { data: recentDocs } = await supabase
-            .from('documents')
-            .select('category')
-            .in('id', recentDocIds)
-
-          const categories = recentDocs?.map(d => d.category).filter(Boolean) || []
-
-          if (categories.length > 0) {
-            const { data: recommended } = await supabase
-              .from('documents')
-              .select('*')
-              .in('category', categories)
-              .not('id', 'in', `(${recentDocIds.join(',')})`)
-              .eq('is_published', true)
-              .order('created_at', { ascending: false })
-              .limit(6)
-
-            setRecommendedDocs(recommended || [])
-          }
-        }
       }
     } catch (err) {
-      console.error('Error loading feed:', err)
+      console.error('Error loading feeds:', err)
     } finally {
       setLoading(false)
     }
@@ -120,6 +83,12 @@ export default function HomePage() {
   const DocumentCard = ({ doc }: { doc: Document }) => (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-2xl">{getCategoryIcon(doc.category)}</span>
+          <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
+            {getCategoryLabel(doc.category)}
+          </span>
+        </div>
         <CardTitle className="line-clamp-2">{doc.title}</CardTitle>
         <CardDescription className="line-clamp-3">
           {doc.description || '설명이 없습니다'}
@@ -169,10 +138,10 @@ export default function HomePage() {
                 <Button variant="ghost">둘러보기</Button>
               </Link>
               {user && (
-  <Link href="/reading-list">
-    <Button variant="ghost">읽기 목록</Button>
-  </Link>
-)}
+                <Link href="/reading-list">
+                  <Button variant="ghost">읽기 목록</Button>
+                </Link>
+              )}
               {user ? (
                 <>
                   {user.role === 'author' && (
@@ -211,25 +180,20 @@ export default function HomePage() {
         {/* 인기 문서 */}
         <section className="mb-12">
           <div className="flex items-center gap-2 mb-6">
-            <TrendingUp className="w-6 h-6 text-red-500" />
+            <TrendingUp className="w-6 h-6 text-red-600" />
             <h2 className="text-2xl font-bold">인기 문서</h2>
           </div>
-          {trendingDocs.length === 0 ? (
-            <p className="text-gray-500">인기 문서가 없습니다</p>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trendingDocs.map((doc) => (
-                <DocumentCard key={doc.id} doc={doc} />
-              ))}
-            </div>
-          )}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {trendingDocs.map((doc) => (
+              <DocumentCard key={doc.id} doc={doc} />
+            ))}
+          </div>
         </section>
 
-        {/* 구독한 작가의 새 문서 */}
         {user && subscribedDocs.length > 0 && (
           <section className="mb-12">
             <div className="flex items-center gap-2 mb-6">
-              <Sparkles className="w-6 h-6 text-yellow-500" />
+              <Sparkles className="w-6 h-6 text-yellow-600" />
               <h2 className="text-2xl font-bold">구독 중인 작가</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -240,11 +204,10 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* 이어 읽기 */}
         {user && continueDocs.length > 0 && (
           <section className="mb-12">
             <div className="flex items-center gap-2 mb-6">
-              <BookOpen className="w-6 h-6 text-green-500" />
+              <BookOpen className="w-6 h-6 text-green-600" />
               <h2 className="text-2xl font-bold">이어 읽기</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -255,34 +218,22 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* 추천 문서 */}
-        {user && recommendedDocs.length > 0 && (
-          <section className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <FileText className="w-6 h-6 text-purple-500" />
-              <h2 className="text-2xl font-bold">추천 문서</h2>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendedDocs.map((doc) => (
-                <DocumentCard key={doc.id} doc={doc} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 로그인 안 한 사용자 CTA */}
         {!user && (
-          <section className="text-center py-12">
-            <h2 className="text-3xl font-bold mb-4">더 많은 기능을 사용하세요</h2>
-            <p className="text-gray-600 mb-6">
-              로그인하면 구독, 이어 읽기, 개인 맞춤 추천을 받을 수 있어요
+          <section className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white text-center">
+            <h3 className="text-3xl font-bold mb-4">더 많은 기능을 사용하세요</h3>
+            <p className="text-xl mb-8 opacity-90">
+              로그인하고 구독, 읽기 목록, 맞춤 추천을 경험하세요
             </p>
             <div className="flex gap-4 justify-center">
               <Link href="/signup">
-                <Button size="lg">회원가입</Button>
+                <Button size="lg" variant="secondary">
+                  회원가입
+                </Button>
               </Link>
               <Link href="/login">
-                <Button size="lg" variant="outline">로그인</Button>
+                <Button size="lg" variant="outline" className="bg-white/10 text-white border-white hover:bg-white/20">
+                  로그인
+                </Button>
               </Link>
             </div>
           </section>

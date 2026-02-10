@@ -9,13 +9,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Upload, FileText } from 'lucide-react'
+import { CATEGORIES } from '@/lib/categories'
 
 export default function UploadPage() {
   const { user, profile } = useAuth()
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [category, setCategory] = useState<string>('')
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -30,7 +33,7 @@ export default function UploadPage() {
             <CardDescription>작가 계정만 문서를 업로드할 수 있습니다.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push('/')}>홈으로 돌아가기</Button>
+            <Button onClick={() => router.push('/home')}>홈으로 돌아가기</Button>
           </CardContent>
         </Card>
       </div>
@@ -79,6 +82,7 @@ export default function UploadPage() {
           author_id: user.id,
           title,
           description,
+          category: category || null,
           file_path: filePath,
           file_size: file.size,
           is_published: true,
@@ -120,6 +124,26 @@ export default function UploadPage() {
                   onChange={(e) => setTitle(e.target.value)}
                   required
                 />
+              </div>
+
+              {/* 카테고리 */}
+              <div className="space-y-2">
+                <Label htmlFor="category">카테고리 *</Label>
+                <Select value={category} onValueChange={setCategory} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="카테고리를 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        <span className="flex items-center gap-2">
+                          <span>{cat.icon}</span>
+                          <span>{cat.label}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* 설명 */}
@@ -179,7 +203,7 @@ export default function UploadPage() {
                 <Button
                   type="submit"
                   className="flex-1"
-                  disabled={uploading || !file || !title}
+                  disabled={uploading || !file || !title || !category}
                 >
                   {uploading ? '업로드 중...' : '업로드'}
                 </Button>
