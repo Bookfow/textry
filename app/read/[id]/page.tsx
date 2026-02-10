@@ -1,5 +1,5 @@
 'use client'
-
+import { CommentsSection } from '@/components/comments-section'
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase, Document, Profile } from '@/lib/supabase'
@@ -303,6 +303,10 @@ export default function ReadPage() {
         {/* 광고 */}
         <div className="mt-8 max-w-4xl w-full px-4">
           <AdBanner position="bottom" documentId={documentId} />
+          {/* 댓글 */}
+        <div className="mt-8 max-w-4xl w-full px-4">
+          <CommentsSection documentId={documentId} />
+        </div>
         </div>
       </div>
     </div>

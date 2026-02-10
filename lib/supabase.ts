@@ -31,6 +31,7 @@ export type Document = {
   total_reading_time: number
   likes_count: number
   dislikes_count: number
+  comments_count: number
   created_at: string
   updated_at: string
 }
@@ -60,4 +61,27 @@ export type Subscription = {
   subscriber_id: string
   author_id: string
   created_at: string
+}
+
+export type Comment = {
+  id: string
+  document_id: string
+  user_id: string
+  parent_id: string | null
+  content: string
+  likes_count: number
+  created_at: string
+  updated_at: string
+}
+
+export type CommentLike = {
+  id: string
+  comment_id: string
+  user_id: string
+  created_at: string
+}
+
+export type CommentWithProfile = Comment & {
+  profile: Profile
+  replies?: CommentWithProfile[]
 }
