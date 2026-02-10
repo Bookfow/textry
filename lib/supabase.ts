@@ -53,3 +53,9 @@ export type DocumentReaction = {
   created_at: string
   updated_at: string
 }
+export type Subscription = {
+  id: string
+  subscriber_id: string
+  author_id: string
+  created_at: string
+}

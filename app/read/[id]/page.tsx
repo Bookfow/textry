@@ -2,13 +2,14 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { supabase, Document } from '@/lib/supabase'
+import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
 import { Document as PDFDocument, Page, pdfjs } from 'react-pdf'
 import { AdBanner } from '@/components/ad-banner'
 import { ReactionButtons } from '@/components/reaction-buttons'
+import { SubscribeButton } from '@/components/subscribe-button'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 
@@ -22,6 +23,7 @@ export default function ReadPage() {
   const documentId = params.id as string
 
   const [document, setDocument] = useState<Document | null>(null)
+  const [authorProfile, setAuthorProfile] = useState<Profile | null>(null)
   const [pdfUrl, setPdfUrl] = useState<string>('')
   const [numPages, setNumPages] = useState<number>(0)
   const [pageNumber, setPageNumber] = useState<number>(1)
@@ -69,6 +71,17 @@ export default function ReadPage() {
 
       if (docError) throw docError
       setDocument(docData)
+
+      // 작가 정보 가져오기
+      const { data: authorData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', docData.author_id)
+        .single()
+
+      if (authorData) {
+        setAuthorProfile(authorData)
+      }
 
       // 조회수 증가
       await supabase
@@ -187,20 +200,53 @@ export default function ReadPage() {
               >
                 ← 뒤로
               </Button>
-              <h1 className="text-lg font-semibold">{document?.title}</h1>
+              <div>
+                <h1 className="text-lg font-semibold">{document?.title}</h1>
+                {authorProfile && (
+                  <p className="text-sm text-gray-400">
+                    작가: {authorProfile.username || authorProfile.email}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="text-sm text-gray-400">
               읽기 시간: {Math.floor(totalTime / 60)}분 {totalTime % 60}초
             </div>
           </div>
 
+          {/* 작가 정보 & 구독 버튼 */}
+          {authorProfile && (
+            <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-700">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                  {(authorProfile.username || authorProfile.email)[0].toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-semibold text-white">
+                    {authorProfile.username || authorProfile.email}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    {authorProfile.role === 'author' ? '작가' : '독자'}
+                  </p>
+                </div>
+              </div>
+              <SubscribeButton
+                authorId={authorProfile.id}
+                authorName={authorProfile.username || authorProfile.email}
+                initialSubscribersCount={authorProfile.subscribers_count}
+              />
+            </div>
+          )}
+
           {/* 좋아요/싫어요 버튼 */}
-          <div className="flex items-center gap-4 bg-gray-700 p-2 rounded">
-            <ReactionButtons
-              documentId={documentId}
-              initialLikes={document?.likes_count || 0}
-              initialDislikes={document?.dislikes_count || 0}
-            />
+          <div className="flex items-center gap-4">
+            <div className="bg-white p-3 rounded-lg shadow">
+              <ReactionButtons
+                documentId={documentId}
+                initialLikes={document?.likes_count || 0}
+                initialDislikes={document?.dislikes_count || 0}
+              />
+            </div>
             <div className="text-sm text-gray-400">
               조회수 {document?.view_count.toLocaleString()}회
             </div>
@@ -261,4 +307,4 @@ export default function ReadPage() {
       </div>
     </div>
   )
-}"// Updated" 
+}

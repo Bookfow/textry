@@ -115,10 +115,10 @@ export function ReactionButtons({ documentId, initialLikes, initialDislikes }: R
         size="sm"
         onClick={() => handleReaction('like')}
         disabled={loading}
-        className="gap-2"
+        className={`gap-2 ${userReaction === 'like' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
       >
         <ThumbsUp className={`w-4 h-4 ${userReaction === 'like' ? 'fill-current' : ''}`} />
-        <span>{likes.toLocaleString()}</span>
+        <span className="font-semibold">{likes.toLocaleString()}</span>
       </Button>
 
       <Button
@@ -126,11 +126,11 @@ export function ReactionButtons({ documentId, initialLikes, initialDislikes }: R
         size="sm"
         onClick={() => handleReaction('dislike')}
         disabled={loading}
-        className="gap-2"
+        className={`gap-2 ${userReaction === 'dislike' ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
       >
         <ThumbsDown className={`w-4 h-4 ${userReaction === 'dislike' ? 'fill-current' : ''}`} />
-        <span>{dislikes.toLocaleString()}</span>
+        <span className="font-semibold">{dislikes.toLocaleString()}</span>
       </Button>
     </div>
   )
-}"// Updated" 
+}
