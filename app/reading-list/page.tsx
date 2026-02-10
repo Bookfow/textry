@@ -5,51 +5,76 @@ import { supabase, Document } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, Clock, ThumbsUp, Search } from 'lucide-react'
-import { ReadingListButton } from '@/components/reading-list-button'
+import { Eye, Clock, ThumbsUp, BookmarkX } from 'lucide-react'
 
-export default function BrowsePage() {
+export default function ReadingListPage() {
   const { user } = useAuth()
   const router = useRouter()
   const [documents, setDocuments] = useState<Document[]>([])
-  const [filteredDocs, setFilteredDocs] = useState<Document[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadDocuments()
-  }, [])
-
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      const filtered = documents.filter(doc =>
-        doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        doc.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      setFilteredDocs(filtered)
-    } else {
-      setFilteredDocs(documents)
+    if (!user) {
+      router.push('/login')
+      return
     }
-  }, [searchQuery, documents])
+    loadReadingList()
+  }, [user])
 
-  const loadDocuments = async () => {
+  const loadReadingList = async () => {
+    if (!user) return
+
     try {
-      const { data, error } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('is_published', true)
+      // 읽기 목록 가져오기
+      const { data: listData, error: listError } = await supabase
+        .from('reading_list')
+        .select('document_id')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
-      setDocuments(data || [])
-      setFilteredDocs(data || [])
+      if (listError) throw listError
+
+      if (!listData || listData.length === 0) {
+        setDocuments([])
+        setLoading(false)
+        return
+      }
+
+      const documentIds = listData.map(item => item.document_id)
+
+      // 문서 정보 가져오기
+      const { data: docsData, error: docsError } = await supabase
+        .from('documents')
+        .select('*')
+        .in('id', documentIds)
+
+      if (docsError) throw docsError
+
+      setDocuments(docsData || [])
     } catch (err) {
-      console.error('Error loading documents:', err)
+      console.error('Error loading reading list:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRemove = async (documentId: string) => {
+    if (!user) return
+
+    try {
+      await supabase
+        .from('reading_list')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('document_id', documentId)
+
+      // 목록에서 제거
+      setDocuments(documents.filter(doc => doc.id !== documentId))
+    } catch (err) {
+      console.error('Error removing from reading list:', err)
+      alert('제거에 실패했습니다.')
     }
   }
 
@@ -77,7 +102,15 @@ export default function BrowsePage() {
           </span>
         </div>
         <div className="flex gap-2">
-          <ReadingListButton documentId={doc.id} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleRemove(doc.id)}
+            className="gap-2"
+          >
+            <BookmarkX className="w-4 h-4" />
+            제거
+          </Button>
           <Link href={`/read/${doc.id}`} className="flex-1">
             <Button className="w-full">읽기</Button>
           </Link>
@@ -104,38 +137,25 @@ export default function BrowsePage() {
               <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
             </Link>
             <div className="flex gap-4">
-              {user ? (
+              <Link href="/browse">
+                <Button variant="ghost">둘러보기</Button>
+              </Link>
+              {user?.role === 'author' && (
                 <>
-                  {user.role === 'author' && (
-                    <>
-                      <Link href="/upload">
-                        <Button variant="ghost">업로드</Button>
-                      </Link>
-                      <Link href="/dashboard">
-                        <Button variant="ghost">대시보드</Button>
-                      </Link>
-                    </>
-                  )}
-                  <Link href="/reading-list">
-                    <Button variant="ghost">읽기 목록</Button>
+                  <Link href="/upload">
+                    <Button variant="ghost">업로드</Button>
                   </Link>
-                  <Button variant="ghost" onClick={() => {
-                    supabase.auth.signOut()
-                    router.push('/login')
-                  }}>
-                    로그아웃
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login">
-                    <Button variant="ghost">로그인</Button>
-                  </Link>
-                  <Link href="/signup">
-                    <Button>회원가입</Button>
+                  <Link href="/dashboard">
+                    <Button variant="ghost">대시보드</Button>
                   </Link>
                 </>
               )}
+              <Button variant="ghost" onClick={() => {
+                supabase.auth.signOut()
+                router.push('/login')
+              }}>
+                로그아웃
+              </Button>
             </div>
           </div>
         </div>
@@ -143,31 +163,20 @@ export default function BrowsePage() {
 
       <div className="container mx-auto px-4 py-12">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-4">문서 둘러보기</h2>
-          <p className="text-gray-600 mb-6">무료로 읽을 수 있는 모든 문서</p>
-          
-          {/* 검색 */}
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              type="text"
-              placeholder="문서 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+          <h2 className="text-3xl font-bold mb-4">읽기 목록</h2>
+          <p className="text-gray-600">나중에 읽을 문서 {documents.length}개</p>
         </div>
 
-        {filteredDocs.length === 0 ? (
+        {documents.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">
-              {searchQuery ? '검색 결과가 없습니다' : '아직 문서가 없습니다'}
-            </p>
+            <p className="text-gray-500 mb-4">읽기 목록이 비어있습니다</p>
+            <Link href="/browse">
+              <Button>문서 둘러보기</Button>
+            </Link>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredDocs.map((doc) => (
+            {documents.map((doc) => (
               <DocumentCard key={doc.id} doc={doc} />
             ))}
           </div>

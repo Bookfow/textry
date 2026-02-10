@@ -85,3 +85,10 @@ export type CommentWithProfile = Comment & {
   profile: Profile
   replies?: CommentWithProfile[]
 }
+
+export type ReadingList = {
+  id: string
+  user_id: string
+  document_id: string
+  created_at: string
+}

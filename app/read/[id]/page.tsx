@@ -1,4 +1,5 @@
 'use client'
+import { ReadingListButton } from '@/components/reading-list-button'
 import { CommentsSection } from '@/components/comments-section'
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -235,6 +236,7 @@ export default function ReadPage() {
                 authorName={authorProfile.username || authorProfile.email}
                 initialSubscribersCount={authorProfile.subscribers_count}
               />
+              <ReadingListButton documentId={documentId} />
             </div>
           )}
 

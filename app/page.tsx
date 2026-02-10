@@ -168,6 +168,11 @@ export default function HomePage() {
               <Link href="/browse">
                 <Button variant="ghost">둘러보기</Button>
               </Link>
+              {user && (
+  <Link href="/reading-list">
+    <Button variant="ghost">읽기 목록</Button>
+  </Link>
+)}
               {user ? (
                 <>
                   {user.role === 'author' && (
