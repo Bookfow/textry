@@ -222,14 +222,14 @@ export default function ReadPage() {
                 <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
                   {(authorProfile.username || authorProfile.email)[0].toUpperCase()}
                 </div>
-                <div>
-                  <p className="font-semibold text-white">
-                    {authorProfile.username || authorProfile.email}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    {authorProfile.role === 'author' ? '작가' : '독자'}
-                  </p>
-                </div>
+                <Link href={`/profile/${authorProfile.id}`}>
+  <div className="text-center cursor-pointer hover:opacity-80 transition-opacity">
+    <p className="font-semibold text-lg">{authorProfile.username || authorProfile.email}</p>
+    <p className="text-sm text-gray-500">
+      {authorProfile.role === 'author' ? '작가' : '독자'}
+    </p>
+  </div>
+</Link>
               </div>
               <SubscribeButton
                 authorId={authorProfile.id}

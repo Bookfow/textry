@@ -1,5 +1,5 @@
 'use client'
-
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase, CommentWithProfile, Profile } from '@/lib/supabase'
@@ -320,7 +320,11 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold">{comment.profile.username || comment.profile.email}</span>
+          <Link href={`/profile/${comment.profile.id}`}>
+  <span className="font-semibold hover:underline cursor-pointer">
+    {comment.profile.username || comment.profile.email}
+  </span>
+</Link>
             <span className="text-sm text-gray-500">
               {new Date(comment.created_at).toLocaleDateString('ko-KR')}
             </span>
