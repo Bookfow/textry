@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { supabase, CommentWithProfile } from '@/lib/supabase'
+import { supabase, CommentWithProfile, Profile } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ThumbsUp, MessageCircle, Send } from 'lucide-react'
@@ -20,7 +20,7 @@ function ReplyInput({
 }: { 
   commentId: string
   documentId: string
-  onSuccess: () => void 
+  onSuccess: (newReply: CommentWithProfile) => void 
 }) {
   const { user } = useAuth()
   const [content, setContent] = useState('')
@@ -31,7 +31,8 @@ function ReplyInput({
 
     setLoading(true)
     try {
-      await supabase
+      // 댓글 추가
+      const { data: newComment, error } = await supabase
         .from('comments')
         .insert({
           document_id: documentId,
@@ -39,9 +40,26 @@ function ReplyInput({
           parent_id: commentId,
           content: content.trim(),
         })
+        .select(`
+          *,
+          profile:profiles(*)
+        `)
+        .single()
+
+      if (error) throw error
+
+      // 프로필 정보 가져오기
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
 
       setContent('')
-      onSuccess()
+      onSuccess({
+        ...newComment,
+        profile: profile as Profile
+      })
     } catch (err) {
       console.error('Error posting reply:', err)
       alert('답글 작성에 실패했습니다.')
@@ -58,6 +76,7 @@ function ReplyInput({
         onChange={(e) => setContent(e.target.value)}
         className="flex-1"
         rows={2}
+        autoFocus
       />
       <Button
         onClick={handleSubmit}
@@ -134,16 +153,38 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
     setLoading(true)
 
     try {
-      await supabase
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      const { data: comment, error } = await supabase
         .from('comments')
         .insert({
           document_id: documentId,
           user_id: user.id,
           content: newComment.trim(),
         })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // 새 댓글을 목록에 추가 (새로고침 없이)
+      const newCommentWithProfile: CommentWithProfile = {
+        ...comment,
+        profile: profile as Profile,
+        replies: []
+      }
+
+      if (sortBy === 'recent') {
+        setComments([newCommentWithProfile, ...comments])
+      } else {
+        setComments([...comments, newCommentWithProfile])
+      }
 
       setNewComment('')
-      await loadComments()
     } catch (err) {
       console.error('Error posting comment:', err)
       alert('댓글 작성에 실패했습니다.')
@@ -173,6 +214,20 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
           .delete()
           .eq('comment_id', commentId)
           .eq('user_id', user.id)
+
+        // 좋아요 수 감소 (새로고침 없이)
+        setComments(comments.map(c => 
+          c.id === commentId 
+            ? { ...c, likes_count: c.likes_count - 1 }
+            : {
+                ...c,
+                replies: c.replies?.map(r => 
+                  r.id === commentId 
+                    ? { ...r, likes_count: r.likes_count - 1 }
+                    : r
+                )
+              }
+        ))
       } else {
         await supabase
           .from('comment_likes')
@@ -180,9 +235,21 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
             comment_id: commentId,
             user_id: user.id,
           })
-      }
 
-      await loadComments()
+        // 좋아요 수 증가 (새로고침 없이)
+        setComments(comments.map(c => 
+          c.id === commentId 
+            ? { ...c, likes_count: c.likes_count + 1 }
+            : {
+                ...c,
+                replies: c.replies?.map(r => 
+                  r.id === commentId 
+                    ? { ...r, likes_count: r.likes_count + 1 }
+                    : r
+                )
+              }
+        ))
+      }
     } catch (err) {
       console.error('Error liking comment:', err)
     }
@@ -227,6 +294,16 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
     }
   }
 
+  const handleReplySuccess = (parentId: string, newReply: CommentWithProfile) => {
+    // 답글을 해당 댓글의 replies에 추가 (새로고침 없이)
+    setComments(comments.map(c => 
+      c.id === parentId
+        ? { ...c, replies: [...(c.replies || []), newReply] }
+        : c
+    ))
+    setReplyTo(null)
+  }
+
   const CommentItem = ({ comment, isReply = false }: { comment: CommentWithProfile; isReply?: boolean }) => (
     <div className={`${isReply ? 'ml-12 mt-4' : 'mb-6'} bg-white p-4 rounded-lg`}>
       <div className="flex items-start gap-3">
@@ -266,13 +343,11 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
           
           {/* 답글 입력 */}
           {replyTo === comment.id && (
-            <ReplyInput 
+            <ReplyInput
+            key={comment.id}
               commentId={comment.id} 
               documentId={documentId}
-              onSuccess={async () => {
-                setReplyTo(null)
-                await loadComments()
-              }}
+              onSuccess={(newReply) => handleReplySuccess(comment.id, newReply)}
             />
           )}
         </div>
