@@ -190,9 +190,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
 
   const handleSortChange = async (newSort: 'recent' | 'popular') => {
     setSortBy(newSort)
-    // sortBy 상태가 변경된 후 loadComments를 호출해야 하므로
-    // 직접 호출하지 않고 useEffect에서 처리하도록 수정 필요
-    // 하지만 간단하게 하려면:
     try {
       const { data: topComments, error } = await supabase
         .from('comments')
@@ -319,7 +316,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
         <div className="mb-8 bg-white p-4 rounded-lg">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-              {(user.email)[0].toUpperCase()}
+              {user.email ? user.email[0].toUpperCase() : 'U'}
             </div>
             <div className="flex-1 flex gap-2">
               <Textarea
