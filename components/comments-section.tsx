@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase, CommentWithProfile, Profile } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -66,6 +66,14 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
     }
   }
 
+  // 답글 입력 핸들러 - useCallback으로 메모이제이션
+  const handleReplyChange = useCallback((commentId: string, value: string) => {
+    setReplyContents(prev => ({
+      ...prev,
+      [commentId]: value
+    }))
+  }, [])
+
   const handleSubmitComment = async () => {
     if (!user) {
       alert('로그인이 필요합니다.')
@@ -127,7 +135,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
     const content = replyContents[commentId] || ''
     if (!content.trim()) return
 
-    setReplyLoading({ ...replyLoading, [commentId]: true })
+    setReplyLoading(prev => ({ ...prev, [commentId]: true }))
 
     try {
       const { data: profile } = await supabase
@@ -154,21 +162,19 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
         profile: profile as Profile
       }
 
-      // 답글을 해당 댓글의 replies에 추가
-      setComments(comments.map(c => 
+      setComments(prev => prev.map(c => 
         c.id === commentId
           ? { ...c, replies: [...(c.replies || []), newReply] }
           : c
       ))
 
-      // 답글 입력 초기화
-      setReplyContents({ ...replyContents, [commentId]: '' })
+      setReplyContents(prev => ({ ...prev, [commentId]: '' }))
       setReplyTo(null)
     } catch (err) {
       console.error('Error posting reply:', err)
       alert('답글 작성에 실패했습니다.')
     } finally {
-      setReplyLoading({ ...replyLoading, [commentId]: false })
+      setReplyLoading(prev => ({ ...prev, [commentId]: false }))
     }
   }
 
@@ -194,7 +200,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
           .eq('comment_id', commentId)
           .eq('user_id', user.id)
 
-        setComments(comments.map(c => 
+        setComments(prev => prev.map(c => 
           c.id === commentId 
             ? { ...c, likes_count: c.likes_count - 1 }
             : {
@@ -214,7 +220,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
             user_id: user.id,
           })
 
-        setComments(comments.map(c => 
+        setComments(prev => prev.map(c => 
           c.id === commentId 
             ? { ...c, likes_count: c.likes_count + 1 }
             : {
@@ -308,7 +314,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
             )}
           </div>
           
-          {/* 답글 입력 - 댓글과 똑같은 방식 */}
+          {/* 답글 입력 */}
           {replyTo === comment.id && (
             <div className="mt-4 bg-gray-50 p-3 rounded-lg">
               <div className="flex items-start gap-3">
@@ -319,7 +325,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
                   <Textarea
                     placeholder="답글을 입력하세요..."
                     value={replyContents[comment.id] || ''}
-                    onChange={(e) => setReplyContents({ ...replyContents, [comment.id]: e.target.value })}
+                    onChange={(e) => handleReplyChange(comment.id, e.target.value)}
                     className="flex-1"
                     rows={2}
                   />
@@ -332,7 +338,10 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
                       <Send className="w-4 h-4" />
                     </Button>
                     <Button
-                      onClick={() => setReplyTo(null)}
+                      onClick={() => {
+                        setReplyTo(null)
+                        setReplyContents(prev => ({ ...prev, [comment.id]: '' }))
+                      }}
                       variant="outline"
                       size="sm"
                     >
