@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { supabase, CommentWithProfile, Profile } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { ThumbsUp, MessageCircle, Send } from 'lucide-react'
+import { ThumbsUp, MessageCircle, Send, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
   Dialog,
@@ -124,6 +124,34 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       alert('댓글 작성에 실패했습니다.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string, isReply: boolean, parentId?: string) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return
+
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', commentId)
+
+      if (error) throw error
+
+      if (isReply && parentId) {
+        // 답글 삭제
+        setComments(prev => prev.map(c => 
+          c.id === parentId
+            ? { ...c, replies: c.replies?.filter(r => r.id !== commentId) }
+            : c
+        ))
+      } else {
+        // 댓글 삭제 (답글도 함께 삭제됨 - CASCADE)
+        setComments(prev => prev.filter(c => c.id !== commentId))
+      }
+    } catch (err) {
+      console.error('Error deleting comment:', err)
+      alert('삭제에 실패했습니다.')
     }
   }
 
@@ -284,7 +312,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
     }
   }
 
-  const CommentItem = ({ comment, isReply = false }: { comment: CommentWithProfile; isReply?: boolean }) => (
+  const CommentItem = ({ comment, isReply = false, parentId }: { comment: CommentWithProfile; isReply?: boolean; parentId?: string }) => (
     <div className={`${isReply ? 'ml-12 mt-4' : 'mb-6'} bg-white p-4 rounded-lg`}>
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
@@ -319,6 +347,18 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
                 답글
               </Button>
             )}
+            {/* 본인 댓글/답글만 삭제 가능 */}
+            {user?.id === comment.user_id && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDeleteComment(comment.id, isReply, parentId)}
+                className="gap-1 text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+                삭제
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -327,7 +367,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       {comment.replies && comment.replies.length > 0 && (
         <div className="mt-4">
           {comment.replies.map((reply) => (
-            <CommentItem key={reply.id} comment={reply} isReply />
+            <CommentItem key={reply.id} comment={reply} isReply parentId={comment.id} />
           ))}
         </div>
       )}
