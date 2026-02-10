@@ -10,13 +10,20 @@ import { FileText, Zap, Users, TrendingUp, BookOpen, MessageCircle, Heart, Bookm
 export default function LandingPage() {
   const { user } = useAuth()
   const router = useRouter()
+  const [loading, setLoading] = useState(true)
 
   // 로그인한 사용자는 홈으로 리다이렉트
   useEffect(() => {
     if (user) {
       router.push('/home')
+    } else {
+      setLoading(false)
     }
   }, [user, router])
+
+  if (loading) {
+    return null // 또는 로딩 스피너
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
