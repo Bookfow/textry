@@ -140,7 +140,7 @@ export default function BrowsePage() {
                   </Link>
                   <Button variant="ghost" onClick={() => {
                     supabase.auth.signOut()
-                    router.push('/login')
+                    router.push('/')
                   }}>
                     로그아웃
                   </Button>

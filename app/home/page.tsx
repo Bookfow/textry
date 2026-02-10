@@ -156,7 +156,7 @@ export default function HomePage() {
                   )}
                   <Button variant="ghost" onClick={() => {
                     supabase.auth.signOut()
-                    router.push('/login')
+                    router.push('/')  //
                   }}>
                     로그아웃
                   </Button>

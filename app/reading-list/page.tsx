@@ -18,7 +18,7 @@ export default function ReadingListPage() {
 
   useEffect(() => {
     if (!user) {
-      router.push('/login')
+        router.push('/')
       return
     }
     loadReadingList()
