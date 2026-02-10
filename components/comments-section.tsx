@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase, CommentWithProfile, Profile } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -12,98 +12,6 @@ interface CommentsSectionProps {
   documentId: string
 }
 
-// 답글 입력 컴포넌트 - useRef 사용
-function ReplyInput({ 
-  commentId, 
-  documentId, 
-  onSuccess,
-  onCancel
-}: { 
-  commentId: string
-  documentId: string
-  onSuccess: (newReply: CommentWithProfile) => void
-  onCancel: () => void
-}) {
-  const { user } = useAuth()
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [loading, setLoading] = useState(false)
-
-  const handleSubmit = async () => {
-    if (!user) return
-    
-    const content = textareaRef.current?.value || ''
-    if (!content.trim()) return
-
-    setLoading(true)
-    try {
-      const { data: newComment, error } = await supabase
-        .from('comments')
-        .insert({
-          document_id: documentId,
-          user_id: user.id,
-          parent_id: commentId,
-          content: content.trim(),
-        })
-        .select(`
-          *,
-          profile:profiles(*)
-        `)
-        .single()
-
-      if (error) throw error
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (textareaRef.current) {
-        textareaRef.current.value = ''
-      }
-      
-      onSuccess({
-        ...newComment,
-        profile: profile as Profile
-      })
-    } catch (err) {
-      console.error('Error posting reply:', err)
-      alert('답글 작성에 실패했습니다.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div className="mt-4 flex gap-2">
-      <Textarea
-        ref={textareaRef}
-        placeholder="답글을 입력하세요..."
-        className="flex-1"
-        rows={2}
-        autoFocus
-        defaultValue=""
-      />
-      <div className="flex flex-col gap-2">
-        <Button
-          onClick={handleSubmit}
-          disabled={loading}
-          size="sm"
-        >
-          <Send className="w-4 h-4" />
-        </Button>
-        <Button
-          onClick={onCancel}
-          variant="outline"
-          size="sm"
-        >
-          취소
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 export function CommentsSection({ documentId }: CommentsSectionProps) {
   const { user } = useAuth()
   const router = useRouter()
@@ -111,8 +19,10 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
   const [comments, setComments] = useState<CommentWithProfile[]>([])
   const [newComment, setNewComment] = useState('')
   const [replyTo, setReplyTo] = useState<string | null>(null)
+  const [replyContents, setReplyContents] = useState<{[key: string]: string}>({})
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent')
   const [loading, setLoading] = useState(false)
+  const [replyLoading, setReplyLoading] = useState<{[key: string]: boolean}>({})
 
   useEffect(() => {
     loadComments()
@@ -204,6 +114,61 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       alert('댓글 작성에 실패했습니다.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSubmitReply = async (commentId: string) => {
+    if (!user) {
+      alert('로그인이 필요합니다.')
+      router.push('/login')
+      return
+    }
+
+    const content = replyContents[commentId] || ''
+    if (!content.trim()) return
+
+    setReplyLoading({ ...replyLoading, [commentId]: true })
+
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      const { data: reply, error } = await supabase
+        .from('comments')
+        .insert({
+          document_id: documentId,
+          user_id: user.id,
+          parent_id: commentId,
+          content: content.trim(),
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      const newReply: CommentWithProfile = {
+        ...reply,
+        profile: profile as Profile
+      }
+
+      // 답글을 해당 댓글의 replies에 추가
+      setComments(comments.map(c => 
+        c.id === commentId
+          ? { ...c, replies: [...(c.replies || []), newReply] }
+          : c
+      ))
+
+      // 답글 입력 초기화
+      setReplyContents({ ...replyContents, [commentId]: '' })
+      setReplyTo(null)
+    } catch (err) {
+      console.error('Error posting reply:', err)
+      alert('답글 작성에 실패했습니다.')
+    } finally {
+      setReplyLoading({ ...replyLoading, [commentId]: false })
     }
   }
 
@@ -306,15 +271,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
     }
   }
 
-  const handleReplySuccess = (parentId: string, newReply: CommentWithProfile) => {
-    setComments(comments.map(c => 
-      c.id === parentId
-        ? { ...c, replies: [...(c.replies || []), newReply] }
-        : c
-    ))
-    setReplyTo(null)
-  }
-
   const CommentItem = ({ comment, isReply = false }: { comment: CommentWithProfile; isReply?: boolean }) => (
     <div className={`${isReply ? 'ml-12 mt-4' : 'mb-6'} bg-white p-4 rounded-lg`}>
       <div className="flex items-start gap-3">
@@ -352,14 +308,40 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
             )}
           </div>
           
-          {/* 답글 입력 */}
+          {/* 답글 입력 - 댓글과 똑같은 방식 */}
           {replyTo === comment.id && (
-            <ReplyInput 
-              commentId={comment.id} 
-              documentId={documentId}
-              onSuccess={(newReply) => handleReplySuccess(comment.id, newReply)}
-              onCancel={() => setReplyTo(null)}
-            />
+            <div className="mt-4 bg-gray-50 p-3 rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 text-sm">
+                  {user?.email ? user.email[0].toUpperCase() : 'U'}
+                </div>
+                <div className="flex-1 flex gap-2">
+                  <Textarea
+                    placeholder="답글을 입력하세요..."
+                    value={replyContents[comment.id] || ''}
+                    onChange={(e) => setReplyContents({ ...replyContents, [comment.id]: e.target.value })}
+                    className="flex-1"
+                    rows={2}
+                  />
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      onClick={() => handleSubmitReply(comment.id)}
+                      disabled={replyLoading[comment.id] || !(replyContents[comment.id] || '').trim()}
+                      size="sm"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      onClick={() => setReplyTo(null)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      취소
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
