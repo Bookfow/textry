@@ -1,12 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase, CommentWithProfile, Profile } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ThumbsUp, MessageCircle, Send } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface CommentsSectionProps {
   documentId: string
@@ -18,11 +25,14 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
   
   const [comments, setComments] = useState<CommentWithProfile[]>([])
   const [newComment, setNewComment] = useState('')
-  const [replyTo, setReplyTo] = useState<string | null>(null)
-  const [replyContents, setReplyContents] = useState<{[key: string]: string}>({})
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent')
   const [loading, setLoading] = useState(false)
-  const [replyLoading, setReplyLoading] = useState<{[key: string]: boolean}>({})
+  
+  // 답글 팝업 상태
+  const [replyModalOpen, setReplyModalOpen] = useState(false)
+  const [replyingTo, setReplyingTo] = useState<CommentWithProfile | null>(null)
+  const [replyContent, setReplyContent] = useState('')
+  const [replyLoading, setReplyLoading] = useState(false)
 
   useEffect(() => {
     loadComments()
@@ -65,14 +75,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       console.error('Error loading comments:', err)
     }
   }
-
-  // 답글 입력 핸들러 - useCallback으로 메모이제이션
-  const handleReplyChange = useCallback((commentId: string, value: string) => {
-    setReplyContents(prev => ({
-      ...prev,
-      [commentId]: value
-    }))
-  }, [])
 
   const handleSubmitComment = async () => {
     if (!user) {
@@ -125,17 +127,21 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
     }
   }
 
-  const handleSubmitReply = async (commentId: string) => {
+  const openReplyModal = (comment: CommentWithProfile) => {
     if (!user) {
       alert('로그인이 필요합니다.')
       router.push('/login')
       return
     }
+    setReplyingTo(comment)
+    setReplyContent('')
+    setReplyModalOpen(true)
+  }
 
-    const content = replyContents[commentId] || ''
-    if (!content.trim()) return
+  const handleSubmitReply = async () => {
+    if (!user || !replyingTo || !replyContent.trim()) return
 
-    setReplyLoading(prev => ({ ...prev, [commentId]: true }))
+    setReplyLoading(true)
 
     try {
       const { data: profile } = await supabase
@@ -149,8 +155,8 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
         .insert({
           document_id: documentId,
           user_id: user.id,
-          parent_id: commentId,
-          content: content.trim(),
+          parent_id: replyingTo.id,
+          content: replyContent.trim(),
         })
         .select()
         .single()
@@ -163,18 +169,19 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       }
 
       setComments(prev => prev.map(c => 
-        c.id === commentId
+        c.id === replyingTo.id
           ? { ...c, replies: [...(c.replies || []), newReply] }
           : c
       ))
 
-      setReplyContents(prev => ({ ...prev, [commentId]: '' }))
-      setReplyTo(null)
+      setReplyModalOpen(false)
+      setReplyContent('')
+      setReplyingTo(null)
     } catch (err) {
       console.error('Error posting reply:', err)
       alert('답글 작성에 실패했습니다.')
     } finally {
-      setReplyLoading(prev => ({ ...prev, [commentId]: false }))
+      setReplyLoading(false)
     }
   }
 
@@ -305,7 +312,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
+                onClick={() => openReplyModal(comment)}
                 className="gap-1 text-gray-600 hover:text-blue-600"
               >
                 <MessageCircle className="w-4 h-4" />
@@ -313,45 +320,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
               </Button>
             )}
           </div>
-          
-          {/* 답글 입력 */}
-          {replyTo === comment.id && (
-            <div className="mt-4 bg-gray-50 p-3 rounded-lg">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 text-sm">
-                  {user?.email ? user.email[0].toUpperCase() : 'U'}
-                </div>
-                <div className="flex-1 flex gap-2">
-                  <Textarea
-                    placeholder="답글을 입력하세요..."
-                    value={replyContents[comment.id] || ''}
-                    onChange={(e) => handleReplyChange(comment.id, e.target.value)}
-                    className="flex-1"
-                    rows={2}
-                  />
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      onClick={() => handleSubmitReply(comment.id)}
-                      disabled={replyLoading[comment.id] || !(replyContents[comment.id] || '').trim()}
-                      size="sm"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setReplyTo(null)
-                        setReplyContents(prev => ({ ...prev, [comment.id]: '' }))
-                      }}
-                      variant="outline"
-                      size="sm"
-                    >
-                      취소
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -431,6 +399,48 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
           ))}
         </div>
       )}
+
+      {/* 답글 작성 팝업 */}
+      <Dialog open={replyModalOpen} onOpenChange={setReplyModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>답글 작성</DialogTitle>
+            <DialogDescription>
+              {replyingTo && `${replyingTo.profile.username || replyingTo.profile.email}님의 댓글에 답글을 작성합니다`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            {replyingTo && (
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">원본 댓글:</p>
+                <p className="text-sm">{replyingTo.content}</p>
+              </div>
+            )}
+            <Textarea
+              placeholder="답글을 입력하세요..."
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+              rows={4}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setReplyModalOpen(false)}
+              >
+                취소
+              </Button>
+              <Button
+                onClick={handleSubmitReply}
+                disabled={replyLoading || !replyContent.trim()}
+              >
+                <Send className="w-4 h-4 mr-2" />
+                답글 작성
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
