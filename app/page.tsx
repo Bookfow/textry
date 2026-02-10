@@ -11,21 +11,20 @@ export default function LandingPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
 
-  // 로그인한 사용자는 홈으로 리다이렉트
-  useEffect(() => {
-    if (!loading && user) {
-      router.push('/home')
-    }
-  }, [user, loading, router])
-
-  // 로딩 중이면 아무것도 표시 안 함
-  if (loading) {
-    return null
+// 로그인한 사용자는 홈으로 리다이렉트
+useEffect(() => {
+  if (!loading && user) {
+    router.replace('/home')
   }
+}, [user, loading, router])
 
-  // 로그인한 사용자면 null (리다이렉트 중)
-  if (user) {
-    return null
+// 로딩 중이거나 로그인한 사용자면 빈 화면
+if (loading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">로딩 중...</div>
+      </div>
+    )
   }
 
   return (
