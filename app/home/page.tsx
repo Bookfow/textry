@@ -7,11 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { TrendingUp, Sparkles, BookOpen, FileText, Eye, Clock, ThumbsUp } from 'lucide-react'
+import { TrendingUp, Sparkles, BookOpen, Eye, Clock, ThumbsUp } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 
 export default function HomePage() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const router = useRouter()
   const [trendingDocs, setTrendingDocs] = useState<Document[]>([])
   const [subscribedDocs, setSubscribedDocs] = useState<Document[]>([])
@@ -144,7 +144,7 @@ export default function HomePage() {
               )}
               {user ? (
                 <>
-                  {user.role === 'author' && (
+                  {profile?.role === 'author' && (
                     <>
                       <Link href="/upload">
                         <Button variant="ghost">업로드</Button>
