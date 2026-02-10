@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Upload, FileText } from 'lucide-react'
 import { CATEGORIES } from '@/lib/categories'
+import { LANGUAGES } from '@/lib/languages'
 
 export default function UploadPage() {
   const { user, profile } = useAuth()
@@ -19,6 +20,7 @@ export default function UploadPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<string>('')
+  const [language, setLanguage] = useState<string>('')
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -47,7 +49,7 @@ export default function UploadPage() {
         setError('PDF 파일만 업로드 가능합니다.')
         return
       }
-      if (selectedFile.size > 10 * 1024 * 1024) { // 10MB 제한
+      if (selectedFile.size > 10 * 1024 * 1024) {
         setError('파일 크기는 10MB 이하여야 합니다.')
         return
       }
@@ -83,6 +85,7 @@ export default function UploadPage() {
           title,
           description,
           category: category || null,
+          language: language || null,
           file_path: filePath,
           file_size: file.size,
           is_published: true,
@@ -139,6 +142,26 @@ export default function UploadPage() {
                         <span className="flex items-center gap-2">
                           <span>{cat.icon}</span>
                           <span>{cat.label}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 언어 */}
+              <div className="space-y-2">
+                <Label htmlFor="language">언어 *</Label>
+                <Select value={language} onValueChange={setLanguage} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="언어를 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        <span className="flex items-center gap-2">
+                          <span>{lang.flag}</span>
+                          <span>{lang.label}</span>
                         </span>
                       </SelectItem>
                     ))}
@@ -203,7 +226,7 @@ export default function UploadPage() {
                 <Button
                   type="submit"
                   className="flex-1"
-                  disabled={uploading || !file || !title || !category}
+                  disabled={uploading || !file || !title || !category || !language}
                 >
                   {uploading ? '업로드 중...' : '업로드'}
                 </Button>

@@ -26,6 +26,7 @@ export type Document = {
   page_count: number | null
   cover_image_url: string | null
   category: string | null
+  language: string | null
   is_published: boolean
   view_count: number
   total_reading_time: number
