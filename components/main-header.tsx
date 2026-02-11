@@ -90,10 +90,10 @@ export function MainHeader({
 
             {/* 정렬 */}
             <Select value={sortBy} onValueChange={onSortChange}>
-              <SelectTrigger className="w-36 rounded-full bg-gray-100 border-0 h-10">
+              <SelectTrigger className="w-32 rounded-full bg-gray-100 border-0 h-10">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="min-w-[120px]">
                 <SelectItem value="recent">최신순</SelectItem>
                 <SelectItem value="popular">인기순</SelectItem>
                 <SelectItem value="views">조회수순</SelectItem>
@@ -170,7 +170,7 @@ export function MainHeader({
             <SelectTrigger className="rounded-full bg-gray-100 border-0 text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="min-w-[120px]">
               <SelectItem value="recent">최신순</SelectItem>
               <SelectItem value="popular">인기순</SelectItem>
               <SelectItem value="views">조회수순</SelectItem>
