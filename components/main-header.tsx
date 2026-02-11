@@ -115,11 +115,11 @@ export function MainHeader({
               <Link href="/upload">
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="rounded-full hover:bg-gray-100"
+                  className="rounded-full hover:bg-gray-100 h-10 px-4"
                   title="업로드"
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-5 h-5 mr-1" />
+                  <span className="hidden md:inline">업로드</span>
                 </Button>
               </Link>
             )}
