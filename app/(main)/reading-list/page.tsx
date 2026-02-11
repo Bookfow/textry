@@ -9,14 +9,20 @@ import { useRouter } from 'next/navigation'
 import { Eye, ThumbsUp, BookmarkX, Play } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
-import { NotificationsBell } from '@/components/notifications-bell'
-import { ProfileMenu } from '@/components/profile-menu'
+import { MainHeader } from '@/components/main-header'
 
 export default function ReadingListPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const [documents, setDocuments] = useState<Document[]>([])
+  const [allDocs, setAllDocs] = useState<Document[]>([])
+  const [filteredDocs, setFilteredDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
+
+  // 필터 상태
+  const [searchQuery, setSearchQuery] = useState('')
+  const [category, setCategory] = useState('all')
+  const [language, setLanguage] = useState('all')
+  const [sortBy, setSortBy] = useState('recent')
 
   useEffect(() => {
     if (!user) {
@@ -25,6 +31,10 @@ export default function ReadingListPage() {
     }
     loadReadingList()
   }, [user])
+
+  useEffect(() => {
+    filterDocuments()
+  }, [searchQuery, category, language, sortBy, allDocs])
 
   const loadReadingList = async () => {
     if (!user) return
@@ -39,7 +49,7 @@ export default function ReadingListPage() {
       if (listError) throw listError
 
       if (!listData || listData.length === 0) {
-        setDocuments([])
+        setAllDocs([])
         setLoading(false)
         return
       }
@@ -53,12 +63,51 @@ export default function ReadingListPage() {
 
       if (docsError) throw docsError
 
-      setDocuments(docsData || [])
+      setAllDocs(docsData || [])
     } catch (err) {
       console.error('Error loading reading list:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  const filterDocuments = () => {
+    let filtered = allDocs
+
+    // 카테고리 필터
+    if (category !== 'all') {
+      filtered = filtered.filter(doc => doc.category === category)
+    }
+
+    // 언어 필터
+    if (language !== 'all') {
+      filtered = filtered.filter(doc => doc.language === language)
+    }
+
+    // 검색어 필터
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(doc =>
+        doc.title.toLowerCase().includes(query) ||
+        doc.description?.toLowerCase().includes(query)
+      )
+    }
+
+    // 정렬
+    filtered = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'recent':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        case 'popular':
+          return b.likes_count - a.likes_count
+        case 'views':
+          return b.view_count - a.view_count
+        default:
+          return 0
+      }
+    })
+
+    setFilteredDocs(filtered)
   }
 
   const handleRemove = async (documentId: string) => {
@@ -71,7 +120,7 @@ export default function ReadingListPage() {
         .eq('user_id', user.id)
         .eq('document_id', documentId)
 
-      setDocuments(documents.filter(doc => doc.id !== documentId))
+      setAllDocs(allDocs.filter(doc => doc.id !== documentId))
     } catch (err) {
       console.error('Error removing from reading list:', err)
       alert('제거에 실패했습니다.')
@@ -152,58 +201,43 @@ export default function ReadingListPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* 헤더 */}
-      <header className="sticky top-0 z-20 bg-white border-b">
-        <div className="px-4 md:px-6 py-3 flex items-center justify-between">
-          <div className="flex-1 lg:flex-initial">
-            <Link href="/home">
-              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Textry
-              </h1>
-            </Link>
-          </div>
+      <MainHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        category={category}
+        onCategoryChange={setCategory}
+        language={language}
+        onLanguageChange={setLanguage}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
 
-          <div className="hidden md:flex flex-1 max-w-2xl mx-4">
-            <Link href="/browse" className="w-full">
-              <div className="w-full px-4 py-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer text-sm">
-                문서 검색...
-              </div>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2 md:gap-3">
-            {user && <NotificationsBell />}
-            {user && <ProfileMenu />}
-          </div>
-        </div>
-
-        <div className="md:hidden px-4 pb-3">
-          <Link href="/browse">
-            <div className="w-full px-4 py-2 bg-gray-100 rounded-full text-gray-500 text-sm">
-              문서 검색...
-            </div>
-          </Link>
-        </div>
-      </header>
-
-      {/* 메인 콘텐츠 */}
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-[2000px] mx-auto">
           <div className="mb-6">
             <h2 className="text-2xl md:text-3xl font-bold mb-2">읽기 목록</h2>
-            <p className="text-gray-600">나중에 읽을 문서 {documents.length}개</p>
+            <p className="text-gray-600">
+              총 {allDocs.length}개 중 {filteredDocs.length}개 표시
+              {searchQuery && ` (검색어: "${searchQuery}")`}
+            </p>
           </div>
 
-          {documents.length === 0 ? (
+          {filteredDocs.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-gray-500 mb-4">읽기 목록이 비어있습니다</p>
-              <Link href="/browse">
-                <Button>문서 둘러보기</Button>
-              </Link>
+              <p className="text-gray-500 mb-4">
+                {searchQuery || category !== 'all' || language !== 'all'
+                  ? '검색 결과가 없습니다'
+                  : '읽기 목록이 비어있습니다'}
+              </p>
+              {allDocs.length === 0 && (
+                <Link href="/browse">
+                  <Button>문서 둘러보기</Button>
+                </Link>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
-              {documents.map((doc) => (
+              {filteredDocs.map((doc) => (
                 <DocumentCard key={doc.id} doc={doc} />
               ))}
             </div>

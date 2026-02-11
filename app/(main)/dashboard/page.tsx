@@ -3,20 +3,20 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase, Document } from '@/lib/supabase'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { DollarSign, Eye, Clock, FileText, Users, Trash2, Play } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
-import { NotificationsBell } from '@/components/notifications-bell'
-import { ProfileMenu } from '@/components/profile-menu'
+import { MainHeader } from '@/components/main-header'
 
 export default function DashboardPage() {
   const { user, profile } = useAuth()
   const router = useRouter()
-  const [documents, setDocuments] = useState<Document[]>([])
+  const [allDocs, setAllDocs] = useState<Document[]>([])
+  const [filteredDocs, setFilteredDocs] = useState<Document[]>([])
   const [stats, setStats] = useState({
     totalViews: 0,
     totalReadingTime: 0,
@@ -25,12 +25,18 @@ export default function DashboardPage() {
   })
   const [loading, setLoading] = useState(true)
 
+  // 필터 상태
+  const [searchQuery, setSearchQuery] = useState('')
+  const [category, setCategory] = useState('all')
+  const [language, setLanguage] = useState('all')
+  const [sortBy, setSortBy] = useState('recent')
+
   if (!user || profile?.role !== 'author') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>접근 권한 없음</CardTitle>
+            <h2 className="text-xl font-bold">접근 권한 없음</h2>
             <CardDescription>작가 계정만 대시보드에 접근할 수 있습니다.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -47,6 +53,10 @@ export default function DashboardPage() {
     }
   }, [user])
 
+  useEffect(() => {
+    filterDocuments()
+  }, [searchQuery, category, language, sortBy, allDocs])
+
   const loadDashboard = async () => {
     if (!user) return
 
@@ -59,7 +69,7 @@ export default function DashboardPage() {
 
       if (docsError) throw docsError
 
-      setDocuments(docs || [])
+      setAllDocs(docs || [])
 
       const totalViews = docs?.reduce((sum, doc) => sum + doc.view_count, 0) || 0
       const totalReadingTime = docs?.reduce((sum, doc) => sum + doc.total_reading_time, 0) || 0
@@ -86,6 +96,45 @@ export default function DashboardPage() {
     }
   }
 
+  const filterDocuments = () => {
+    let filtered = allDocs
+
+    // 카테고리 필터
+    if (category !== 'all') {
+      filtered = filtered.filter(doc => doc.category === category)
+    }
+
+    // 언어 필터
+    if (language !== 'all') {
+      filtered = filtered.filter(doc => doc.language === language)
+    }
+
+    // 검색어 필터
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(doc =>
+        doc.title.toLowerCase().includes(query) ||
+        doc.description?.toLowerCase().includes(query)
+      )
+    }
+
+    // 정렬
+    filtered = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'recent':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        case 'popular':
+          return b.likes_count - a.likes_count
+        case 'views':
+          return b.view_count - a.view_count
+        default:
+          return 0
+      }
+    })
+
+    setFilteredDocs(filtered)
+  }
+
   const handleDelete = async (doc: Document) => {
     if (!confirm(`"${doc.title}" 문서를 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
       return
@@ -109,7 +158,7 @@ export default function DashboardPage() {
 
       alert('문서가 삭제되었습니다.')
       
-      setDocuments(documents.filter(d => d.id !== doc.id))
+      setAllDocs(allDocs.filter(d => d.id !== doc.id))
       
       loadDashboard()
     } catch (err) {
@@ -195,34 +244,25 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* 헤더 */}
-      <header className="sticky top-0 z-20 bg-white border-b">
-        <div className="px-4 md:px-6 py-3 flex items-center justify-between">
-          <div className="flex-1 lg:flex-initial">
-            <Link href="/home">
-              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Textry
-              </h1>
-            </Link>
-          </div>
+      <MainHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        category={category}
+        onCategoryChange={setCategory}
+        language={language}
+        onLanguageChange={setLanguage}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
 
-          <div className="hidden md:flex flex-1 max-w-2xl mx-4 justify-center">
+      <main className="flex-1 p-4 md:p-6 lg:p-8">
+        <div className="max-w-[2000px] mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold">대시보드</h2>
             <Link href="/upload">
               <Button>새 문서 업로드</Button>
             </Link>
           </div>
-
-          <div className="flex items-center gap-2 md:gap-3">
-            {user && <NotificationsBell />}
-            {user && <ProfileMenu />}
-          </div>
-        </div>
-      </header>
-
-      {/* 메인 콘텐츠 */}
-      <main className="flex-1 p-4 md:p-6 lg:p-8">
-        <div className="max-w-[2000px] mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6">대시보드</h2>
 
           {/* 통계 카드 */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -277,28 +317,29 @@ export default function DashboardPage() {
 
           {/* 내 문서 */}
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                내 문서 ({documents.length})
-              </h3>
-              <Link href="/upload" className="md:hidden">
-                <Button size="sm">업로드</Button>
-              </Link>
-            </div>
+            <h3 className="text-xl md:text-2xl font-bold flex items-center gap-2 mb-4">
+              <FileText className="w-5 h-5" />
+              내 문서 (총 {allDocs.length}개 중 {filteredDocs.length}개 표시)
+            </h3>
 
-            {documents.length === 0 ? (
+            {filteredDocs.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
-                  <p className="text-gray-500 mb-4">아직 업로드한 문서가 없습니다</p>
-                  <Link href="/upload">
-                    <Button>첫 문서 업로드하기</Button>
-                  </Link>
+                  <p className="text-gray-500 mb-4">
+                    {searchQuery || category !== 'all' || language !== 'all'
+                      ? '검색 결과가 없습니다'
+                      : '아직 업로드한 문서가 없습니다'}
+                  </p>
+                  {allDocs.length === 0 && (
+                    <Link href="/upload">
+                      <Button>첫 문서 업로드하기</Button>
+                    </Link>
+                  )}
                 </CardContent>
               </Card>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
-                {documents.map((doc) => (
+                {filteredDocs.map((doc) => (
                   <DocumentCard key={doc.id} doc={doc} />
                 ))}
               </div>
