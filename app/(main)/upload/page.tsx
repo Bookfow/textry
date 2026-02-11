@@ -10,10 +10,9 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Progress } from '@/components/ui/progress'
 import { CATEGORIES } from '@/lib/categories'
 import { LANGUAGES } from '@/lib/languages'
-import { FileText, Upload as UploadIcon, Image as ImageIcon } from 'lucide-react'
+import { FileText, Upload as UploadIcon } from 'lucide-react'
 
 export default function UploadPage() {
   const { user } = useAuth()
@@ -279,7 +278,12 @@ export default function UploadPage() {
                 {/* 진행률 */}
                 {uploading && (
                   <div className="space-y-2">
-                    <Progress value={progress} />
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="bg-blue-600 h-full transition-all duration-300"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
                     <p className="text-sm text-gray-600 text-center">
                       업로드 중... {progress}%
                     </p>
