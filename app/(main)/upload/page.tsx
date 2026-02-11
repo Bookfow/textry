@@ -19,7 +19,7 @@ export default function UploadPage() {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [category, setCategory] = useState('fiction')
+  const [category, setCategory] = useState('tech')
   const [language, setLanguage] = useState('ko')
   const [file, setFile] = useState<File | null>(null)
   const [thumbnail, setThumbnail] = useState<File | null>(null)
@@ -194,7 +194,7 @@ export default function UploadPage() {
                 <div className="space-y-2">
   <Label htmlFor="category">카테고리 *</Label>
   <Select value={category} onValueChange={setCategory}>
-    <SelectTrigger id="category" className="min-w-[200px]">
+    <SelectTrigger id="category">
       <SelectValue />
     </SelectTrigger>
                       <SelectContent>
