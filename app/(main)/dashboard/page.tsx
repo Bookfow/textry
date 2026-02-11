@@ -5,10 +5,13 @@ import { useAuth } from '@/lib/auth-context'
 import { supabase, Document } from '@/lib/supabase'
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import Link from 'next/link'
-import { DollarSign, Eye, Clock, FileText, Users, Trash2, Play } from 'lucide-react'
+import { DollarSign, Eye, Clock, FileText, Users, Trash2, Play, Image as ImageIcon } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -20,6 +23,9 @@ export default function DashboardPage() {
     subscribersCount: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [editingThumbnail, setEditingThumbnail] = useState<string | null>(null)
+  const [newThumbnail, setNewThumbnail] = useState<File | null>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -80,6 +86,12 @@ export default function DashboardPage() {
         console.error('Storage delete error:', storageError)
       }
 
+      // 썸네일도 삭제
+      if (doc.thumbnail_url) {
+        const thumbPath = doc.thumbnail_url.split('/').slice(-2).join('/')
+        await supabase.storage.from('thumbnails').remove([thumbPath])
+      }
+
       const { error: dbError } = await supabase
         .from('documents')
         .delete()
@@ -95,6 +107,70 @@ export default function DashboardPage() {
     } catch (err) {
       console.error('Error deleting document:', err)
       alert('문서 삭제에 실패했습니다.')
+    }
+  }
+
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (selectedFile) {
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        alert('썸네일 크기는 5MB 이하여야 합니다.')
+        return
+      }
+      if (!selectedFile.type.startsWith('image/')) {
+        alert('이미지 파일만 업로드 가능합니다.')
+        return
+      }
+      setNewThumbnail(selectedFile)
+      
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result as string)
+      }
+      reader.readAsDataURL(selectedFile)
+    }
+  }
+
+  const handleUpdateThumbnail = async (docId: string, oldThumbnailUrl: string | null) => {
+    if (!newThumbnail || !user) return
+
+    try {
+      // 기존 썸네일 삭제
+      if (oldThumbnailUrl) {
+        const oldPath = oldThumbnailUrl.split('/').slice(-2).join('/')
+        await supabase.storage.from('thumbnails').remove([oldPath])
+      }
+
+      // 새 썸네일 업로드
+      const thumbExt = newThumbnail.name.split('.').pop()
+      const thumbFileName = `${user.id}/${Date.now()}.${thumbExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('thumbnails')
+        .upload(thumbFileName, newThumbnail)
+
+      if (uploadError) throw uploadError
+
+      const { data: thumbUrlData } = supabase.storage
+        .from('thumbnails')
+        .getPublicUrl(thumbFileName)
+
+      // DB 업데이트
+      const { error: updateError } = await supabase
+        .from('documents')
+        .update({ thumbnail_url: thumbUrlData.publicUrl })
+        .eq('id', docId)
+
+      if (updateError) throw updateError
+
+      alert('썸네일이 변경되었습니다.')
+      setEditingThumbnail(null)
+      setNewThumbnail(null)
+      setThumbnailPreview(null)
+      loadDashboard()
+    } catch (err) {
+      console.error('Error updating thumbnail:', err)
+      alert('썸네일 변경에 실패했습니다.')
     }
   }
 
@@ -160,15 +236,30 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => handleDelete(doc)}
-          className="w-full h-8 text-xs"
-        >
-          <Trash2 className="w-3 h-3 mr-1" />
-          삭제
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setEditingThumbnail(doc.id)
+              setNewThumbnail(null)
+              setThumbnailPreview(null)
+            }}
+            className="flex-1 h-8 text-xs"
+          >
+            <ImageIcon className="w-3 h-3 mr-1" />
+            썸네일
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => handleDelete(doc)}
+            className="flex-1 h-8 text-xs"
+          >
+            <Trash2 className="w-3 h-3 mr-1" />
+            삭제
+          </Button>
+        </div>
       </div>
     </div>
   )
@@ -188,6 +279,8 @@ export default function DashboardPage() {
       </div>
     )
   }
+
+  const editingDoc = documents.find(d => d.id === editingThumbnail)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -277,6 +370,91 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+
+      {/* 썸네일 변경 다이얼로그 */}
+      <Dialog open={!!editingThumbnail} onOpenChange={() => {
+        setEditingThumbnail(null)
+        setNewThumbnail(null)
+        setThumbnailPreview(null)
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>썸네일 변경</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            {editingDoc && (
+              <>
+                {/* 현재 썸네일 */}
+                <div>
+                  <Label>현재 썸네일</Label>
+                  <div className="mt-2 w-48 aspect-[3/4] rounded-lg overflow-hidden border bg-gray-100">
+                    {editingDoc.thumbnail_url ? (
+                      <img
+                        src={editingDoc.thumbnail_url}
+                        alt="현재 썸네일"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <div className="text-6xl opacity-20">📄</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 새 썸네일 선택 */}
+                <div>
+                  <Label htmlFor="new-thumbnail">새 썸네일</Label>
+                  <Input
+                    id="new-thumbnail"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleThumbnailChange}
+                    className="mt-2"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    권장: 600x800px (3:4 비율), 최대 5MB
+                  </p>
+                </div>
+
+                {/* 미리보기 */}
+                {thumbnailPreview && (
+                  <div>
+                    <Label>미리보기</Label>
+                    <div className="mt-2 w-48 aspect-[3/4] rounded-lg overflow-hidden border">
+                      <img
+                        src={thumbnailPreview}
+                        alt="미리보기"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 버튼 */}
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEditingThumbnail(null)
+                      setNewThumbnail(null)
+                      setThumbnailPreview(null)
+                    }}
+                  >
+                    취소
+                  </Button>
+                  <Button
+                    onClick={() => handleUpdateThumbnail(editingDoc.id, editingDoc.thumbnail_url)}
+                    disabled={!newThumbnail}
+                  >
+                    변경
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
