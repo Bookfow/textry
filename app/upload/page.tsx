@@ -50,7 +50,7 @@ export default function UploadPage() {
         return
       }
       if (selectedFile.size > 10 * 1024 * 1024) {
-        setError('파일 크기는 10MB 이하여야 합니다.')
+        setError('파일 크기는 100MB 이하여야 합니다.')
         return
       }
       setFile(selectedFile)
@@ -207,7 +207,7 @@ export default function UploadPage() {
                     ) : (
                       <div>
                         <p className="text-gray-600">PDF 파일을 선택하세요</p>
-                        <p className="text-sm text-gray-400">최대 10MB</p>
+                        <p className="text-sm text-gray-400">최대 100MB</p>
                       </div>
                     )}
                   </label>
