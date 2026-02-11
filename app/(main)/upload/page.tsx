@@ -190,7 +190,7 @@ export default function UploadPage() {
                 </div>
 
                 {/* 카테고리 & 언어 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="category">카테고리 *</Label>
                     <Select value={category} onValueChange={setCategory}>
@@ -207,7 +207,7 @@ export default function UploadPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 md:w-1/2">
                     <Label htmlFor="language">언어 *</Label>
                     <Select value={language} onValueChange={setLanguage}>
                       <SelectTrigger id="language">
