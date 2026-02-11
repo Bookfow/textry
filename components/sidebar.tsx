@@ -13,20 +13,15 @@ import {
   BookOpen,
   ChevronDown,
   ChevronRight,
-  Upload,
   BarChart3,
   Menu,
   X
 } from 'lucide-react'
-import { CATEGORIES } from '@/lib/categories'
-import { LANGUAGES } from '@/lib/languages'
 
 export function Sidebar() {
   const pathname = usePathname()
   const { user, profile } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
-  const [categoriesOpen, setCategoriesOpen] = useState(false)
-  const [languagesOpen, setLanguagesOpen] = useState(false)
   const [myPageOpen, setMyPageOpen] = useState(true)
   const [subscriptionsOpen, setSubscriptionsOpen] = useState(true)
   const [subscribedAuthors, setSubscribedAuthors] = useState<Profile[]>([])
@@ -73,7 +68,6 @@ export function Sidebar() {
   ]
 
   const authorMenuItems = [
-    { icon: Upload, label: '업로드', path: '/upload' },
     { icon: BarChart3, label: '대시보드', path: '/dashboard' },
   ]
 
@@ -231,97 +225,18 @@ export function Sidebar() {
 
         {/* 작가 메뉴 */}
         {user && authorMenuItems.length > 0 && (
-          <>
-            <div className="space-y-1 px-2">
-              {authorMenuItems.map((item) => (
-                <MenuItem
-                  key={item.path}
-                  icon={item.icon}
-                  label={item.label}
-                  path={item.path}
-                  active={isActive(item.path)}
-                />
-              ))}
-            </div>
-            <div className="border-t my-3" />
-          </>
+          <div className="space-y-1 px-2">
+            {authorMenuItems.map((item) => (
+              <MenuItem
+                key={item.path}
+                icon={item.icon}
+                label={item.label}
+                path={item.path}
+                active={isActive(item.path)}
+              />
+            ))}
+          </div>
         )}
-
-        {/* 카테고리 */}
-        <div className="px-2">
-          <button
-            onClick={() => setCategoriesOpen(!categoriesOpen)}
-            className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 relative group"
-          >
-            <span className="text-sm font-semibold hidden xl:block">카테고리</span>
-            <span className="text-xl xl:hidden">📂</span>
-            {categoriesOpen ? (
-              <ChevronDown className="w-4 h-4 hidden xl:block" />
-            ) : (
-              <ChevronRight className="w-4 h-4 hidden xl:block" />
-            )}
-            
-            {/* 툴팁 */}
-            <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-              카테고리
-            </div>
-          </button>
-          {categoriesOpen && (
-            <div className="mt-1 space-y-1 pl-2">
-              {CATEGORIES.slice(0, 6).map((cat) => (
-                <Link key={cat.value} href={`/browse?category=${cat.value}`}>
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm relative group">
-                    <span className="text-base">{cat.icon}</span>
-                    <span className="hidden xl:block">{cat.label}</span>
-                    
-                    {/* 툴팁 */}
-                    <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                      {cat.label}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 언어 */}
-        <div className="px-2">
-          <button
-            onClick={() => setLanguagesOpen(!languagesOpen)}
-            className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 relative group"
-          >
-            <span className="text-sm font-semibold hidden xl:block">언어</span>
-            <span className="text-xl xl:hidden">🌐</span>
-            {languagesOpen ? (
-              <ChevronDown className="w-4 h-4 hidden xl:block" />
-            ) : (
-              <ChevronRight className="w-4 h-4 hidden xl:block" />
-            )}
-            
-            {/* 툴팁 */}
-            <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-              언어
-            </div>
-          </button>
-          {languagesOpen && (
-            <div className="mt-1 space-y-1 pl-2">
-              {LANGUAGES.slice(0, 5).map((lang) => (
-                <Link key={lang.value} href={`/browse?language=${lang.value}`}>
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm relative group">
-                    <span className="text-base">{lang.flag}</span>
-                    <span className="hidden xl:block">{lang.label}</span>
-                    
-                    {/* 툴팁 */}
-                    <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                      {lang.label}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   )
