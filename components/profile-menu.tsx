@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { useTheme } from '@/lib/theme-context'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,13 +24,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { User, LogOut, Settings, HelpCircle, MessageSquare, Palette, Globe } from 'lucide-react'
+import { User, LogOut, Settings, HelpCircle, MessageSquare, Globe } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export function ProfileMenu() {
   const { user, profile } = useAuth()
-  const { theme, toggleTheme } = useTheme()
   const router = useRouter()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [feedbackEmail, setFeedbackEmail] = useState('')
@@ -43,10 +41,6 @@ export function ProfileMenu() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
-  }
-
-  const handleDarkMode = () => {
-    toggleTheme()
   }
 
   const handleLanguage = (lang: string) => {
@@ -64,7 +58,6 @@ export function ProfileMenu() {
 
     try {
       // TODO: 실제 이메일 전송 API 연결
-      // 지금은 시뮬레이션
       await new Promise(resolve => setTimeout(resolve, 1000))
       
       alert('의견이 전송되었습니다. 감사합니다!')
@@ -84,13 +77,23 @@ export function ProfileMenu() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 text-white font-bold hover:opacity-80"
-          >
-            {initial}
-          </Button>
+          {profile.avatar_url ? (
+            <button className="rounded-full w-10 h-10 overflow-hidden border-2 border-gray-200 hover:border-blue-500 transition-colors">
+              <img
+                src={profile.avatar_url}
+                alt="프로필"
+                className="w-full h-full object-cover"
+              />
+            </button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 text-white font-bold hover:opacity-80"
+            >
+              {initial}
+            </Button>
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">
           {/* 프로필 정보 */}
@@ -113,22 +116,6 @@ export function ProfileMenu() {
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
-
-          {/* 디자인 (다크모드) */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <Palette className="w-4 h-4 mr-2" />
-              디자인
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
-              <DropdownMenuItem onClick={handleDarkMode}>
-                {theme === 'light' ? '☀️ 라이트 모드 (현재)' : '☀️ 라이트 모드'}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDarkMode}>
-                {theme === 'dark' ? '🌙 다크 모드 (현재)' : '🌙 다크 모드'}
-              </DropdownMenuItem>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
 
           {/* 표시 언어 */}
           <DropdownMenuSub>

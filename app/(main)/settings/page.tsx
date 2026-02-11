@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,14 +8,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { MainHeader } from '@/components/main-header'
 import { Camera } from 'lucide-react'
+import Image from 'next/image'
 
 export default function SettingsPage() {
   const { user, profile } = useAuth()
   const router = useRouter()
   const [username, setUsername] = useState(profile?.username || '')
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '')
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -24,6 +25,13 @@ export default function SettingsPage() {
   const [category, setCategory] = useState('all')
   const [language, setLanguage] = useState('all')
   const [sortBy, setSortBy] = useState('recent')
+
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username || '')
+      setAvatarUrl(profile.avatar_url || '')
+    }
+  }, [profile])
 
   if (!user) {
     return (
@@ -52,12 +60,48 @@ export default function SettingsPage() {
     setUploading(true)
 
     try {
-      // TODO: Supabase Storage에 프로필 이미지 업로드
-      // 지금은 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      alert('프로필 이미지 업로드 기능은 곧 추가됩니다!')
+      // 파일명 생성 (user_id/timestamp.확장자)
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`
+
+      // 기존 아바타 삭제 (있으면)
+      if (avatarUrl) {
+        const oldPath = avatarUrl.split('/').slice(-2).join('/')
+        await supabase.storage.from('avatars').remove([oldPath])
+      }
+
+      // 새 이미지 업로드
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (uploadError) throw uploadError
+
+      // 공개 URL 가져오기
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName)
+
+      const publicUrl = urlData.publicUrl
+
+      // DB 업데이트
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id)
+
+      if (dbError) throw dbError
+
+      setAvatarUrl(publicUrl)
+      alert('프로필 이미지가 업로드되었습니다!')
+
+      // 페이지 새로고침하여 변경사항 반영
+      window.location.reload()
     } catch (err) {
+      console.error('Upload error:', err)
       alert('업로드에 실패했습니다.')
     } finally {
       setUploading(false)
@@ -78,6 +122,7 @@ export default function SettingsPage() {
       if (error) throw error
 
       alert('저장되었습니다!')
+      window.location.reload()
     } catch (err) {
       alert('저장에 실패했습니다.')
     } finally {
@@ -114,9 +159,20 @@ export default function SettingsPage() {
             <CardContent>
               <div className="flex items-center gap-6">
                 {/* 현재 아바타 */}
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-4xl font-bold">
-                  {(profile?.username || profile?.email || 'U')[0].toUpperCase()}
-                </div>
+                {avatarUrl ? (
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden">
+                    <Image
+                      src={avatarUrl}
+                      alt="프로필 이미지"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-4xl font-bold">
+                    {(profile?.username || profile?.email || 'U')[0].toUpperCase()}
+                  </div>
+                )}
 
                 {/* 업로드 버튼 */}
                 <div>
@@ -126,6 +182,7 @@ export default function SettingsPage() {
                     accept="image/*"
                     onChange={handleImageUpload}
                     className="hidden"
+                    disabled={uploading}
                   />
                   <Label htmlFor="profile-image">
                     <Button variant="outline" asChild disabled={uploading}>

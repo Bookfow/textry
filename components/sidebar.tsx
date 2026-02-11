@@ -137,9 +137,17 @@ export function Sidebar() {
                   <Link key={author.id} href={`/author/${author.id}`}>
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm group">
                       {/* 아바타 */}
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                        {(author.username || author.email)[0].toUpperCase()}
-                      </div>
+                      {author.avatar_url ? (
+  <img
+    src={author.avatar_url}
+    alt={author.username || author.email}
+    className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+  />
+) : (
+  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+    {(author.username || author.email)[0].toUpperCase()}
+  </div>
+)}
                       <span className="hidden lg:block truncate group-hover:text-blue-600">
                         {author.username || author.email}
                       </span>
