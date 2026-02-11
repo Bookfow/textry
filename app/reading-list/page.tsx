@@ -1,15 +1,16 @@
 'use client'
-import { ProfileMenu } from '@/components/profile-menu'
+
 import { useEffect, useState } from 'react'
 import { supabase, Document } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, Clock, ThumbsUp, BookmarkX } from 'lucide-react'
+import { Eye, ThumbsUp, BookmarkX, Play } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
+import { getLanguageFlag } from '@/lib/languages'
 import { NotificationsBell } from '@/components/notifications-bell'
+import { ProfileMenu } from '@/components/profile-menu'
 
 export default function ReadingListPage() {
   const { user } = useAuth()
@@ -29,7 +30,6 @@ export default function ReadingListPage() {
     if (!user) return
 
     try {
-      // 읽기 목록 가져오기
       const { data: listData, error: listError } = await supabase
         .from('reading_list')
         .select('document_id')
@@ -46,7 +46,6 @@ export default function ReadingListPage() {
 
       const documentIds = listData.map(item => item.document_id)
 
-      // 문서 정보 가져오기
       const { data: docsData, error: docsError } = await supabase
         .from('documents')
         .select('*')
@@ -72,7 +71,6 @@ export default function ReadingListPage() {
         .eq('user_id', user.id)
         .eq('document_id', documentId)
 
-      // 목록에서 제거
       setDocuments(documents.filter(doc => doc.id !== documentId))
     } catch (err) {
       console.error('Error removing from reading list:', err)
@@ -81,50 +79,67 @@ export default function ReadingListPage() {
   }
 
   const DocumentCard = ({ doc }: { doc: Document }) => (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-2xl">{getCategoryIcon(doc.category)}</span>
-          <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
-            {getCategoryLabel(doc.category)}
-          </span>
-        </div>
-        <CardTitle className="line-clamp-2">{doc.title}</CardTitle>
-        <CardDescription className="line-clamp-3">
-          {doc.description || '설명이 없습니다'}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-3 text-sm text-gray-500 mb-4">
-          <span className="flex items-center gap-1">
-            <ThumbsUp className="w-4 h-4" />
-            {doc.likes_count.toLocaleString()}
-          </span>
-          <span className="flex items-center gap-1">
-            <Eye className="w-4 h-4" />
-            {doc.view_count.toLocaleString()}
-          </span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
+    <div className="group">
+      <Link href={`/read/${doc.id}`}>
+        <div className="relative aspect-video bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl overflow-hidden mb-3 cursor-pointer">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-6xl opacity-20">📄</div>
+          </div>
+          
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                <Play className="w-6 h-6 text-black ml-1" fill="black" />
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute top-2 left-2 flex gap-2">
+            <span className="px-2 py-1 bg-black/70 text-white text-xs rounded backdrop-blur-sm">
+              {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
+            </span>
+            <span className="text-xl">{getLanguageFlag(doc.language)}</span>
+          </div>
+
+          <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded backdrop-blur-sm">
             {Math.floor(doc.total_reading_time / 60)}분
-          </span>
+          </div>
         </div>
-        <div className="flex gap-2">
+      </Link>
+
+      <div>
+        <Link href={`/read/${doc.id}`}>
+          <h3 className="font-semibold text-sm md:text-base line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors">
+            {doc.title}
+          </h3>
+        </Link>
+        
+        <p className="text-xs text-gray-600 line-clamp-2 mb-2">
+          {doc.description || '설명이 없습니다'}
+        </p>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-xs text-gray-500">
+            <span className="flex items-center gap-1">
+              <ThumbsUp className="w-3 h-3" />
+              {doc.likes_count.toLocaleString()}
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              {doc.view_count.toLocaleString()}
+            </span>
+          </div>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => handleRemove(doc.id)}
-            className="gap-2"
+            className="h-8 px-2 text-xs hover:text-red-600"
           >
             <BookmarkX className="w-4 h-4" />
-            제거
           </Button>
-          <Link href={`/read/${doc.id}`} className="flex-1">
-            <Button className="w-full">읽기</Button>
-          </Link>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 
   if (loading) {
@@ -136,56 +151,65 @@ export default function ReadingListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen">
       {/* 헤더 */}
-      <header className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+      <header className="sticky top-0 z-20 bg-white border-b">
+        <div className="px-4 md:px-6 py-3 flex items-center justify-between">
+          <div className="flex-1 lg:flex-initial">
             <Link href="/home">
-              <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
+              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Textry
+              </h1>
             </Link>
-            <div className="flex gap-4 items-center">
-              <Link href="/browse">
-                <Button variant="ghost">둘러보기</Button>
-              </Link>
-              {user?.role === 'author' && (
-                <>
-                  <Link href="/upload">
-                    <Button variant="ghost">업로드</Button>
-                  </Link>
-                  <Link href="/dashboard">
-                    <Button variant="ghost">대시보드</Button>
-                  </Link>
-                </>
-              )}
-              {user && <NotificationsBell />}
-              {user && <ProfileMenu />}
-            </div>
           </div>
+
+          <div className="hidden md:flex flex-1 max-w-2xl mx-4">
+            <Link href="/browse" className="w-full">
+              <div className="w-full px-4 py-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer text-sm">
+                문서 검색...
+              </div>
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-2 md:gap-3">
+            {user && <NotificationsBell />}
+            {user && <ProfileMenu />}
+          </div>
+        </div>
+
+        <div className="md:hidden px-4 pb-3">
+          <Link href="/browse">
+            <div className="w-full px-4 py-2 bg-gray-100 rounded-full text-gray-500 text-sm">
+              문서 검색...
+            </div>
+          </Link>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-4">읽기 목록</h2>
-          <p className="text-gray-600">나중에 읽을 문서 {documents.length}개</p>
-        </div>
+      {/* 메인 콘텐츠 */}
+      <main className="flex-1 p-4 md:p-6 lg:p-8">
+        <div className="max-w-[2000px] mx-auto">
+          <div className="mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">읽기 목록</h2>
+            <p className="text-gray-600">나중에 읽을 문서 {documents.length}개</p>
+          </div>
 
-        {documents.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">읽기 목록이 비어있습니다</p>
-            <Link href="/browse">
-              <Button>문서 둘러보기</Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {documents.map((doc) => (
-              <DocumentCard key={doc.id} doc={doc} />
-            ))}
-          </div>
-        )}
-      </div>
+          {documents.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-500 mb-4">읽기 목록이 비어있습니다</p>
+              <Link href="/browse">
+                <Button>문서 둘러보기</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+              {documents.map((doc) => (
+                <DocumentCard key={doc.id} doc={doc} />
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   )
 }

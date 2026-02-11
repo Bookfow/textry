@@ -3,16 +3,14 @@
 import { useEffect, useState } from 'react'
 import { supabase, Document } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, Clock, ThumbsUp, Play } from 'lucide-react'
+import { Eye, ThumbsUp, Play } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 import { NotificationsBell } from '@/components/notifications-bell'
 import { ProfileMenu } from '@/components/profile-menu'
-import { Sidebar } from '@/components/sidebar'
 
 export default function HomePage() {
   const { user, profile, loading: authLoading } = useAuth()
@@ -170,71 +168,65 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* 사이드바 */}
-      <Sidebar />
-
-      {/* 메인 콘텐츠 */}
-      <div className="flex-1 flex flex-col">
-        {/* 헤더 */}
-        <header className="sticky top-0 z-20 bg-white border-b">
-          <div className="px-4 md:px-6 py-3 flex items-center justify-between">
-            {/* 로고 (모바일에서는 중앙) */}
-            <div className="flex-1 lg:flex-initial">
-              <Link href="/home">
-                <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Textry
-                </h1>
-              </Link>
-            </div>
-
-            {/* 검색바 (태블릿 이상) */}
-            <div className="hidden md:flex flex-1 max-w-2xl mx-4">
-              <Link href="/browse" className="w-full">
-                <div className="w-full px-4 py-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer text-sm">
-                  문서 검색...
-                </div>
-              </Link>
-            </div>
-
-            {/* 우측 메뉴 */}
-            <div className="flex items-center gap-2 md:gap-3">
-              {user && <NotificationsBell />}
-              {user && <ProfileMenu />}
-            </div>
+    <div className="flex flex-col min-h-screen">
+      {/* 헤더 */}
+      <header className="sticky top-0 z-20 bg-white border-b">
+        <div className="px-4 md:px-6 py-3 flex items-center justify-between">
+          {/* 로고 */}
+          <div className="flex-1 lg:flex-initial">
+            <Link href="/home">
+              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Textry
+              </h1>
+            </Link>
           </div>
 
-          {/* 모바일 검색 */}
-          <div className="md:hidden px-4 pb-3">
-            <Link href="/browse">
-              <div className="w-full px-4 py-2 bg-gray-100 rounded-full text-gray-500 text-sm">
+          {/* 검색바 (태블릿 이상) */}
+          <div className="hidden md:flex flex-1 max-w-2xl mx-4">
+            <Link href="/browse" className="w-full">
+              <div className="w-full px-4 py-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer text-sm">
                 문서 검색...
               </div>
             </Link>
           </div>
-        </header>
 
-        {/* 메인 피드 */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
-          <div className="max-w-[2000px] mx-auto">
-            {/* 추천 문서 그리드 */}
-            {recommendedDocs.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="text-gray-500 mb-4">추천할 문서가 없습니다</p>
-                <Link href="/browse">
-                  <Button>문서 둘러보기</Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
-                {recommendedDocs.map((doc) => (
-                  <DocumentCard key={doc.id} doc={doc} />
-                ))}
-              </div>
-            )}
+          {/* 우측 메뉴 */}
+          <div className="flex items-center gap-2 md:gap-3">
+            {user && <NotificationsBell />}
+            {user && <ProfileMenu />}
           </div>
-        </main>
-      </div>
+        </div>
+
+        {/* 모바일 검색 */}
+        <div className="md:hidden px-4 pb-3">
+          <Link href="/browse">
+            <div className="w-full px-4 py-2 bg-gray-100 rounded-full text-gray-500 text-sm">
+              문서 검색...
+            </div>
+          </Link>
+        </div>
+      </header>
+
+      {/* 메인 피드 */}
+      <main className="flex-1 p-4 md:p-6 lg:p-8">
+        <div className="max-w-[2000px] mx-auto">
+          {/* 추천 문서 그리드 */}
+          {recommendedDocs.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-500 mb-4">추천할 문서가 없습니다</p>
+              <Link href="/browse">
+                <Button>문서 둘러보기</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+              {recommendedDocs.map((doc) => (
+                <DocumentCard key={doc.id} doc={doc} />
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   )
 }
