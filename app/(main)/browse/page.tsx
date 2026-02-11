@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, ThumbsUp, Search, Calendar, Play } from 'lucide-react'
 import { ReadingListButton } from '@/components/reading-list-button'
 import { CATEGORIES, getCategoryIcon, getCategoryLabel } from '@/lib/categories'
@@ -18,6 +18,7 @@ import { ProfileMenu } from '@/components/profile-menu'
 export default function BrowsePage() {
   const { user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [documents, setDocuments] = useState<Document[]>([])
   const [profiles, setProfiles] = useState<Record<string, Profile>>({})
   const [filteredDocs, setFilteredDocs] = useState<Document[]>([])
@@ -26,6 +27,31 @@ export default function BrowsePage() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all')
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'views'>('recent')
   const [loading, setLoading] = useState(true)
+
+  // URL 파라미터 처리
+  useEffect(() => {
+    const sortParam = searchParams.get('sort')
+    const filterParam = searchParams.get('filter')
+    const categoryParam = searchParams.get('category')
+    const languageParam = searchParams.get('language')
+
+    if (sortParam === 'popular' || sortParam === 'views') {
+      setSortBy(sortParam)
+    }
+
+    if (categoryParam) {
+      setSelectedCategory(categoryParam)
+    }
+
+    if (languageParam) {
+      setSelectedLanguage(languageParam)
+    }
+
+    // 구독 필터는 나중에 구현 가능
+    if (filterParam === 'subscribed') {
+      // TODO: 구독한 작가의 문서만 필터링
+    }
+  }, [searchParams])
 
   useEffect(() => {
     loadDocuments()
