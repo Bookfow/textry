@@ -15,7 +15,7 @@ export default function MainLayout({
   const [sortBy, setSortBy] = useState('recent')
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen overflow-hidden">
       {/* 헤더 - 전체 상단 */}
       <MainHeader
         searchQuery={searchQuery}
@@ -29,11 +29,11 @@ export default function MainLayout({
       />
       
       {/* 사이드바 + 메인 */}
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <div className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto">
           {children}
-        </div>
+        </main>
       </div>
     </div>
   )
