@@ -44,7 +44,7 @@ export function MainHeader({
           <div className="flex items-center gap-4">
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-gray-100 rounded-full"
             >
               <Menu className="w-6 h-6" />
             </button>
