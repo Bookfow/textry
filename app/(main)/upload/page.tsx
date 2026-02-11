@@ -194,9 +194,11 @@ export default function UploadPage() {
                 <div className="space-y-2">
   <Label htmlFor="category">카테고리 *</Label>
   <Select value={category} onValueChange={setCategory}>
-  <SelectTrigger id="category" className="min-w-[200px]">
-    <SelectValue placeholder="카테고리 선택" />
-  </SelectTrigger>
+    <SelectTrigger id="category" className="min-w-[200px]">
+      <SelectValue>
+        {CATEGORIES.find(cat => cat.value === category)?.icon} {CATEGORIES.find(cat => cat.value === category)?.label}
+      </SelectValue>
+    </SelectTrigger>
                       <SelectContent>
                         {CATEGORIES.map((cat) => (
                           <SelectItem key={cat.value} value={cat.value}>
