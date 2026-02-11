@@ -57,7 +57,7 @@ if (loading || user) {
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            문서를 스트리밍하다
+            지식을 스트리밍하다
           </h2>
           <p className="text-xl md:text-2xl text-gray-600 mb-8">
             유튜브처럼 자유롭게 문서를 읽고, 공유하고, 소통하세요

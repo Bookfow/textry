@@ -1,8 +1,10 @@
 'use client'
 
+import Link from 'next/link'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search } from 'lucide-react'
+import { Search, Plus } from 'lucide-react'
 import { NotificationsBell } from '@/components/notifications-bell'
 import { ProfileMenu } from '@/components/profile-menu'
 import { useAuth } from '@/lib/auth-context'
@@ -109,6 +111,18 @@ export function MainHeader({
 
           {/* 우측 메뉴 */}
           <div className="flex items-center gap-2 absolute right-4">
+            {user && (
+              <Link href="/upload">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full hover:bg-gray-100"
+                  title="업로드"
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </Link>
+            )}
             {user && <NotificationsBell />}
             {user && <ProfileMenu />}
           </div>

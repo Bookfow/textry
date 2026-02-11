@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase, Document } from '@/lib/supabase'
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -30,22 +30,6 @@ export default function DashboardPage() {
   const [category, setCategory] = useState('all')
   const [language, setLanguage] = useState('all')
   const [sortBy, setSortBy] = useState('recent')
-
-  if (!user || profile?.role !== 'author') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <h2 className="text-xl font-bold">접근 권한 없음</h2>
-            <CardDescription>작가 계정만 대시보드에 접근할 수 있습니다.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/home')}>홈으로 돌아가기</Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
 
   useEffect(() => {
     if (user) {
@@ -233,6 +217,14 @@ export default function DashboardPage() {
       </div>
     </div>
   )
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>로그인이 필요합니다.</p>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

@@ -72,10 +72,10 @@ export function Sidebar() {
     { icon: BookOpen, label: '이어 읽기', path: '/home?section=continue' },
   ]
 
-  const authorMenuItems = profile?.role === 'author' ? [
+  const authorMenuItems = [
     { icon: Upload, label: '업로드', path: '/upload' },
     { icon: BarChart3, label: '대시보드', path: '/dashboard' },
-  ] : []
+  ]
 
   const MenuItem = ({ icon: Icon, label, path, active }: any) => (
     <Link href={path}>
@@ -214,7 +214,7 @@ export function Sidebar() {
         )}
 
         {/* 작가 메뉴 */}
-        {authorMenuItems.length > 0 && (
+        {user && authorMenuItems.length > 0 && (
           <>
             <div className="space-y-1 px-2">
               {authorMenuItems.map((item) => (
