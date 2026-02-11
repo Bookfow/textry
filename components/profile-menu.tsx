@@ -24,7 +24,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { User, LogOut, Settings, HelpCircle, MessageSquare, Globe } from 'lucide-react'
+import { User, LogOut, Settings, HelpCircle, MessageSquare, Globe, BarChart3 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -100,9 +100,6 @@ export function ProfileMenu() {
           <div className="px-2 py-2">
             <p className="font-semibold">{profile.username || profile.email}</p>
             <p className="text-xs text-gray-500">{profile.email}</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {profile.role === 'author' ? '작가' : '독자'}
-            </p>
           </div>
           
           <DropdownMenuSeparator />
@@ -112,6 +109,14 @@ export function ProfileMenu() {
             <Link href={`/profile/${user.id}`} className="cursor-pointer">
               <User className="w-4 h-4 mr-2" />
               내 프로필
+            </Link>
+          </DropdownMenuItem>
+
+          {/* 대시보드 */}
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard" className="cursor-pointer">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              대시보드
             </Link>
           </DropdownMenuItem>
 

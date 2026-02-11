@@ -13,7 +13,6 @@ import {
   BookOpen,
   ChevronDown,
   ChevronRight,
-  BarChart3,
   Menu,
   X
 } from 'lucide-react'
@@ -65,10 +64,6 @@ export function Sidebar() {
     { icon: TrendingUp, label: '인기', path: '/browse?sort=popular' },
     { icon: Bookmark, label: '읽기 목록', path: '/reading-list' },
     { icon: BookOpen, label: '이어 읽기', path: '/home?section=continue' },
-  ]
-
-  const authorMenuItems = [
-    { icon: BarChart3, label: '대시보드', path: '/dashboard' },
   ]
 
   const MenuItem = ({ icon: Icon, label, path, active }: any) => (
@@ -160,81 +155,62 @@ export function Sidebar() {
 
         {/* 구독 섹션 */}
         {user && (
-          <>
-            <div className="px-2">
-              <button
-                onClick={() => setSubscriptionsOpen(!subscriptionsOpen)}
-                className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 relative group"
-              >
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-sm font-semibold hidden xl:block">구독</span>
-                </div>
-                {subscriptionsOpen ? (
-                  <ChevronDown className="w-4 h-4 hidden xl:block" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 hidden xl:block" />
-                )}
-                
-                {/* 툴팁 */}
-                <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                  구독
-                </div>
-              </button>
+          <div className="px-2">
+            <button
+              onClick={() => setSubscriptionsOpen(!subscriptionsOpen)}
+              className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 relative group"
+            >
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-semibold hidden xl:block">구독</span>
+              </div>
+              {subscriptionsOpen ? (
+                <ChevronDown className="w-4 h-4 hidden xl:block" />
+              ) : (
+                <ChevronRight className="w-4 h-4 hidden xl:block" />
+              )}
+              
+              {/* 툴팁 */}
+              <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                구독
+              </div>
+            </button>
 
-              {subscriptionsOpen && subscribedAuthors.length > 0 && (
-                <div className="mt-1 space-y-1 pl-2">
-                  {subscribedAuthors.map((author) => (
-                    <Link key={author.id} href={`/author/${author.id}`}>
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm group relative">
-                        {author.avatar_url ? (
-                          <img
-                            src={author.avatar_url}
-                            alt={author.username || author.email}
-                            className="w-6 h-6 rounded-full object-cover flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                            {(author.username || author.email)[0].toUpperCase()}
-                          </div>
-                        )}
-                        <span className="hidden xl:block truncate group-hover:text-blue-600">
-                          {author.username || author.email}
-                        </span>
-                        
-                        {/* 툴팁 */}
-                        <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                          {author.username || author.email}
+            {subscriptionsOpen && subscribedAuthors.length > 0 && (
+              <div className="mt-1 space-y-1 pl-2">
+                {subscribedAuthors.map((author) => (
+                  <Link key={author.id} href={`/author/${author.id}`}>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm group relative">
+                      {author.avatar_url ? (
+                        <img
+                          src={author.avatar_url}
+                          alt={author.username || author.email}
+                          className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                          {(author.username || author.email)[0].toUpperCase()}
                         </div>
+                      )}
+                      <span className="hidden xl:block truncate group-hover:text-blue-600">
+                        {author.username || author.email}
+                      </span>
+                      
+                      {/* 툴팁 */}
+                      <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                        {author.username || author.email}
                       </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
 
-              {subscriptionsOpen && subscribedAuthors.length === 0 && (
-                <div className="mt-1 px-3 py-2 text-xs text-gray-400 hidden xl:block">
-                  구독한 작가가 없습니다
-                </div>
-              )}
-            </div>
-
-            <div className="border-t my-3" />
-          </>
-        )}
-
-        {/* 작가 메뉴 */}
-        {user && authorMenuItems.length > 0 && (
-          <div className="space-y-1 px-2">
-            {authorMenuItems.map((item) => (
-              <MenuItem
-                key={item.path}
-                icon={item.icon}
-                label={item.label}
-                path={item.path}
-                active={isActive(item.path)}
-              />
-            ))}
+            {subscriptionsOpen && subscribedAuthors.length === 0 && (
+              <div className="mt-1 px-3 py-2 text-xs text-gray-400 hidden xl:block">
+                구독한 작가가 없습니다
+              </div>
+            )}
           </div>
         )}
       </div>
