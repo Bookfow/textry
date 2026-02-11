@@ -27,6 +27,7 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const [categoriesOpen, setCategoriesOpen] = useState(false)
   const [languagesOpen, setLanguagesOpen] = useState(false)
+  const [myPageOpen, setMyPageOpen] = useState(true)
   const [subscriptionsOpen, setSubscriptionsOpen] = useState(true)
   const [subscribedAuthors, setSubscribedAuthors] = useState<Profile[]>([])
 
@@ -64,7 +65,7 @@ export function Sidebar() {
   const mainMenuItems = [
     { icon: Home, label: '홈', path: '/home' },
   ]
-  
+
   const myPageMenuItems = [
     { icon: TrendingUp, label: '인기', path: '/browse?sort=popular' },
     { icon: Bookmark, label: '읽기 목록', path: '/reading-list' },
@@ -107,21 +108,55 @@ export function Sidebar() {
       <div className="py-4 space-y-1">
         {/* 메인 메뉴 */}
         <div className="space-y-1 px-2">
-          {mainMenuItems.map((item) => {
-            if (item.authOnly && !user) return null
-            return (
-              <MenuItem
-                key={item.path}
-                icon={item.icon}
-                label={item.label}
-                path={item.path}
-                active={isActive(item.path)}
-              />
-            )
-          })}
+          {mainMenuItems.map((item) => (
+            <MenuItem
+              key={item.path}
+              icon={item.icon}
+              label={item.label}
+              path={item.path}
+              active={isActive(item.path)}
+            />
+          ))}
         </div>
 
         <div className="border-t my-3" />
+
+        {/* 내 페이지 섹션 */}
+        {user && (
+          <>
+            <div className="px-2">
+              <button
+                onClick={() => setMyPageOpen(!myPageOpen)}
+                className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+              >
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm font-semibold hidden lg:block">내 페이지</span>
+                </div>
+                {myPageOpen ? (
+                  <ChevronDown className="w-4 h-4 hidden lg:block" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 hidden lg:block" />
+                )}
+              </button>
+
+              {myPageOpen && (
+                <div className="mt-1 space-y-1 pl-2">
+                  {myPageMenuItems.map((item) => (
+                    <Link key={item.path} href={item.path}>
+                      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 text-sm hover:bg-gray-100 ${isActive(item.path) ? 'bg-blue-50 text-blue-600 font-semibold' : ''}`}>
+                        <item.icon className="w-4 h-4 flex-shrink-0" />
+                        <span className="hidden lg:block">{item.label}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t my-3" />
+          </>
+        )}
 
         {/* 구독 섹션 */}
         {user && (
