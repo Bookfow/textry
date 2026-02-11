@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label'
 import { useRouter } from 'next/navigation'
 import { MainHeader } from '@/components/main-header'
 import { Camera } from 'lucide-react'
-import Image from 'next/image'
 
 export default function SettingsPage() {
   const { user, profile } = useAuth()
@@ -160,15 +159,12 @@ export default function SettingsPage() {
               <div className="flex items-center gap-6">
                 {/* 현재 아바타 */}
                 {avatarUrl ? (
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden">
-                    <Image
-                      src={avatarUrl}
-                      alt="프로필 이미지"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ) : (
+  <img
+    src={avatarUrl}
+    alt="프로필 이미지"
+    className="w-24 h-24 rounded-full object-cover"
+  />
+) : (
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-4xl font-bold">
                     {(profile?.username || profile?.email || 'U')[0].toUpperCase()}
                   </div>
