@@ -18,13 +18,13 @@ import {
   Menu,
   X
 } from 'lucide-react'
-import { CATEGORIES, getCategoryIcon } from '@/lib/categories'
-import { LANGUAGES, getLanguageFlag } from '@/lib/languages'
+import { CATEGORIES } from '@/lib/categories'
+import { LANGUAGES } from '@/lib/languages'
 
 export function Sidebar() {
   const pathname = usePathname()
   const { user, profile } = useAuth()
-  const [isOpen, setIsOpen] = useState(false) // 모바일 메뉴
+  const [isOpen, setIsOpen] = useState(false)
   const [categoriesOpen, setCategoriesOpen] = useState(false)
   const [languagesOpen, setLanguagesOpen] = useState(false)
   const [subscriptionsOpen, setSubscriptionsOpen] = useState(true)
@@ -32,7 +32,6 @@ export function Sidebar() {
 
   const isActive = (path: string) => pathname === path
 
-  // 구독 작가 목록 로드
   useEffect(() => {
     if (user) {
       loadSubscribedAuthors()
@@ -92,87 +91,22 @@ export function Sidebar() {
   )
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full py-4 space-y-1 overflow-y-auto">
-      {/* 메인 메뉴 */}
-      <div className="space-y-1 px-2">
-        {mainMenuItems.map((item) => {
-          if (item.authOnly && !user) return null
-          return (
-            <MenuItem
-              key={item.path}
-              icon={item.icon}
-              label={item.label}
-              path={item.path}
-              active={isActive(item.path)}
-            />
-          )
-        })}
+    <div className="flex flex-col h-full overflow-y-auto">
+      {/* 로고 */}
+      <div className="p-4 border-b">
+        <Link href="/home">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center lg:text-left">
+            Textry
+          </h1>
+        </Link>
       </div>
 
-      {/* 구분선 */}
-      <div className="border-t my-3" />
-
-      {/* 구독 섹션 */}
-      {user && (
-        <>
-          <div className="px-2">
-            <button
-              onClick={() => setSubscriptionsOpen(!subscriptionsOpen)}
-              className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-            >
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm font-semibold hidden lg:block">구독</span>
-              </div>
-              {subscriptionsOpen ? (
-                <ChevronDown className="w-4 h-4 hidden lg:block" />
-              ) : (
-                <ChevronRight className="w-4 h-4 hidden lg:block" />
-              )}
-            </button>
-
-            {subscriptionsOpen && subscribedAuthors.length > 0 && (
-              <div className="mt-1 space-y-1 pl-2">
-                {subscribedAuthors.map((author) => (
-                  <Link key={author.id} href={`/author/${author.id}`}>
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm group">
-                      {/* 아바타 */}
-                      {author.avatar_url ? (
-  <img
-    src={author.avatar_url}
-    alt={author.username || author.email}
-    className="w-6 h-6 rounded-full object-cover flex-shrink-0"
-  />
-) : (
-  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-    {(author.username || author.email)[0].toUpperCase()}
-  </div>
-)}
-                      <span className="hidden lg:block truncate group-hover:text-blue-600">
-                        {author.username || author.email}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            {subscriptionsOpen && subscribedAuthors.length === 0 && (
-              <div className="mt-1 px-3 py-2 text-xs text-gray-400 hidden lg:block">
-                구독한 작가가 없습니다
-              </div>
-            )}
-          </div>
-
-          <div className="border-t my-3" />
-        </>
-      )}
-
-      {/* 작가 메뉴 */}
-      {authorMenuItems.length > 0 && (
-        <>
-          <div className="space-y-1 px-2">
-            {authorMenuItems.map((item) => (
+      <div className="py-4 space-y-1">
+        {/* 메인 메뉴 */}
+        <div className="space-y-1 px-2">
+          {mainMenuItems.map((item) => {
+            if (item.authOnly && !user) return null
+            return (
               <MenuItem
                 key={item.path}
                 icon={item.icon}
@@ -180,73 +114,146 @@ export function Sidebar() {
                 path={item.path}
                 active={isActive(item.path)}
               />
-            ))}
-          </div>
-          <div className="border-t my-3" />
-        </>
-      )}
+            )
+          })}
+        </div>
 
-      {/* 카테고리 */}
-      <div className="px-2">
-        <button
-          onClick={() => setCategoriesOpen(!categoriesOpen)}
-          className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-        >
-          <span className="text-sm font-semibold hidden lg:block">카테고리</span>
-          <span className="text-xl lg:hidden">📂</span>
-          {categoriesOpen ? (
-            <ChevronDown className="w-4 h-4 hidden lg:block" />
-          ) : (
-            <ChevronRight className="w-4 h-4 hidden lg:block" />
-          )}
-        </button>
-        {categoriesOpen && (
-          <div className="mt-1 space-y-1 pl-2">
-            {CATEGORIES.slice(0, 6).map((cat) => (
-              <Link key={cat.value} href={`/browse?category=${cat.value}`}>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm">
-                  <span className="text-base">{cat.icon}</span>
-                  <span className="hidden lg:block">{cat.label}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+        <div className="border-t my-3" />
 
-      {/* 언어 */}
-      <div className="px-2">
-        <button
-          onClick={() => setLanguagesOpen(!languagesOpen)}
-          className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-        >
-          <span className="text-sm font-semibold hidden lg:block">언어</span>
-          <span className="text-xl lg:hidden">🌐</span>
-          {languagesOpen ? (
-            <ChevronDown className="w-4 h-4 hidden lg:block" />
-          ) : (
-            <ChevronRight className="w-4 h-4 hidden lg:block" />
-          )}
-        </button>
-        {languagesOpen && (
-          <div className="mt-1 space-y-1 pl-2">
-            {LANGUAGES.slice(0, 5).map((lang) => (
-              <Link key={lang.value} href={`/browse?language=${lang.value}`}>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm">
-                  <span className="text-base">{lang.flag}</span>
-                  <span className="hidden lg:block">{lang.label}</span>
+        {/* 구독 섹션 */}
+        {user && (
+          <>
+            <div className="px-2">
+              <button
+                onClick={() => setSubscriptionsOpen(!subscriptionsOpen)}
+                className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm font-semibold hidden lg:block">구독</span>
                 </div>
-              </Link>
-            ))}
-          </div>
+                {subscriptionsOpen ? (
+                  <ChevronDown className="w-4 h-4 hidden lg:block" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 hidden lg:block" />
+                )}
+              </button>
+
+              {subscriptionsOpen && subscribedAuthors.length > 0 && (
+                <div className="mt-1 space-y-1 pl-2">
+                  {subscribedAuthors.map((author) => (
+                    <Link key={author.id} href={`/author/${author.id}`}>
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm group">
+                        {author.avatar_url ? (
+                          <img
+                            src={author.avatar_url}
+                            alt={author.username || author.email}
+                            className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            {(author.username || author.email)[0].toUpperCase()}
+                          </div>
+                        )}
+                        <span className="hidden lg:block truncate group-hover:text-blue-600">
+                          {author.username || author.email}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {subscriptionsOpen && subscribedAuthors.length === 0 && (
+                <div className="mt-1 px-3 py-2 text-xs text-gray-400 hidden lg:block">
+                  구독한 작가가 없습니다
+                </div>
+              )}
+            </div>
+
+            <div className="border-t my-3" />
+          </>
         )}
+
+        {/* 작가 메뉴 */}
+        {authorMenuItems.length > 0 && (
+          <>
+            <div className="space-y-1 px-2">
+              {authorMenuItems.map((item) => (
+                <MenuItem
+                  key={item.path}
+                  icon={item.icon}
+                  label={item.label}
+                  path={item.path}
+                  active={isActive(item.path)}
+                />
+              ))}
+            </div>
+            <div className="border-t my-3" />
+          </>
+        )}
+
+        {/* 카테고리 */}
+        <div className="px-2">
+          <button
+            onClick={() => setCategoriesOpen(!categoriesOpen)}
+            className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+          >
+            <span className="text-sm font-semibold hidden lg:block">카테고리</span>
+            <span className="text-xl lg:hidden">📂</span>
+            {categoriesOpen ? (
+              <ChevronDown className="w-4 h-4 hidden lg:block" />
+            ) : (
+              <ChevronRight className="w-4 h-4 hidden lg:block" />
+            )}
+          </button>
+          {categoriesOpen && (
+            <div className="mt-1 space-y-1 pl-2">
+              {CATEGORIES.slice(0, 6).map((cat) => (
+                <Link key={cat.value} href={`/browse?category=${cat.value}`}>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm">
+                    <span className="text-base">{cat.icon}</span>
+                    <span className="hidden lg:block">{cat.label}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 언어 */}
+        <div className="px-2">
+          <button
+            onClick={() => setLanguagesOpen(!languagesOpen)}
+            className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+          >
+            <span className="text-sm font-semibold hidden lg:block">언어</span>
+            <span className="text-xl lg:hidden">🌐</span>
+            {languagesOpen ? (
+              <ChevronDown className="w-4 h-4 hidden lg:block" />
+            ) : (
+              <ChevronRight className="w-4 h-4 hidden lg:block" />
+            )}
+          </button>
+          {languagesOpen && (
+            <div className="mt-1 space-y-1 pl-2">
+              {LANGUAGES.slice(0, 5).map((lang) => (
+                <Link key={lang.value} href={`/browse?language=${lang.value}`}>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm">
+                    <span className="text-base">{lang.flag}</span>
+                    <span className="hidden lg:block">{lang.label}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
 
   return (
     <>
-      {/* 모바일 햄버거 버튼 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed top-4 left-4 z-50 lg:hidden bg-white p-2 rounded-lg shadow-lg"
@@ -254,7 +261,6 @@ export function Sidebar() {
         {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </button>
 
-      {/* 모바일 오버레이 */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
@@ -262,7 +268,6 @@ export function Sidebar() {
         />
       )}
 
-      {/* 사이드바 */}
       <aside
         className={`
           fixed top-0 left-0 h-screen bg-white border-r z-40 transition-transform

@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Search } from 'lucide-react'
@@ -36,16 +35,9 @@ export function MainHeader({
   return (
     <header className="sticky top-0 z-20 bg-white border-b">
       <div className="px-4 md:px-6 py-3">
-        <div className="flex items-center gap-4">
-          {/* 로고 */}
-          <Link href="/home">
-            <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
-              Textry
-            </h1>
-          </Link>
-
+        <div className="flex items-center justify-center gap-4">
           {/* 검색/필터 바 - 데스크톱 */}
-          <div className="hidden lg:flex flex-1 gap-2 max-w-4xl">
+          <div className="hidden lg:flex flex-1 gap-2 max-w-4xl mx-auto">
             {/* 검색 */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -63,7 +55,7 @@ export function MainHeader({
               <SelectTrigger className="w-40 rounded-full bg-gray-100 border-0 h-10">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="min-w-[120px]">
                 <SelectItem value="all">전체 카테고리</SelectItem>
                 {CATEGORIES.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value}>
@@ -78,7 +70,7 @@ export function MainHeader({
               <SelectTrigger className="w-36 rounded-full bg-gray-100 border-0 h-10">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="min-w-[120px]">
                 <SelectItem value="all">전체 언어</SelectItem>
                 {LANGUAGES.map((lang) => (
                   <SelectItem key={lang.value} value={lang.value}>
@@ -90,13 +82,13 @@ export function MainHeader({
 
             {/* 정렬 */}
             <Select value={sortBy} onValueChange={onSortChange}>
-              <SelectTrigger className="w-32 rounded-full bg-gray-100 border-0 h-10">
+              <SelectTrigger className="w-36 rounded-full bg-gray-100 border-0 h-10 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="min-w-[120px]">
-                <SelectItem value="recent"className="py-2">최신순</SelectItem>
-                <SelectItem value="popular"className="py-2">인기순</SelectItem>
-                <SelectItem value="views"className="py-2">조회수순</SelectItem>
+                <SelectItem value="recent">최신순</SelectItem>
+                <SelectItem value="popular">인기순</SelectItem>
+                <SelectItem value="views">조회수순</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -116,7 +108,7 @@ export function MainHeader({
           </div>
 
           {/* 우측 메뉴 */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 absolute right-4">
             {user && <NotificationsBell />}
             {user && <ProfileMenu />}
           </div>
@@ -142,7 +134,7 @@ export function MainHeader({
             <SelectTrigger className="rounded-full bg-gray-100 border-0 text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="min-w-[120px]">
               <SelectItem value="all">전체 카테고리</SelectItem>
               {CATEGORIES.map((cat) => (
                 <SelectItem key={cat.value} value={cat.value}>
@@ -156,7 +148,7 @@ export function MainHeader({
             <SelectTrigger className="rounded-full bg-gray-100 border-0 text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="min-w-[120px]">
               <SelectItem value="all">전체 언어</SelectItem>
               {LANGUAGES.map((lang) => (
                 <SelectItem key={lang.value} value={lang.value}>
@@ -167,10 +159,10 @@ export function MainHeader({
           </Select>
 
           <Select value={sortBy} onValueChange={onSortChange}>
-            <SelectTrigger className="rounded-full bg-gray-100 border-0 text-xs">
+            <SelectTrigger className="rounded-full bg-gray-100 border-0 text-xs h-9">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="min-w-[150px]">
+            <SelectContent className="min-w-[120px]">
               <SelectItem value="recent">최신순</SelectItem>
               <SelectItem value="popular">인기순</SelectItem>
               <SelectItem value="views">조회수순</SelectItem>
