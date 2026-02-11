@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ import { LANGUAGES, getLanguageFlag, getLanguageLabel } from '@/lib/languages'
 import { NotificationsBell } from '@/components/notifications-bell'
 import { ProfileMenu } from '@/components/profile-menu'
 
-export default function BrowsePage() {
+function BrowseContent() {
   const { user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -378,5 +378,17 @@ export default function BrowsePage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function BrowsePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <p>로딩 중...</p>
+      </div>
+    }>
+      <BrowseContent />
+    </Suspense>
   )
 }
