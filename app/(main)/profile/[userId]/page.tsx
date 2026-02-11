@@ -1,141 +1,110 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { supabase, Profile, Document } from '@/lib/supabase'
+import { useParams } from 'next/navigation'
+import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
-import { User, FileText, Heart, MessageCircle, Edit, Users, Eye, Clock, ThumbsUp } from 'lucide-react'
+import { Eye, ThumbsUp, FileText, Users, Calendar, Play } from 'lucide-react'
 import { SubscribeButton } from '@/components/subscribe-button'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
+import { getLanguageFlag } from '@/lib/languages'
 
 export default function ProfilePage() {
   const params = useParams()
-  const userId = params.userId as string
   const { user: currentUser } = useAuth()
-  const router = useRouter()
+  const userId = params.userId as string
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [documents, setDocuments] = useState<Document[]>([])
-  const [likedDocs, setLikedDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [username, setUsername] = useState('')
-
-  const isOwnProfile = currentUser?.id === userId
 
   useEffect(() => {
     loadProfile()
+    loadDocuments()
   }, [userId])
 
   const loadProfile = async () => {
     try {
-      // 1. 프로필 정보 가져오기
-      const { data: profileData, error: profileError } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
 
-      if (profileError) throw profileError
-      setProfile(profileData)
-      setUsername(profileData.username || '')
-
-      // 2. 작가면 업로드한 문서 가져오기
-      if (profileData.role === 'author') {
-        const { data: docsData } = await supabase
-          .from('documents')
-          .select('*')
-          .eq('author_id', userId)
-          .eq('is_published', true)
-          .order('created_at', { ascending: false })
-
-        setDocuments(docsData || [])
-      }
-
-      // 3. 독자면 좋아한 문서 가져오기
-      if (profileData.role === 'reader') {
-        const { data: reactions } = await supabase
-          .from('document_reactions')
-          .select('document_id')
-          .eq('user_id', userId)
-          .eq('reaction_type', 'like')
-
-        if (reactions && reactions.length > 0) {
-          const docIds = reactions.map(r => r.document_id)
-          const { data: likedDocsData } = await supabase
-            .from('documents')
-            .select('*')
-            .in('id', docIds)
-
-          setLikedDocs(likedDocsData || [])
-        }
-      }
+      if (error) throw error
+      setProfile(data)
     } catch (err) {
       console.error('Error loading profile:', err)
+    }
+  }
+
+  const loadDocuments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('author_id', userId)
+        .eq('is_published', true)
+        .order('created_at', { ascending: false })
+        .limit(6)
+
+      if (error) throw error
+      setDocuments(data || [])
+    } catch (err) {
+      console.error('Error loading documents:', err)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleUpdateProfile = async () => {
-    if (!currentUser || !username.trim()) return
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ username: username.trim() })
-        .eq('id', currentUser.id)
-
-      if (error) throw error
-
-      alert('프로필이 업데이트되었습니다!')
-      setEditing(false)
-      loadProfile()
-    } catch (err) {
-      console.error('Error updating profile:', err)
-      alert('프로필 업데이트에 실패했습니다.')
-    }
-  }
-
   const DocumentCard = ({ doc }: { doc: Document }) => (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-2xl">{getCategoryIcon(doc.category)}</span>
-          <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
-            {getCategoryLabel(doc.category)}
-          </span>
-        </div>
-        <CardTitle className="line-clamp-2">{doc.title}</CardTitle>
-        <CardDescription className="line-clamp-3">
-          {doc.description || '설명이 없습니다'}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-3 text-sm text-gray-500 mb-4">
-          <span className="flex items-center gap-1">
-            <ThumbsUp className="w-4 h-4" />
-            {doc.likes_count.toLocaleString()}
-          </span>
-          <span className="flex items-center gap-1">
-            <Eye className="w-4 h-4" />
-            {doc.view_count.toLocaleString()}
-          </span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
+    <Link href={`/read/${doc.id}`}>
+      <div className="group cursor-pointer">
+        <div className="relative aspect-video bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl overflow-hidden mb-3">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-6xl opacity-20">📄</div>
+          </div>
+          
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                <Play className="w-6 h-6 text-black ml-1" fill="black" />
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute top-2 left-2 flex gap-2">
+            <span className="px-2 py-1 bg-black/70 text-white text-xs rounded backdrop-blur-sm">
+              {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
+            </span>
+            <span className="text-xl">{getLanguageFlag(doc.language)}</span>
+          </div>
+
+          <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded backdrop-blur-sm">
             {Math.floor(doc.total_reading_time / 60)}분
-          </span>
+          </div>
         </div>
-        <Link href={`/read/${doc.id}`}>
-          <Button className="w-full">읽기</Button>
-        </Link>
-      </CardContent>
-    </Card>
+
+        <div>
+          <h3 className="font-semibold text-sm md:text-base line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors">
+            {doc.title}
+          </h3>
+          
+          <div className="flex items-center gap-3 text-xs text-gray-500">
+            <span className="flex items-center gap-1">
+              <ThumbsUp className="w-3 h-3" />
+              {doc.likes_count.toLocaleString()}
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              {doc.view_count.toLocaleString()}
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
   )
 
   if (loading) {
@@ -149,175 +118,98 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>프로필을 찾을 수 없습니다</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/home')}>홈으로 돌아가기</Button>
-          </CardContent>
-        </Card>
+        <p>프로필을 찾을 수 없습니다.</p>
       </div>
     )
   }
 
+  const isOwnProfile = currentUser?.id === userId
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <Link href="/home">
-              <h1 className="text-2xl font-bold text-blue-600">Textry</h1>
-            </Link>
-            <div className="flex gap-4">
-              <Link href="/browse">
-                <Button variant="ghost">둘러보기</Button>
-              </Link>
-              {currentUser && (
-                <Button variant="ghost" onClick={() => {
-                  supabase.auth.signOut()
-                  router.push('/')
-                }}>
-                  로그아웃
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* 헤더 - 사이드바 높이에 맞춤 */}
+      <header className="sticky top-0 z-20 bg-white border-b h-[73px] flex items-center px-4 md:px-6">
+        <div className="flex-1"></div>
       </header>
 
-      <div className="container mx-auto px-4 py-12">
-        {/* 프로필 정보 */}
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-6">
-              {/* 프로필 아바타 */}
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold flex-shrink-0">
-                {(profile.username || profile.email)[0].toUpperCase()}
-              </div>
-
-              {/* 프로필 정보 */}
-              <div className="flex-1">
-                {editing ? (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="username">사용자 이름</Label>
-                      <Input
-                        id="username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="사용자 이름을 입력하세요"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button onClick={handleUpdateProfile}>저장</Button>
-                      <Button variant="outline" onClick={() => {
-                        setEditing(false)
-                        setUsername(profile.username || '')
-                      }}>
-                        취소
-                      </Button>
-                    </div>
-                  </div>
+      <main className="p-4 md:p-6 lg:p-8">
+        <div className="max-w-6xl mx-auto">
+          {/* 프로필 헤더 */}
+          <Card className="mb-8">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                {/* 프로필 이미지 */}
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.username || profile.email}
+                    className="w-32 h-32 rounded-full object-cover"
+                  />
                 ) : (
-                  <>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h2 className="text-2xl font-bold">
-                        {profile.username || profile.email}
-                      </h2>
-                      <span className={`px-3 py-1 rounded-full text-sm ${
-                        profile.role === 'author' 
-                          ? 'bg-purple-100 text-purple-700' 
-                          : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {profile.role === 'author' ? '작가' : '독자'}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 mb-4">{profile.email}</p>
-                    
-                    {profile.role === 'author' && (
-                      <div className="flex items-center gap-4 mb-4">
-                        <span className="flex items-center gap-2 text-gray-600">
-                          <Users className="w-5 h-5" />
-                          구독자 {profile.subscribers_count}명
-                        </span>
-                        <span className="flex items-center gap-2 text-gray-600">
-                          <FileText className="w-5 h-5" />
-                          문서 {documents.length}개
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2">
-                      {isOwnProfile ? (
-                        <Button onClick={() => setEditing(true)} className="gap-2">
-                          <Edit className="w-4 h-4" />
-                          프로필 편집
-                        </Button>
-                      ) : (
-                        profile.role === 'author' && (
-                          <SubscribeButton 
-                            authorId={profile.id}
-                            authorName={profile.username || profile.email}
-                            initialSubscribersCount={profile.subscribers_count}
-                          />
-                        )
-                      )}
-                    </div>
-                  </>
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-5xl font-bold">
+                    {(profile.username || profile.email)[0].toUpperCase()}
+                  </div>
                 )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* 작가: 업로드한 문서 */}
-        {profile.role === 'author' && (
+                {/* 프로필 정보 */}
+                <div className="flex-1">
+                  <h1 className="text-3xl font-bold mb-2">{profile.username || profile.email}</h1>
+                  <p className="text-gray-600 mb-4">{profile.email}</p>
+
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+                    <span className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      구독자 {profile.subscribers_count?.toLocaleString() || 0}명
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <FileText className="w-4 h-4" />
+                      문서 {documents.length}개
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      가입일 {new Date(profile.created_at).toLocaleDateString('ko-KR')}
+                    </span>
+                  </div>
+
+                  {!isOwnProfile && currentUser && (
+                    <SubscribeButton 
+                      authorId={userId}
+                      authorName={profile.username || profile.email}
+                      initialSubscribersCount={profile.subscribers_count || 0}
+                    />
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 최근 문서 */}
           <div>
-            <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <FileText className="w-6 h-6" />
-              업로드한 문서 ({documents.length})
-            </h3>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">최근 업로드</h2>
+              {documents.length > 0 && (
+                <Link href={`/author/${userId}`} className="text-blue-600 hover:underline text-sm">
+                  전체 보기
+                </Link>
+              )}
+            </div>
+
             {documents.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
-                  <p className="text-gray-500">아직 업로드한 문서가 없습니다</p>
+                  <p className="text-gray-500">아직 업로드한 문서가 없습니다.</p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {documents.map((doc) => (
                   <DocumentCard key={doc.id} doc={doc} />
                 ))}
               </div>
             )}
           </div>
-        )}
-
-        {/* 독자: 좋아한 문서 */}
-        {profile.role === 'reader' && (
-          <div>
-            <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Heart className="w-6 h-6" />
-              좋아한 문서 ({likedDocs.length})
-            </h3>
-            {likedDocs.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-gray-500">아직 좋아한 문서가 없습니다</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {likedDocs.map((doc) => (
-                  <DocumentCard key={doc.id} doc={doc} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+        </div>
+      </main>
     </div>
   )
 }
