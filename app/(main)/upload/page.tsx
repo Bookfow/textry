@@ -1,43 +1,37 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
-import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Upload, FileText } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
 import { CATEGORIES } from '@/lib/categories'
 import { LANGUAGES } from '@/lib/languages'
+import { FileText, Upload as UploadIcon, Image as ImageIcon } from 'lucide-react'
 
 export default function UploadPage() {
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [category, setCategory] = useState<string>('')
-  const [language, setLanguage] = useState<string>('')
+  const [category, setCategory] = useState('fiction')
+  const [language, setLanguage] = useState('ko')
   const [file, setFile] = useState<File | null>(null)
+  const [thumbnail, setThumbnail] = useState<File | null>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState('')
+  const [progress, setProgress] = useState(0)
 
-  // 작가 권한 확인
-  if (!user || profile?.role !== 'author') {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>접근 권한 없음</CardTitle>
-            <CardDescription>작가 계정만 문서를 업로드할 수 있습니다.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/home')}>홈으로 돌아가기</Button>
-          </CardContent>
-        </Card>
+        <p>로그인이 필요합니다.</p>
       </div>
     )
   }
@@ -45,203 +39,278 @@ export default function UploadPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
-      if (selectedFile.type !== 'application/pdf') {
-        setError('PDF 파일만 업로드 가능합니다.')
-        return
-      }
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        setError('파일 크기는 100MB 이하여야 합니다.')
+      if (selectedFile.size > 100 * 1024 * 1024) {
+        alert('파일 크기는 100MB 이하여야 합니다.')
         return
       }
       setFile(selectedFile)
-      setError('')
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (selectedFile) {
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        alert('썸네일 크기는 5MB 이하여야 합니다.')
+        return
+      }
+      if (!selectedFile.type.startsWith('image/')) {
+        alert('이미지 파일만 업로드 가능합니다.')
+        return
+      }
+      setThumbnail(selectedFile)
+      
+      // 미리보기
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result as string)
+      }
+      reader.readAsDataURL(selectedFile)
+    }
+  }
+
+  const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!file || !user) return
+
+    if (!file || !title.trim()) {
+      alert('제목과 파일을 입력해주세요.')
+      return
+    }
 
     setUploading(true)
-    setError('')
+    setProgress(10)
 
     try {
-      // 1. 파일을 Supabase Storage에 업로드
       const fileExt = file.name.split('.').pop()
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`
-      const filePath = `${user.id}/${fileName}`
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`
 
+      setProgress(30)
+
+      // 파일 업로드
       const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(filePath, file)
+        .upload(fileName, file)
 
       if (uploadError) throw uploadError
 
-      // 2. 문서 메타데이터를 데이터베이스에 저장
+      setProgress(50)
+
+      let thumbnailUrl = null
+
+      // 썸네일 업로드 (있으면)
+      if (thumbnail) {
+        const thumbExt = thumbnail.name.split('.').pop()
+        const thumbFileName = `${user.id}/${Date.now()}.${thumbExt}`
+
+        const { error: thumbError } = await supabase.storage
+          .from('thumbnails')
+          .upload(thumbFileName, thumbnail)
+
+        if (thumbError) throw thumbError
+
+        const { data: thumbUrlData } = supabase.storage
+          .from('thumbnails')
+          .getPublicUrl(thumbFileName)
+
+        thumbnailUrl = thumbUrlData.publicUrl
+      }
+
+      setProgress(70)
+
+      // DB에 문서 정보 저장
       const { error: dbError } = await supabase
         .from('documents')
         .insert({
+          title: title.trim(),
+          description: description.trim() || null,
+          category,
+          language,
+          file_path: fileName,
+          thumbnail_url: thumbnailUrl,
           author_id: user.id,
-          title,
-          description,
-          category: category || null,
-          language: language || null,
-          file_path: filePath,
           file_size: file.size,
-          is_published: true,
+          total_reading_time: Math.floor(file.size / 1000),
+          is_published: true
         })
 
       if (dbError) throw dbError
 
-      alert('문서가 성공적으로 업로드되었습니다!')
+      setProgress(100)
+
+      alert('업로드가 완료되었습니다!')
       router.push('/dashboard')
-    } catch (err: any) {
-      setError(err.message || '업로드에 실패했습니다.')
+    } catch (error: any) {
+      console.error('Upload error:', error)
+      alert(`업로드 실패: ${error.message}`)
     } finally {
       setUploading(false)
+      setProgress(0)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-4 max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="w-6 h-6" />
-              문서 업로드
-            </CardTitle>
-            <CardDescription>
-              PDF 문서를 업로드하고 독자들과 공유하세요
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* 제목 */}
-              <div className="space-y-2">
-                <Label htmlFor="title">문서 제목 *</Label>
-                <Input
-                  id="title"
-                  placeholder="예: AI 시대의 창작 활동"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      <main className="p-4 md:p-6 lg:p-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">문서 업로드</h1>
+            <p className="text-gray-600">새로운 문서를 공유하세요</p>
+          </div>
 
-              {/* 카테고리 */}
-              <div className="space-y-2">
-                <Label htmlFor="category">카테고리 *</Label>
-                <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="카테고리를 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        <span className="flex items-center gap-2">
-                          <span>{cat.icon}</span>
-                          <span>{cat.label}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>문서 정보</CardTitle>
+              <CardDescription>
+                문서의 기본 정보를 입력해주세요
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleUpload} className="space-y-6">
+                {/* 제목 */}
+                <div className="space-y-2">
+                  <Label htmlFor="title">제목 *</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="문서 제목을 입력하세요"
+                    required
+                  />
+                </div>
 
-              {/* 언어 */}
-              <div className="space-y-2">
-                <Label htmlFor="language">언어 *</Label>
-                <Select value={language} onValueChange={setLanguage} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="언어를 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.value} value={lang.value}>
-                        <span className="flex items-center gap-2">
-                          <span>{lang.flag}</span>
-                          <span>{lang.label}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                {/* 설명 */}
+                <div className="space-y-2">
+                  <Label htmlFor="description">설명</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="문서에 대한 간단한 설명을 입력하세요"
+                    rows={4}
+                  />
+                </div>
 
-              {/* 설명 */}
-              <div className="space-y-2">
-                <Label htmlFor="description">문서 설명</Label>
-                <Textarea
-                  id="description"
-                  placeholder="문서에 대한 간단한 설명을 입력하세요"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
-                />
-              </div>
+                {/* 카테고리 & 언어 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="category">카테고리 *</Label>
+                    <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger id="category">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.icon} {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* 파일 업로드 */}
-              <div className="space-y-2">
-                <Label htmlFor="file">PDF 파일 *</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                  <div className="space-y-2">
+                    <Label htmlFor="language">언어 *</Label>
+                    <Select value={language} onValueChange={setLanguage}>
+                      <SelectTrigger id="language">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LANGUAGES.map((lang) => (
+                          <SelectItem key={lang.value} value={lang.value}>
+                            {lang.flag} {lang.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* 썸네일 */}
+                <div className="space-y-2">
+                  <Label htmlFor="thumbnail">썸네일 이미지 (선택)</Label>
+                  <div className="flex flex-col gap-4">
+                    <Input
+                      id="thumbnail"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleThumbnailChange}
+                      disabled={uploading}
+                    />
+                    <p className="text-xs text-gray-500">
+                      권장: 600x800px (3:4 비율), 최대 5MB
+                    </p>
+                    {thumbnailPreview && (
+                      <div className="w-48 aspect-[3/4] rounded-lg overflow-hidden border">
+                        <img
+                          src={thumbnailPreview}
+                          alt="썸네일 미리보기"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 파일 */}
+                <div className="space-y-2">
+                  <Label htmlFor="file">문서 파일 *</Label>
                   <Input
                     id="file"
                     type="file"
-                    accept=".pdf"
                     onChange={handleFileChange}
-                    className="hidden"
+                    disabled={uploading}
+                    accept=".txt,.pdf,.docx,.md"
+                    required
                   />
-                  <label
-                    htmlFor="file"
-                    className="cursor-pointer flex flex-col items-center gap-2"
+                  <p className="text-xs text-gray-500">
+                    지원 형식: TXT, PDF, DOCX, MD (최대 100MB)
+                  </p>
+                  {file && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <FileText className="w-4 h-4" />
+                      <span>{file.name}</span>
+                      <span className="text-xs">
+                        ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 진행률 */}
+                {uploading && (
+                  <div className="space-y-2">
+                    <Progress value={progress} />
+                    <p className="text-sm text-gray-600 text-center">
+                      업로드 중... {progress}%
+                    </p>
+                  </div>
+                )}
+
+                {/* 버튼 */}
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.push('/dashboard')}
+                    disabled={uploading}
+                    className="flex-1"
                   >
-                    <FileText className="w-12 h-12 text-gray-400" />
-                    {file ? (
-                      <div>
-                        <p className="font-medium text-blue-600">{file.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-gray-600">PDF 파일을 선택하세요</p>
-                        <p className="text-sm text-gray-400">최대 100MB</p>
-                      </div>
-                    )}
-                  </label>
+                    취소
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={uploading || !file || !title.trim()}
+                    className="flex-1"
+                  >
+                    <UploadIcon className="w-4 h-4 mr-2" />
+                    {uploading ? '업로드 중...' : '업로드'}
+                  </Button>
                 </div>
-              </div>
-
-              {/* 에러 메시지 */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                  {error}
-                </div>
-              )}
-
-              {/* 제출 버튼 */}
-              <div className="flex gap-4">
-                <Button
-                  type="submit"
-                  className="flex-1"
-                  disabled={uploading || !file || !title || !category || !language}
-                >
-                  {uploading ? '업로드 중...' : '업로드'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push('/dashboard')}
-                >
-                  취소
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
     </div>
   )
 }

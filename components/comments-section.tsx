@@ -1,4 +1,5 @@
 'use client'
+
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -28,7 +29,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent')
   const [loading, setLoading] = useState(false)
   
-  // 답글 팝업 상태
   const [replyModalOpen, setReplyModalOpen] = useState(false)
   const [replyingTo, setReplyingTo] = useState<CommentWithProfile | null>(null)
   const [replyContent, setReplyContent] = useState('')
@@ -139,14 +139,12 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       if (error) throw error
 
       if (isReply && parentId) {
-        // 답글 삭제
         setComments(prev => prev.map(c => 
           c.id === parentId
             ? { ...c, replies: c.replies?.filter(r => r.id !== commentId) }
             : c
         ))
       } else {
-        // 댓글 삭제 (답글도 함께 삭제됨 - CASCADE)
         setComments(prev => prev.filter(c => c.id !== commentId))
       }
     } catch (err) {
@@ -320,11 +318,9 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-          <Link href={`/profile/${comment.profile.id}`}>
-  <span className="font-semibold hover:underline cursor-pointer">
-    {comment.profile.username || comment.profile.email}
-  </span>
-</Link>
+            <Link href={`/profile/${comment.profile.id}`} className="font-semibold hover:underline">
+              {comment.profile.username || comment.profile.email}
+            </Link>
             <span className="text-sm text-gray-500">
               {new Date(comment.created_at).toLocaleDateString('ko-KR')}
             </span>
@@ -351,7 +347,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
                 답글
               </Button>
             )}
-            {/* 본인 댓글/답글만 삭제 가능 */}
             {user?.id === comment.user_id && (
               <Button
                 variant="ghost"
@@ -367,7 +362,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
         </div>
       </div>
 
-      {/* 대댓글 */}
       {comment.replies && comment.replies.length > 0 && (
         <div className="mt-4">
           {comment.replies.map((reply) => (
@@ -400,7 +394,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
         </div>
       </div>
 
-      {/* 댓글 작성 */}
       {user ? (
         <div className="mb-8 bg-white p-4 rounded-lg">
           <div className="flex items-start gap-3">
@@ -431,7 +424,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
         </div>
       )}
 
-      {/* 댓글 목록 */}
       {comments.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           첫 댓글을 작성해보세요!
@@ -444,7 +436,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
         </div>
       )}
 
-      {/* 답글 작성 팝업 */}
       <Dialog open={replyModalOpen} onOpenChange={setReplyModalOpen}>
         <DialogContent>
           <DialogHeader>

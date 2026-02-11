@@ -82,9 +82,17 @@ export default function HomePage() {
     <Link href={`/read/${doc.id}`}>
       <div className="group cursor-pointer">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl overflow-hidden mb-3">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-6xl opacity-20">📄</div>
-          </div>
+          {doc.thumbnail_url ? (
+            <img
+              src={doc.thumbnail_url}
+              alt={doc.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-6xl opacity-20">📄</div>
+            </div>
+          )}
           
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
