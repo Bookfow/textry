@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Sidebar } from '@/components/sidebar'
-
+import { MainHeader } from '@/components/main-header'
 
 export default function MainLayout({
   children,
@@ -17,7 +17,16 @@ export default function MainLayout({
   return (
     <div className="flex flex-col min-h-screen">
       {/* 헤더 - 전체 상단 */}
-     
+      <MainHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        category={category}
+        onCategoryChange={setCategory}
+        language={language}
+        onLanguageChange={setLanguage}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
       
       {/* 사이드바 + 메인 */}
       <div className="flex flex-1">
