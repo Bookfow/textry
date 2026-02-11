@@ -238,13 +238,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         />
       )}
 
-      <aside
-        className={`
-          fixed top-0 left-0 h-screen bg-white border-r z-40 transition-all lg:static
-          ${isOpen ? 'translate-x-0 w-60 lg:w-60' : '-translate-x-full lg:translate-x-0 lg:w-16'}
-          xl:w-60
-        `}
-      >
+<aside
+  className={`
+    fixed top-0 left-0 h-screen bg-white border-r z-40 transition-all lg:static
+    ${isOpen ? 'translate-x-0 w-60 lg:w-60 xl:w-60' : '-translate-x-full lg:translate-x-0 lg:w-16 xl:w-16'}
+  `}
+>
         <SidebarContent />
       </aside>
     </>
