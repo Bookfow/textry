@@ -194,9 +194,9 @@ export default function UploadPage() {
                 <div className="space-y-2">
   <Label htmlFor="category">카테고리 *</Label>
   <Select value={category} onValueChange={setCategory}>
-    <SelectTrigger id="category">
-      <SelectValue />
-    </SelectTrigger>
+  <SelectTrigger id="category" className="min-w-[200px]">
+    <SelectValue placeholder="카테고리 선택" />
+  </SelectTrigger>
                       <SelectContent>
                         {CATEGORIES.map((cat) => (
                           <SelectItem key={cat.value} value={cat.value}>
