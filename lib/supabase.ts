@@ -28,6 +28,7 @@ export type Document = {
   total_reading_time: number
   view_count: number
   likes_count: number
+  dislikes_count: number
   is_published: boolean
   created_at: string
   updated_at: string
