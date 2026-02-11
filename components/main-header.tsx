@@ -90,7 +90,7 @@ export function MainHeader({
 
             {/* 정렬 */}
             <Select value={sortBy} onValueChange={onSortChange}>
-              <SelectTrigger className="w-32 rounded-full bg-gray-100 border-0 h-10">
+              <SelectTrigger className="w-36 rounded-full bg-gray-100 border-0 h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
