@@ -19,7 +19,7 @@ export default function UploadPage() {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [category, setCategory] = useState('tech')
+  const [category, setCategory] = useState('technology')
   const [language, setLanguage] = useState('ko')
   const [file, setFile] = useState<File | null>(null)
   const [thumbnail, setThumbnail] = useState<File | null>(null)
