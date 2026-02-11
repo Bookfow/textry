@@ -39,7 +39,14 @@ export type Comment = {
   document_id: string
   user_id: string
   content: string
+  parent_id: string | null
+  likes_count: number
   created_at: string
+}
+
+export type CommentWithProfile = Comment & {
+  profile: Profile
+  replies?: CommentWithProfile[]
 }
 
 export type ReadingProgress = {
