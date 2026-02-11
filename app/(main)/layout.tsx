@@ -13,6 +13,7 @@ export default function MainLayout({
   const [category, setCategory] = useState('all')
   const [language, setLanguage] = useState('all')
   const [sortBy, setSortBy] = useState('recent')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -26,11 +27,12 @@ export default function MainLayout({
         onLanguageChange={setLanguage}
         sortBy={sortBy}
         onSortChange={setSortBy}
+        onMenuClick={() => setSidebarOpen(!sidebarOpen)}
       />
       
       {/* 사이드바 + 메인 */}
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

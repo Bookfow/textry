@@ -13,14 +13,17 @@ import {
   BookOpen,
   ChevronDown,
   ChevronRight,
-  Menu,
   X
 } from 'lucide-react'
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
   const { user, profile } = useAuth()
-  const [isOpen, setIsOpen] = useState(false)
   const [myPageOpen, setMyPageOpen] = useState(true)
   const [subscriptionsOpen, setSubscriptionsOpen] = useState(true)
   const [subscribedAuthors, setSubscribedAuthors] = useState<Profile[]>([])
@@ -67,7 +70,7 @@ export function Sidebar() {
   ]
 
   const MenuItem = ({ icon: Icon, label, path, active }: any) => (
-    <Link href={path}>
+    <Link href={path} onClick={onClose}>
       <div
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer relative group
           ${active 
@@ -133,7 +136,7 @@ export function Sidebar() {
               {myPageOpen && (
                 <div className="mt-1 space-y-1 pl-2">
                   {myPageMenuItems.map((item) => (
-                    <Link key={item.path} href={item.path}>
+                    <Link key={item.path} href={item.path} onClick={onClose}>
                       <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 text-sm hover:bg-gray-100 relative group ${isActive(item.path) ? 'bg-blue-50 text-blue-600 font-semibold' : ''}`}>
                         <item.icon className="w-4 h-4 flex-shrink-0" />
                         <span className="hidden xl:block">{item.label}</span>
@@ -179,7 +182,7 @@ export function Sidebar() {
             {subscriptionsOpen && subscribedAuthors.length > 0 && (
               <div className="mt-1 space-y-1 pl-2">
                 {subscribedAuthors.map((author) => (
-                  <Link key={author.id} href={`/author/${author.id}`}>
+                  <Link key={author.id} href={`/author/${author.id}`} onClick={onClose}>
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm group relative">
                       {author.avatar_url ? (
                         <img
@@ -219,17 +222,10 @@ export function Sidebar() {
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 lg:hidden bg-white p-2 rounded-lg shadow-lg"
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
-
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={onClose}
         />
       )}
 

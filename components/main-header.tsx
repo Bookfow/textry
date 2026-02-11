@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, Menu } from 'lucide-react'
 import { NotificationsBell } from '@/components/notifications-bell'
 import { ProfileMenu } from '@/components/profile-menu'
 import { useAuth } from '@/lib/auth-context'
@@ -20,6 +20,7 @@ interface MainHeaderProps {
   onLanguageChange: (value: string) => void
   sortBy: string
   onSortChange: (value: string) => void
+  onMenuClick: () => void
 }
 
 export function MainHeader({
@@ -31,6 +32,7 @@ export function MainHeader({
   onLanguageChange,
   sortBy,
   onSortChange,
+  onMenuClick,
 }: MainHeaderProps) {
   const { user } = useAuth()
 
@@ -38,12 +40,21 @@ export function MainHeader({
     <header className="sticky top-0 z-20 bg-white border-b">
       <div className="px-4 md:px-6 py-3">
         <div className="flex items-center gap-4">
-          {/* 왼쪽: 로고 */}
-          <Link href="/home" className="flex-shrink-0">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Textry
-            </h1>
-          </Link>
+          {/* 왼쪽: 햄버거 메뉴 + 로고 */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onMenuClick}
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-full"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            
+            <Link href="/home" className="flex-shrink-0">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Textry
+              </h1>
+            </Link>
+          </div>
 
           {/* 중앙: 검색/필터 바 - 데스크톱 */}
           <div className="hidden lg:flex flex-1 gap-2 max-w-4xl mx-auto">
