@@ -10,10 +10,10 @@ export type Profile = {
   id: string
   email: string
   username: string | null
-  role: 'author' | 'reader'
+  avatar_url: string | null
+  role: 'reader' | 'author'
   subscribers_count: number
   created_at: string
-  updated_at: string
 }
 
 export type Document = {
