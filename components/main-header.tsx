@@ -37,8 +37,15 @@ export function MainHeader({
   return (
     <header className="sticky top-0 z-20 bg-white border-b">
       <div className="px-4 md:px-6 py-3">
-        <div className="flex items-center justify-center gap-4">
-          {/* 검색/필터 바 - 데스크톱 */}
+        <div className="flex items-center gap-4">
+          {/* 왼쪽: 로고 */}
+          <Link href="/home" className="flex-shrink-0">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Textry
+            </h1>
+          </Link>
+
+          {/* 중앙: 검색/필터 바 - 데스크톱 */}
           <div className="hidden lg:flex flex-1 gap-2 max-w-4xl mx-auto">
             {/* 검색 */}
             <div className="relative flex-1">
@@ -110,7 +117,7 @@ export function MainHeader({
           </div>
 
           {/* 우측 메뉴 */}
-          <div className="flex items-center gap-2 absolute right-4">
+          <div className="flex items-center gap-2">
             {user && (
               <Link href="/upload">
                 <Button

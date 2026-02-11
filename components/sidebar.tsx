@@ -101,15 +101,6 @@ export function Sidebar() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full overflow-y-auto">
-      {/* 로고 */}
-      <div className="p-4 border-b">
-        <Link href="/home">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center xl:text-left">
-            Textry
-          </h1>
-        </Link>
-      </div>
-
       <div className="py-4 space-y-1">
         {/* 메인 메뉴 */}
         <div className="space-y-1 px-2">
