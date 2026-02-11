@@ -63,9 +63,12 @@ export function Sidebar() {
 
   const mainMenuItems = [
     { icon: Home, label: '홈', path: '/home' },
+  ]
+  
+  const myPageMenuItems = [
     { icon: TrendingUp, label: '인기', path: '/browse?sort=popular' },
-    { icon: Bookmark, label: '읽기 목록', path: '/reading-list', authOnly: true },
-    { icon: BookOpen, label: '이어 읽기', path: '/home?section=continue', authOnly: true },
+    { icon: Bookmark, label: '읽기 목록', path: '/reading-list' },
+    { icon: BookOpen, label: '이어 읽기', path: '/home?section=continue' },
   ]
 
   const authorMenuItems = profile?.role === 'author' ? [
