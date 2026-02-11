@@ -3,20 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase, Document } from '@/lib/supabase'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { DollarSign, Eye, Clock, FileText, Users, Trash2, Play } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 
-
 export default function DashboardPage() {
-  const { user, profile } = useAuth()
-  const router = useRouter()
-  const [allDocs, setAllDocs] = useState<Document[]>([])
-  const [filteredDocs, setFilteredDocs] = useState<Document[]>([])
+  const { user } = useAuth()
+  const [documents, setDocuments] = useState<Document[]>([])
   const [stats, setStats] = useState({
     totalViews: 0,
     totalReadingTime: 0,
@@ -25,17 +21,11 @@ export default function DashboardPage() {
   })
   const [loading, setLoading] = useState(true)
 
-  
-
   useEffect(() => {
     if (user) {
       loadDashboard()
     }
   }, [user])
-
-  useEffect(() => {
-    filterDocuments()
-  }, [searchQuery, category, language, sortBy, allDocs])
 
   const loadDashboard = async () => {
     if (!user) return
@@ -49,7 +39,7 @@ export default function DashboardPage() {
 
       if (docsError) throw docsError
 
-      setAllDocs(docs || [])
+      setDocuments(docs || [])
 
       const totalViews = docs?.reduce((sum, doc) => sum + doc.view_count, 0) || 0
       const totalReadingTime = docs?.reduce((sum, doc) => sum + doc.total_reading_time, 0) || 0
@@ -76,45 +66,6 @@ export default function DashboardPage() {
     }
   }
 
-  const filterDocuments = () => {
-    let filtered = allDocs
-
-    // 카테고리 필터
-    if (category !== 'all') {
-      filtered = filtered.filter(doc => doc.category === category)
-    }
-
-    // 언어 필터
-    if (language !== 'all') {
-      filtered = filtered.filter(doc => doc.language === language)
-    }
-
-    // 검색어 필터
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(doc =>
-        doc.title.toLowerCase().includes(query) ||
-        doc.description?.toLowerCase().includes(query)
-      )
-    }
-
-    // 정렬
-    filtered = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'recent':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        case 'popular':
-          return b.likes_count - a.likes_count
-        case 'views':
-          return b.view_count - a.view_count
-        default:
-          return 0
-      }
-    })
-
-    setFilteredDocs(filtered)
-  }
-
   const handleDelete = async (doc: Document) => {
     if (!confirm(`"${doc.title}" 문서를 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
       return
@@ -138,7 +89,7 @@ export default function DashboardPage() {
 
       alert('문서가 삭제되었습니다.')
       
-      setAllDocs(allDocs.filter(d => d.id !== doc.id))
+      setDocuments(documents.filter(d => d.id !== doc.id))
       
       loadDashboard()
     } catch (err) {
@@ -231,9 +182,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-     
-
+    <div className="min-h-screen bg-gray-50">
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-[2000px] mx-auto">
           <div className="flex items-center justify-between mb-6">
@@ -298,27 +247,21 @@ export default function DashboardPage() {
           <div className="mb-6">
             <h3 className="text-xl md:text-2xl font-bold flex items-center gap-2 mb-4">
               <FileText className="w-5 h-5" />
-              내 문서 (총 {allDocs.length}개 중 {filteredDocs.length}개 표시)
+              내 문서 ({documents.length}개)
             </h3>
 
-            {filteredDocs.length === 0 ? (
+            {documents.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
-                  <p className="text-gray-500 mb-4">
-                    {searchQuery || category !== 'all' || language !== 'all'
-                      ? '검색 결과가 없습니다'
-                      : '아직 업로드한 문서가 없습니다'}
-                  </p>
-                  {allDocs.length === 0 && (
-                    <Link href="/upload">
-                      <Button>첫 문서 업로드하기</Button>
-                    </Link>
-                  )}
+                  <p className="text-gray-500 mb-4">아직 업로드한 문서가 없습니다</p>
+                  <Link href="/upload">
+                    <Button>첫 문서 업로드하기</Button>
+                  </Link>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-                {filteredDocs.map((doc) => (
+                {documents.map((doc) => (
                   <DocumentCard key={doc.id} doc={doc} />
                 ))}
               </div>

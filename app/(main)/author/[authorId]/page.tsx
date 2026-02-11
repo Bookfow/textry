@@ -4,12 +4,10 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Eye, ThumbsUp, Play, Users } from 'lucide-react'
+import { Eye, ThumbsUp, Play } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
-
 import { SubscribeButton } from '@/components/subscribe-button'
 
 export default function AuthorPage() {
@@ -19,23 +17,15 @@ export default function AuthorPage() {
   const authorId = params.authorId as string
 
   const [author, setAuthor] = useState<Profile | null>(null)
-  const [allDocs, setAllDocs] = useState<Document[]>([])
-  const [filteredDocs, setFilteredDocs] = useState<Document[]>([])
+  const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
-
-  
 
   useEffect(() => {
     loadAuthorData()
   }, [authorId])
 
-  useEffect(() => {
-    filterDocuments()
-  }, [searchQuery, category, language, sortBy, allDocs])
-
   const loadAuthorData = async () => {
     try {
-      // 작가 프로필 로드
       const { data: authorData, error: authorError } = await supabase
         .from('profiles')
         .select('*')
@@ -45,7 +35,6 @@ export default function AuthorPage() {
       if (authorError) throw authorError
       setAuthor(authorData)
 
-      // 작가의 문서 로드
       const { data: docs, error: docsError } = await supabase
         .from('documents')
         .select('*')
@@ -54,51 +43,12 @@ export default function AuthorPage() {
         .order('created_at', { ascending: false })
 
       if (docsError) throw docsError
-      setAllDocs(docs || [])
+      setDocuments(docs || [])
     } catch (err) {
       console.error('Error loading author data:', err)
     } finally {
       setLoading(false)
     }
-  }
-
-  const filterDocuments = () => {
-    let filtered = allDocs
-
-    // 카테고리 필터
-    if (category !== 'all') {
-      filtered = filtered.filter(doc => doc.category === category)
-    }
-
-    // 언어 필터
-    if (language !== 'all') {
-      filtered = filtered.filter(doc => doc.language === language)
-    }
-
-    // 검색어 필터
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(doc =>
-        doc.title.toLowerCase().includes(query) ||
-        doc.description?.toLowerCase().includes(query)
-      )
-    }
-
-    // 정렬
-    filtered = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'recent':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        case 'popular':
-          return b.likes_count - a.likes_count
-        case 'views':
-          return b.view_count - a.view_count
-        default:
-          return 0
-      }
-    })
-
-    setFilteredDocs(filtered)
   }
 
   const DocumentCard = ({ doc }: { doc: Document }) => (
@@ -166,46 +116,40 @@ export default function AuthorPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500 mb-4">작가를 찾을 수 없습니다</p>
-          <Button onClick={() => router.push('/home')}>홈으로 돌아가기</Button>
+          <button onClick={() => router.push('/home')} className="text-blue-600 hover:underline">
+            홈으로 돌아가기
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-     
-
-      <main className="flex-1 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50">
+      <main className="p-4 md:p-6 lg:p-8">
         <div className="max-w-[2000px] mx-auto">
           {/* 작가 프로필 섹션 */}
           <div className="bg-white rounded-xl p-6 mb-8 shadow-sm">
             <div className="flex items-start gap-6">
-              {/* 아바타 */}
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-4xl font-bold flex-shrink-0">
                 {(author.username || author.email)[0].toUpperCase()}
               </div>
 
-              {/* 정보 */}
               <div className="flex-1">
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">
                   {author.username || author.email}
                 </h1>
                 <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                  <span className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    구독자 {author.subscribers_count?.toLocaleString() || 0}명
-                  </span>
-                  <span>문서 {allDocs.length}개</span>
+                  <span>구독자 {author.subscribers_count?.toLocaleString() || 0}명</span>
+                  <span>문서 {documents.length}개</span>
                 </div>
 
-                {/* 구독 버튼 */}
                 {user && user.id !== authorId && (
                   <SubscribeButton 
-                  authorId={authorId}
-                  authorName={author.username || author.email}
-                  initialSubscribersCount={author.subscribers_count || 0}
-                />
+                    authorId={authorId}
+                    authorName={author.username || author.email}
+                    initialSubscribersCount={author.subscribers_count || 0}
+                  />
                 )}
               </div>
             </div>
@@ -215,23 +159,16 @@ export default function AuthorPage() {
           <div>
             <div className="mb-6">
               <h2 className="text-xl md:text-2xl font-bold mb-2">업로드한 문서</h2>
-              <p className="text-sm text-gray-500">
-                총 {allDocs.length}개 중 {filteredDocs.length}개 표시
-                {searchQuery && ` (검색어: "${searchQuery}")`}
-              </p>
+              <p className="text-sm text-gray-500">총 {documents.length}개</p>
             </div>
 
-            {filteredDocs.length === 0 ? (
+            {documents.length === 0 ? (
               <div className="text-center py-20">
-                <p className="text-gray-500">
-                  {searchQuery || category !== 'all' || language !== 'all'
-                    ? '검색 결과가 없습니다'
-                    : '아직 업로드한 문서가 없습니다'}
-                </p>
+                <p className="text-gray-500">아직 업로드한 문서가 없습니다</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-                {filteredDocs.map((doc) => (
+                {documents.map((doc) => (
                   <DocumentCard key={doc.id} doc={doc} />
                 ))}
               </div>
