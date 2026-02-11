@@ -94,9 +94,9 @@ export function MainHeader({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="min-w-[120px]">
-                <SelectItem value="recent">최신순</SelectItem>
-                <SelectItem value="popular">인기순</SelectItem>
-                <SelectItem value="views">조회수순</SelectItem>
+                <SelectItem value="recent"className="py-2">최신순</SelectItem>
+                <SelectItem value="popular"className="py-2">인기순</SelectItem>
+                <SelectItem value="views"className="py-2">조회수순</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -170,7 +170,7 @@ export function MainHeader({
             <SelectTrigger className="rounded-full bg-gray-100 border-0 text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="min-w-[120px]">
+            <SelectContent className="min-w-[150px]">
               <SelectItem value="recent">최신순</SelectItem>
               <SelectItem value="popular">인기순</SelectItem>
               <SelectItem value="views">조회수순</SelectItem>
