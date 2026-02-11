@@ -80,14 +80,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         `}
       >
         <Icon className="w-5 h-5 flex-shrink-0" />
-        <span className={`text-sm ${isOpen ? 'block' : 'hidden'} lg:block`}>{label}</span>
+        <span className="hidden xl:block text-sm">{label}</span>
         
-        {/* 툴팁 - 사이드바 닫힌 상태에서만 표시 */}
-        {!isOpen && (
-          <div className="hidden lg:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-            {label}
-          </div>
-        )}
+        {/* 툴팁 - 중간 크기에서만 표시 */}
+        <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+          {label}
+        </div>
       </div>
     </Link>
   )
@@ -120,20 +118,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               >
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5 flex-shrink-0" />
-                  <span className={`text-sm font-semibold ${isOpen ? 'block' : 'hidden'} lg:block`}>내 페이지</span>
+                  <span className="text-sm font-semibold hidden xl:block">내 페이지</span>
                 </div>
                 {myPageOpen ? (
-                  <ChevronDown className={`w-4 h-4 ${isOpen ? 'block' : 'hidden'} lg:block`} />
+                  <ChevronDown className="w-4 h-4 hidden xl:block" />
                 ) : (
-                  <ChevronRight className={`w-4 h-4 ${isOpen ? 'block' : 'hidden'} lg:block`} />
+                  <ChevronRight className="w-4 h-4 hidden xl:block" />
                 )}
                 
                 {/* 툴팁 */}
-                {!isOpen && (
-                  <div className="hidden lg:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                    내 페이지
-                  </div>
-                )}
+                <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                  내 페이지
+                </div>
               </button>
 
               {myPageOpen && (
@@ -142,14 +138,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <Link key={item.path} href={item.path} onClick={() => onClose()}>
                       <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 text-sm hover:bg-gray-100 relative group ${isActive(item.path) ? 'bg-blue-50 text-blue-600 font-semibold' : ''}`}>
                         <item.icon className="w-4 h-4 flex-shrink-0" />
-                        <span className={`${isOpen ? 'block' : 'hidden'} lg:block`}>{item.label}</span>
+                        <span className="hidden xl:block">{item.label}</span>
                         
                         {/* 툴팁 */}
-                        {!isOpen && (
-                          <div className="hidden lg:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                            {item.label}
-                          </div>
-                        )}
+                        <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                          {item.label}
+                        </div>
                       </div>
                     </Link>
                   ))}
@@ -170,20 +164,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 flex-shrink-0" />
-                <span className={`text-sm font-semibold ${isOpen ? 'block' : 'hidden'} lg:block`}>구독</span>
+                <span className="text-sm font-semibold hidden xl:block">구독</span>
               </div>
               {subscriptionsOpen ? (
-                <ChevronDown className={`w-4 h-4 ${isOpen ? 'block' : 'hidden'} lg:block`} />
+                <ChevronDown className="w-4 h-4 hidden xl:block" />
               ) : (
-                <ChevronRight className={`w-4 h-4 ${isOpen ? 'block' : 'hidden'} lg:block`} />
+                <ChevronRight className="w-4 h-4 hidden xl:block" />
               )}
               
               {/* 툴팁 */}
-              {!isOpen && (
-                <div className="hidden lg:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                  구독
-                </div>
-              )}
+              <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                구독
+              </div>
             </button>
 
             {subscriptionsOpen && subscribedAuthors.length > 0 && (
@@ -202,16 +194,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           {(author.username || author.email)[0].toUpperCase()}
                         </div>
                       )}
-                      <span className={`truncate group-hover:text-blue-600 ${isOpen ? 'block' : 'hidden'} lg:block`}>
+                      <span className="hidden xl:block truncate group-hover:text-blue-600">
                         {author.username || author.email}
                       </span>
                       
                       {/* 툴팁 */}
-                      {!isOpen && (
-                        <div className="hidden lg:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                          {author.username || author.email}
-                        </div>
-                      )}
+                      <div className="hidden lg:xl:block absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                        {author.username || author.email}
+                      </div>
                     </div>
                   </Link>
                 ))}
@@ -219,7 +209,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             )}
 
             {subscriptionsOpen && subscribedAuthors.length === 0 && (
-              <div className={`mt-1 px-3 py-2 text-xs text-gray-400 ${isOpen ? 'block' : 'hidden'} lg:block`}>
+              <div className="mt-1 px-3 py-2 text-xs text-gray-400 hidden xl:block">
                 구독한 작가가 없습니다
               </div>
             )}
@@ -241,7 +231,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside
         className={`
           fixed top-0 left-0 h-screen bg-white border-r z-40 transition-all lg:static
-          ${isOpen ? 'translate-x-0 w-60 lg:w-60' : '-translate-x-full lg:translate-x-0 lg:w-16'}
+          ${isOpen ? 'translate-x-0 w-60' : '-translate-x-full lg:translate-x-0'}
+          lg:w-16 xl:w-60
         `}
       >
         <SidebarContent />
