@@ -214,7 +214,11 @@ export default function AuthorPage() {
 
                 {/* 구독 버튼 */}
                 {user && user.id !== authorId && (
-                  <SubscribeButton authorId={authorId} />
+                  <SubscribeButton 
+                  authorId={authorId}
+                  authorName={author.username || author.email}
+                  initialSubscribersCount={author.subscribers_count || 0}
+                />
                 )}
               </div>
             </div>
