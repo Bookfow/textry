@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { Eye, ThumbsUp, Play, Users } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
-import { MainHeader } from '@/components/main-header'
+
 import { SubscribeButton } from '@/components/subscribe-button'
 
 export default function AuthorPage() {
@@ -23,11 +23,7 @@ export default function AuthorPage() {
   const [filteredDocs, setFilteredDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
 
-  // 필터 상태
-  const [searchQuery, setSearchQuery] = useState('')
-  const [category, setCategory] = useState('all')
-  const [language, setLanguage] = useState('all')
-  const [sortBy, setSortBy] = useState('recent')
+  
 
   useEffect(() => {
     loadAuthorData()
@@ -178,16 +174,7 @@ export default function AuthorPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <MainHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        category={category}
-        onCategoryChange={setCategory}
-        language={language}
-        onLanguageChange={setLanguage}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-      />
+     
 
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-[2000px] mx-auto">

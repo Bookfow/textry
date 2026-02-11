@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useRouter } from 'next/navigation'
-import { MainHeader } from '@/components/main-header'
+
 import { Camera } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -131,16 +131,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <MainHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        category={category}
-        onCategoryChange={setCategory}
-        language={language}
-        onLanguageChange={setLanguage}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-      />
+     
 
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">

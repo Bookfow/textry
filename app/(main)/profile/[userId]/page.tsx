@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { Card, CardContent } from '@/components/ui/card'
-import { MainHeader } from '@/components/main-header'
+
 import Link from 'next/link'
 import { Eye, ThumbsUp, FileText, Users, Calendar, Play } from 'lucide-react'
 import { SubscribeButton } from '@/components/subscribe-button'
@@ -21,11 +21,7 @@ export default function ProfilePage() {
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
 
-  // 필터 상태
-  const [searchQuery, setSearchQuery] = useState('')
-  const [category, setCategory] = useState('all')
-  const [language, setLanguage] = useState('all')
-  const [sortBy, setSortBy] = useState('recent')
+  
 
   useEffect(() => {
     loadProfile()
@@ -135,16 +131,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <MainHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        category={category}
-        onCategoryChange={setCategory}
-        language={language}
-        onLanguageChange={setLanguage}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-      />
+     
 
       <main className="p-4 md:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto">

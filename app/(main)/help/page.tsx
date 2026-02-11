@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { MainHeader } from '@/components/main-header'
+
 import { Search, ChevronDown, ChevronRight } from 'lucide-react'
 
 const FAQ_DATA = [
@@ -115,16 +115,7 @@ export default function HelpPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <MainHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        category={category}
-        onCategoryChange={setCategory}
-        language={language}
-        onLanguageChange={setLanguage}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-      />
+     
 
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">

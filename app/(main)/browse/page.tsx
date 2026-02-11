@@ -9,7 +9,7 @@ import { Eye, ThumbsUp, Play } from 'lucide-react'
 import { ReadingListButton } from '@/components/reading-list-button'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
-import { MainHeader } from '@/components/main-header'
+
 
 function BrowseContent() {
   const { user } = useAuth()
@@ -20,11 +20,7 @@ function BrowseContent() {
   const [filteredDocs, setFilteredDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
 
-  // 필터 상태
-  const [searchQuery, setSearchQuery] = useState('')
-  const [category, setCategory] = useState('all')
-  const [language, setLanguage] = useState('all')
-  const [sortBy, setSortBy] = useState('recent')
+  
 
   // URL 파라미터 처리
   useEffect(() => {
@@ -211,16 +207,7 @@ function BrowseContent() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <MainHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        category={category}
-        onCategoryChange={setCategory}
-        language={language}
-        onLanguageChange={setLanguage}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-      />
+     
 
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-[2000px] mx-auto">

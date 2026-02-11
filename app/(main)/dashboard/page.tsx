@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation'
 import { DollarSign, Eye, Clock, FileText, Users, Trash2, Play } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
-import { MainHeader } from '@/components/main-header'
+
 
 export default function DashboardPage() {
   const { user, profile } = useAuth()
@@ -25,11 +25,7 @@ export default function DashboardPage() {
   })
   const [loading, setLoading] = useState(true)
 
-  // 필터 상태
-  const [searchQuery, setSearchQuery] = useState('')
-  const [category, setCategory] = useState('all')
-  const [language, setLanguage] = useState('all')
-  const [sortBy, setSortBy] = useState('recent')
+  
 
   useEffect(() => {
     if (user) {
@@ -236,16 +232,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <MainHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        category={category}
-        onCategoryChange={setCategory}
-        language={language}
-        onLanguageChange={setLanguage}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-      />
+     
 
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-[2000px] mx-auto">
