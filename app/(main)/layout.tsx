@@ -13,7 +13,7 @@ export default function MainLayout({
   const [category, setCategory] = useState('all')
   const [language, setLanguage] = useState('all')
   const [sortBy, setSortBy] = useState('recent')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
