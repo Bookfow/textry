@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
-import { BookOpen, BookOpen as ReadIcon, Eye, ThumbsUp, Clock, Heart } from 'lucide-react'
+import { BookOpen, Eye, ThumbsUp, Clock, Heart } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 
 type ReadingDoc = {
@@ -173,11 +173,11 @@ export default function ContinueReadingPage() {
                         <div className="text-5xl opacity-20">📄</div>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                          <ReadIcon className="w-5 h-5 text-black" />
-                        </div>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-end justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 w-full">
+                        <p className="text-white text-[11px] leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                          {doc.description || '설명이 없습니다'}
+                        </p>
                       </div>
                     </div>
                     {/* 찜 버튼 */}

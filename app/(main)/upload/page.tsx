@@ -26,6 +26,7 @@ export default function UploadPage() {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [copyrightAgreed, setCopyrightAgreed] = useState(false)
 
   if (!user) {
     return (
@@ -59,7 +60,6 @@ export default function UploadPage() {
       }
       setThumbnail(selectedFile)
       
-      // 미리보기
       const reader = new FileReader()
       reader.onloadend = () => {
         setThumbnailPreview(reader.result as string)
@@ -85,7 +85,6 @@ export default function UploadPage() {
 
       setProgress(30)
 
-      // 파일 업로드
       const { error: uploadError } = await supabase.storage
         .from('documents')
         .upload(fileName, file)
@@ -96,7 +95,6 @@ export default function UploadPage() {
 
       let thumbnailUrl = null
 
-      // 썸네일 업로드 (있으면)
       if (thumbnail) {
         const thumbExt = thumbnail.name.split('.').pop()
         const thumbFileName = `${user.id}/${Date.now()}.${thumbExt}`
@@ -116,7 +114,6 @@ export default function UploadPage() {
 
       setProgress(70)
 
-      // DB에 문서 정보 저장
       const { error: dbError } = await supabase
         .from('documents')
         .insert({
@@ -177,28 +174,30 @@ export default function UploadPage() {
                   />
                 </div>
 
-                {/* 설명 */}
+                {/* 설명 (50자 제한) */}
                 <div className="space-y-2">
                   <Label htmlFor="description">설명</Label>
                   <Textarea
                     id="description"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="문서에 대한 간단한 설명을 입력하세요"
-                    rows={4}
+                    onChange={(e) => { if (e.target.value.length <= 50) setDescription(e.target.value) }}
+                    placeholder="문서에 대한 간단한 설명 (최대 50자)"
+                    rows={2}
+                    maxLength={50}
                   />
+                  <p className="text-xs text-gray-400 text-right">{description.length}/50</p>
                 </div>
 
                 {/* 카테고리 & 언어 */}
                 <div className="space-y-4">
-                <div className="space-y-2">
-  <Label htmlFor="category">카테고리 *</Label>
-  <Select value={category} onValueChange={setCategory}>
-    <SelectTrigger id="category" className="min-w-[100px]">
-      <SelectValue>
-        {CATEGORIES.find(cat => cat.value === category)?.icon} {CATEGORIES.find(cat => cat.value === category)?.label}
-      </SelectValue>
-    </SelectTrigger>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">카테고리 *</Label>
+                    <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger id="category" className="min-w-[100px]">
+                        <SelectValue>
+                          {CATEGORIES.find(cat => cat.value === category)?.icon} {CATEGORIES.find(cat => cat.value === category)?.label}
+                        </SelectValue>
+                      </SelectTrigger>
                       <SelectContent>
                         {CATEGORIES.map((cat) => (
                           <SelectItem key={cat.value} value={cat.value}>
@@ -292,6 +291,25 @@ export default function UploadPage() {
                   </div>
                 )}
 
+                {/* 저작권 동의 */}
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={copyrightAgreed}
+                      onChange={(e) => setCopyrightAgreed(e.target.checked)}
+                      className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="text-sm">
+                      <p className="font-medium text-amber-800">저작권 확인 *</p>
+                      <p className="text-amber-700 mt-1">
+                        본인이 이 문서의 저작권을 보유하고 있거나, 저작권자로부터 배포 권한을 부여받았음을 확인합니다.
+                        타인의 저작권을 침해하는 콘텐츠를 업로드할 경우 계정 정지 및 법적 책임이 발생할 수 있습니다.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
                 {/* 버튼 */}
                 <div className="flex gap-3">
                   <Button
@@ -305,7 +323,7 @@ export default function UploadPage() {
                   </Button>
                   <Button
                     type="submit"
-                    disabled={uploading || !file || !title.trim()}
+                    disabled={uploading || !file || !title.trim() || !copyrightAgreed}
                     className="flex-1"
                   >
                     <UploadIcon className="w-4 h-4 mr-2" />

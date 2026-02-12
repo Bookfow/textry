@@ -5,7 +5,7 @@ import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, ThumbsUp, Heart, HeartOff, BookOpen as ReadIcon } from 'lucide-react'
+import { Eye, ThumbsUp, Heart, HeartOff } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 
@@ -106,11 +106,11 @@ export default function ReadingListPage() {
                         <div className="text-5xl opacity-20">📄</div>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                          <ReadIcon className="w-5 h-5 text-black" />
-                        </div>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-end justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 w-full">
+                        <p className="text-white text-[11px] leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                          {doc.description || '설명이 없습니다'}
+                        </p>
                       </div>
                     </div>
                     {/* 찜 해제 버튼 */}
@@ -125,9 +125,6 @@ export default function ReadingListPage() {
                       <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
                         {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
                       </span>
-                    </div>
-                    <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
-                      {Math.floor(doc.total_reading_time / 60)}분
                     </div>
                   </div>
                   <div>

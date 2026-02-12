@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -12,7 +12,7 @@ import {
   DollarSign, Eye, Clock, FileText, Users, Trash2, Play,
   Image as ImageIcon, TrendingUp, Award, ChevronRight,
   BarChart3, ArrowUpRight, ArrowDownRight, Minus, Shield,
-  CreditCard, AlertCircle,
+  CreditCard, AlertCircle, Pencil,
 } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
@@ -59,6 +59,9 @@ export default function DashboardPage() {
   const [editingThumbnail, setEditingThumbnail] = useState<string | null>(null)
   const [newThumbnail, setNewThumbnail] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [editingDescription, setEditingDescription] = useState<string | null>(null)
+  const [newDescription, setNewDescription] = useState('')
+  const [savingDescription, setSavingDescription] = useState(false)
   const [sortBy, setSortBy] = useState<'views' | 'time' | 'revenue' | 'date'>('date')
 
   useEffect(() => {
@@ -174,6 +177,27 @@ export default function DashboardPage() {
     } catch (err) {
       console.error('Error updating thumbnail:', err)
       alert('썸네일 변경에 실패했습니다.')
+    }
+  }
+
+  const handleUpdateDescription = async (docId: string) => {
+    if (!user) return
+    setSavingDescription(true)
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .update({ description: newDescription.trim() || null })
+        .eq('id', docId)
+      if (error) throw error
+      alert('설명이 수정되었습니다.')
+      setEditingDescription(null)
+      setNewDescription('')
+      loadDashboard()
+    } catch (err) {
+      console.error('Error updating description:', err)
+      alert('설명 수정에 실패했습니다.')
+    } finally {
+      setSavingDescription(false)
     }
   }
 
@@ -494,6 +518,16 @@ export default function DashboardPage() {
                       {/* 관리 버튼 */}
                       <div className="col-span-2 flex items-center justify-center gap-2">
                         <button
+                          onClick={() => {
+                            setEditingDescription(doc.id)
+                            setNewDescription(doc.description || '')
+                          }}
+                          className="p-2 rounded-lg hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                          title="설명 수정"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => { setEditingThumbnail(doc.id); setNewThumbnail(null); setThumbnailPreview(null) }}
                           className="p-2 rounded-lg hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
                           title="썸네일 변경"
@@ -743,6 +777,48 @@ export default function DashboardPage() {
                 </div>
               </>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ━━━ 설명 수정 다이얼로그 ━━━ */}
+      <Dialog open={!!editingDescription} onOpenChange={() => {
+        setEditingDescription(null); setNewDescription('')
+      }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>설명 수정</DialogTitle></DialogHeader>
+          <div className="space-y-4 pt-4">
+            {(() => {
+              const descDoc = documents.find(d => d.id === editingDescription)
+              if (!descDoc) return null
+              return (
+                <>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 mb-1">{descDoc.title}</p>
+                    <p className="text-xs text-gray-500">카드 호버 시 표시되는 설명입니다</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-description">설명 (최대 50자)</Label>
+                    <textarea
+                      id="edit-description"
+                      value={newDescription}
+                      onChange={(e) => { if (e.target.value.length <= 50) setNewDescription(e.target.value) }}
+                      placeholder="문서에 대한 간단한 설명"
+                      rows={2}
+                      maxLength={50}
+                      className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    />
+                    <p className="text-xs text-gray-400 text-right">{newDescription.length}/50</p>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="outline" onClick={() => { setEditingDescription(null); setNewDescription('') }}>취소</Button>
+                    <Button onClick={() => handleUpdateDescription(descDoc.id)} disabled={savingDescription}>
+                      {savingDescription ? '저장 중...' : '저장'}
+                    </Button>
+                  </div>
+                </>
+              )
+            })()}
           </div>
         </DialogContent>
       </Dialog>

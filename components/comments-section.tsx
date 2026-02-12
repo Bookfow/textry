@@ -6,8 +6,9 @@ import { useAuth } from '@/lib/auth-context'
 import { supabase, CommentWithProfile, Profile } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { ThumbsUp, MessageCircle, Send, Trash2 } from 'lucide-react'
+import { ThumbsUp, MessageCircle, Send, Trash2, Flag } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { ReportButton } from '@/components/report-button'
 import {
   Dialog,
   DialogContent,
@@ -444,6 +445,13 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
           {comments.map((comment) => (
             <CommentItem key={comment.id} comment={comment} />
           ))}
+        </div>
+      )}
+
+      {/* 신고 버튼 - 하단 */}
+      {user && (
+        <div className="mt-4 pt-3 border-t border-gray-700/50 flex justify-end">
+          <ReportButton documentId={documentId} />
         </div>
       )}
 

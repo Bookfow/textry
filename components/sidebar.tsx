@@ -115,8 +115,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   )
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full overflow-y-auto">
-      <div className="py-4 space-y-1">
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto py-4 space-y-1">
         {/* 메인 메뉴 */}
         <div className="space-y-1 px-2">
           {mainMenuItems.map((item) => (
@@ -248,6 +248,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </>
         )}
       </div>
+
+      {/* ━━━ 하단 정책 링크 (고정) ━━━ */}
+      {isOpen && (
+        <div className="flex-shrink-0 px-3 py-3 border-t dark:border-gray-800">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-gray-400 dark:text-gray-500">
+            <Link href="/policies/about" className="hover:text-gray-600 dark:hover:text-gray-300">소개</Link>
+            <Link href="/policies/copyright" className="hover:text-gray-600 dark:hover:text-gray-300">저작권</Link>
+            <Link href="/policies/terms" className="hover:text-gray-600 dark:hover:text-gray-300">서비스약관</Link>
+            <Link href="/policies/privacy" className="hover:text-gray-600 dark:hover:text-gray-300">개인정보처리방침</Link>
+            <Link href="/policies/safety" className="hover:text-gray-600 dark:hover:text-gray-300">정책및안전</Link>
+          </div>
+          <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-2">© 2026 Textry</p>
+        </div>
+      )}
     </div>
   )
 
@@ -259,7 +273,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <aside
         className={`
-          fixed top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r dark:border-gray-800 z-40 transition-all lg:static overflow-visible
+          fixed top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r dark:border-gray-800 z-40 transition-all lg:static lg:h-full overflow-hidden
           ${isOpen ? 'translate-x-0 w-60 lg:w-60 xl:w-60' : '-translate-x-full lg:translate-x-0 lg:w-16 xl:w-16'}
         `}
       >
