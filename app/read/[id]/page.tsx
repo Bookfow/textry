@@ -279,10 +279,15 @@ export default function ReadPage() {
         .single()
       if (authorData) setAuthorProfile(authorData)
 
-      await supabase
-        .from('documents')
-        .update({ view_count: docData.view_count + 1 })
-        .eq('id', documentId)
+      // 조회수 중복 방지: 세션당 1회만 카운트
+      const viewKey = `viewed_${documentId}`
+      if (!sessionStorage.getItem(viewKey)) {
+        await supabase
+          .from('documents')
+          .update({ view_count: docData.view_count + 1 })
+          .eq('id', documentId)
+        sessionStorage.setItem(viewKey, '1')
+      }
 
       const { data: urlData } = supabase.storage
         .from('documents')
