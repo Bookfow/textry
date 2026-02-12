@@ -9,7 +9,6 @@ export default function MainLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [searchQuery, setSearchQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [language, setLanguage] = useState('all')
   const [sortBy, setSortBy] = useState('recent')
@@ -35,8 +34,6 @@ export default function MainLayout({
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <MainHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
         category={category}
         onCategoryChange={setCategory}
         language={language}
