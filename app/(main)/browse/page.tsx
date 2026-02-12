@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -9,6 +9,8 @@ import { Eye, ThumbsUp, TrendingUp, Heart } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 
+const PAGE_SIZE = 20
+
 function BrowseContent() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
@@ -16,23 +18,35 @@ function BrowseContent() {
   const [authors, setAuthors] = useState<Map<string, Profile>>(new Map())
   const [loading, setLoading] = useState(true)
   const [favSet, setFavSet] = useState<Set<string>>(new Set())
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   const sort = searchParams.get('sort') || 'recent'
   const category = searchParams.get('category') || 'all'
   const language = searchParams.get('language') || 'all'
 
   useEffect(() => {
-    loadDocuments()
+    setHasMore(true)
+    loadDocuments(true)
   }, [sort, category, language, user])
 
-  const loadDocuments = async () => {
+  const loadDocuments = async (isInitial = true) => {
     try {
+      if (isInitial) {
+        setLoading(true)
+        setDocuments([])
+      } else {
+        setLoadingMore(true)
+      }
+
       // 찜 목록
-      if (user) {
+      if (user && isInitial) {
         const { data: favData } = await supabase
           .from('reading_list').select('document_id').eq('user_id', user.id)
         if (favData) setFavSet(new Set(favData.map(f => f.document_id)))
       }
+
+      const offset = isInitial ? 0 : documents.length
 
       let query = supabase.from('documents').select('*').eq('is_published', true)
 
@@ -48,6 +62,8 @@ function BrowseContent() {
         query = query.order('created_at', { ascending: false })
       }
 
+      query = query.range(offset, offset + PAGE_SIZE - 1)
+
       const { data, error } = await query
       if (error) throw error
 
@@ -60,17 +76,35 @@ function BrowseContent() {
           return scoreB - scoreA
         })
       }
-      setDocuments(sorted)
+
+      if (sorted.length < PAGE_SIZE) {
+        setHasMore(false)
+      } else {
+        setHasMore(true)
+      }
+
+      if (isInitial) {
+        setDocuments(sorted)
+      } else {
+        setDocuments(prev => [...prev, ...sorted])
+      }
 
       if (sorted.length > 0) {
         const authorIds = [...new Set(sorted.map(doc => doc.author_id))]
         const { data: profilesData } = await supabase.from('profiles').select('*').in('id', authorIds)
-        if (profilesData) setAuthors(new Map(profilesData.map(p => [p.id, p])))
+        if (profilesData) {
+          setAuthors(prev => {
+            const newMap = new Map(prev)
+            profilesData.forEach(p => newMap.set(p.id, p))
+            return newMap
+          })
+        }
       }
     } catch (err) {
       console.error('Error loading documents:', err)
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
@@ -172,6 +206,19 @@ function BrowseContent() {
               </Link>
             )
           })}
+        </div>
+      )}
+
+      {/* 더보기 버튼 */}
+      {!loading && documents.length > 0 && hasMore && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={() => loadDocuments(false)}
+            disabled={loadingMore}
+            className="px-6 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium disabled:opacity-50"
+          >
+            {loadingMore ? '로딩 중...' : '더보기'}
+          </button>
         </div>
       )}
     </main>
