@@ -36,7 +36,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     ? new Date(profile.premium_expires_at) > new Date()
     : false
 
-  const isAdmin = profile?.role === 'author'
+  const isAdmin = profile?.email === 'junepk@bjpublic.co.kr'
 
   useEffect(() => {
     if (user) {
@@ -69,7 +69,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   ]
 
   const myPageMenuItems = [
-    { icon: TrendingUp, label: '인기', path: '/browse?sort=popular' },
+    { icon: TrendingUp, label: '인기 있는 콘텐츠', path: '/browse?sort=popular' },
     { icon: BookOpen, label: '읽고 있는 콘텐츠', path: '/continue-reading' },
     { icon: Heart, label: '찜한 콘텐츠', path: '/reading-list' },
   ]
