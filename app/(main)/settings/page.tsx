@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Camera, ImagePlus, Crown, Sun, Moon, Monitor } from 'lucide-react'
+import { Camera, ImagePlus, Crown, Sun, Moon, Monitor, Lock, Trash2 } from 'lucide-react'
 import { useTheme } from '@/lib/theme-context'
 import Link from 'next/link'
 
@@ -20,6 +20,15 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  // 비밀번호 변경
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
+
+  // 계정 삭제
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deletingAccount, setDeletingAccount] = useState(false)
 
   const { theme, setTheme } = useTheme()
 
@@ -130,13 +139,111 @@ export default function SettingsPage() {
     }
   }
 
+  const validatePassword = (pw: string): string | null => {
+    if (pw.length < 8) return '비밀번호는 최소 8자 이상이어야 합니다.'
+    if (!/[0-9]/.test(pw)) return '숫자를 1개 이상 포함해야 합니다.'
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pw)) return '특수문자를 1개 이상 포함해야 합니다.'
+    return null
+  }
+
+  const passwordError = newPassword ? validatePassword(newPassword) : null
+
+  const handleChangePassword = async () => {
+    const pwError = validatePassword(newPassword)
+    if (pwError) {
+      alert(pwError)
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      alert('비밀번호가 일치하지 않습니다.')
+      return
+    }
+
+    setChangingPassword(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw error
+      alert('비밀번호가 변경되었습니다!')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err: any) {
+      console.error('Password change error:', err)
+      alert(err.message || '비밀번호 변경에 실패했습니다.')
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== '삭제합니다') {
+      alert('"삭제합니다"를 정확히 입력해주세요.')
+      return
+    }
+
+    if (!confirm('정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+      return
+    }
+
+    setDeletingAccount(true)
+    try {
+      // 1. 사용자의 문서 파일 삭제 (storage)
+      const { data: docs } = await supabase
+        .from('documents')
+        .select('file_path, thumbnail_url')
+        .eq('author_id', user.id)
+
+      if (docs && docs.length > 0) {
+        const filePaths = docs.map(d => d.file_path).filter(Boolean)
+        if (filePaths.length > 0) {
+          await supabase.storage.from('documents').remove(filePaths)
+        }
+
+        const thumbPaths = docs
+          .map(d => d.thumbnail_url)
+          .filter(Boolean)
+          .map(url => {
+            const parts = url.split('/thumbnails/')
+            return parts.length > 1 ? parts[1] : null
+          })
+          .filter(Boolean) as string[]
+        if (thumbPaths.length > 0) {
+          await supabase.storage.from('thumbnails').remove(thumbPaths)
+        }
+      }
+
+      // 2. 아바타/배너 삭제
+      if (avatarUrl) {
+        const path = avatarUrl.split('/avatars/').pop()
+        if (path) await supabase.storage.from('avatars').remove([path])
+      }
+      if (bannerUrl) {
+        const path = bannerUrl.split('/avatars/').pop()
+        if (path) await supabase.storage.from('avatars').remove([path])
+      }
+
+      // 3. DB 데이터 삭제 (CASCADE가 설정되어 있으면 documents 삭제 시 관련 데이터 자동 삭제)
+      await supabase.from('documents').delete().eq('author_id', user.id)
+      await supabase.from('profiles').delete().eq('id', user.id)
+
+      // 4. 로그아웃 후 홈으로
+      await supabase.auth.signOut()
+      alert('계정이 삭제되었습니다. 이용해 주셔서 감사합니다.')
+      window.location.href = '/'
+    } catch (err: any) {
+      console.error('Account deletion error:', err)
+      alert(err.message || '계정 삭제에 실패했습니다.')
+    } finally {
+      setDeletingAccount(false)
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold mb-2">설정</h1>
-            <p className="text-gray-600">프로필 및 계정 설정을 관리하세요</p>
+            <p className="text-gray-600 dark:text-gray-400">프로필 및 계정 설정을 관리하세요</p>
           </div>
 
           {/* 배너 이미지 */}
@@ -224,12 +331,74 @@ export default function SettingsPage() {
                     placeholder="자신을 소개해주세요 (최대 300자)"
                     maxLength={300}
                     rows={3}
-                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full rounded-md border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   />
                   <p className="text-xs text-gray-400 text-right">{bio.length}/300</p>
                 </div>
                 <Button onClick={handleSaveProfile} disabled={saving}>
                   {saving ? '저장 중...' : '저장'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 비밀번호 변경 */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="w-5 h-5" />
+                비밀번호 변경
+              </CardTitle>
+              <CardDescription>계정 비밀번호를 변경합니다</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">새 비밀번호</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="최소 8자, 숫자·특수문자 포함"
+                  />
+                  {newPassword && (() => {
+                    const hasLength = newPassword.length >= 8
+                    const hasNumber = /[0-9]/.test(newPassword)
+                    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(newPassword)
+                    return (
+                      <div className="space-y-1">
+                        <p className={`text-xs ${hasLength ? 'text-green-500' : 'text-gray-400'}`}>
+                          {hasLength ? '✓' : '○'} 8자 이상
+                        </p>
+                        <p className={`text-xs ${hasNumber ? 'text-green-500' : 'text-gray-400'}`}>
+                          {hasNumber ? '✓' : '○'} 숫자 포함
+                        </p>
+                        <p className={`text-xs ${hasSpecial ? 'text-green-500' : 'text-gray-400'}`}>
+                          {hasSpecial ? '✓' : '○'} 특수문자 포함
+                        </p>
+                      </div>
+                    )
+                  })()}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">비밀번호 확인</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="비밀번호를 다시 입력하세요"
+                  />
+                  {confirmPassword && newPassword !== confirmPassword && (
+                    <p className="text-xs text-red-500">비밀번호가 일치하지 않습니다</p>
+                  )}
+                </div>
+                <Button
+                  onClick={handleChangePassword}
+                  disabled={changingPassword || !newPassword || !!passwordError || newPassword !== confirmPassword}
+                >
+                  {changingPassword ? '변경 중...' : '비밀번호 변경'}
                 </Button>
               </div>
             </CardContent>
@@ -297,7 +466,7 @@ export default function SettingsPage() {
           </Card>
 
           {/* 계정 정보 */}
-          <Card>
+          <Card className="mb-6">
             <CardHeader>
               <CardTitle>계정 정보</CardTitle>
               <CardDescription>변경할 수 없는 계정 정보입니다</CardDescription>
@@ -323,6 +492,42 @@ export default function SettingsPage() {
                   <p className="text-gray-500">가입일</p>
                   <p className="font-medium">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : '-'}</p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 계정 삭제 (위험 영역) */}
+          <Card className="mb-6 border-red-200 dark:border-red-900">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                <Trash2 className="w-5 h-5" />
+                계정 삭제
+              </CardTitle>
+              <CardDescription>
+                계정을 삭제하면 모든 데이터(업로드한 문서, 댓글, 프로필)가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="delete-confirm" className="text-sm">
+                    확인을 위해 <span className="font-bold text-red-600 dark:text-red-400">삭제합니다</span>를 입력하세요
+                  </Label>
+                  <Input
+                    id="delete-confirm"
+                    value={deleteConfirm}
+                    onChange={(e) => setDeleteConfirm(e.target.value)}
+                    placeholder="삭제합니다"
+                    className="border-red-200 dark:border-red-800 focus:ring-red-500"
+                  />
+                </div>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteAccount}
+                  disabled={deletingAccount || deleteConfirm !== '삭제합니다'}
+                >
+                  {deletingAccount ? '삭제 중...' : '계정 영구 삭제'}
+                </Button>
               </div>
             </CardContent>
           </Card>
