@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
-import { Eye, ThumbsUp, Play, FileText, Users, Clock, Calendar, Crown, Award, Share2 } from 'lucide-react'
+import { Eye, ThumbsUp, BookOpen as ReadIcon, FileText, Users, Clock, Calendar, Crown, Award, Share2 } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 import { SubscribeButton } from '@/components/subscribe-button'
@@ -95,7 +95,7 @@ export default function AuthorPage() {
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <Play className="w-6 h-6 text-black ml-1" fill="black" />
+                <ReadIcon className="w-6 h-6 text-black" />
               </div>
             </div>
           </div>

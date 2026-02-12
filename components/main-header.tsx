@@ -163,31 +163,35 @@ export function MainHeader({
 
   const SearchInput = ({ className = '', isMobile = false }: { className?: string; isMobile?: boolean }) => (
     <div className={`relative ${className}`} ref={!isMobile ? dropdownRef : undefined}>
-      <form onSubmit={handleSearchSubmit}>
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
-        <Input
-          ref={!isMobile ? inputRef : undefined}
-          type="text"
-          placeholder="문서 또는 작가 검색..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          onFocus={() => setShowDropdown(true)}
-          className="pl-10 pr-10 rounded-full bg-gray-100 border-0 h-10"
-        />
-        {searchQuery && (
-          <button
-            type="button"
-            onClick={() => { onSearchChange(''); setSuggestions([]) }}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 z-10"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
-      </form>
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" style={{ zIndex: 2 }} />
+      <input
+        ref={!isMobile ? inputRef : undefined}
+        type="text"
+        placeholder="문서 또는 작가 검색..."
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        onFocus={() => setShowDropdown(true)}
+        onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(e as any) }}
+        className="w-full h-10 pl-10 pr-10 rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-none outline-none text-sm"
+        style={{ position: 'relative', zIndex: 1 }}
+      />
+      {searchQuery && (
+        <button
+          type="button"
+          onClick={() => { onSearchChange(''); setSuggestions([]) }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          style={{ zIndex: 3 }}
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
 
       {/* 자동완성 드롭다운 */}
       {showDropdown && !isMobile && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50 max-h-[400px] overflow-y-auto">
+        (searchQuery.trim().length >= 2 && (searchLoading || suggestions.length > 0)) ||
+        (searchQuery.trim().length < 2 && recentSearches.length > 0)
+      ) && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50 max-h-[400px] overflow-y-auto">
           {/* 최근 검색어 */}
           {searchQuery.trim().length < 2 && recentSearches.length > 0 && (
             <div>
@@ -280,12 +284,12 @@ export function MainHeader({
   )
 
   return (
-    <header className="sticky top-0 z-20 bg-white border-b">
+    <header className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b dark:border-gray-800">
       <div className="px-4 md:px-6 py-3">
         <div className="flex items-center gap-4">
           {/* 왼쪽: 햄버거 + 로고 */}
           <div className="flex items-center gap-4">
-            <button onClick={onMenuClick} className="p-2 hover:bg-gray-100 rounded-full">
+            <button onClick={onMenuClick} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
               <Menu className="w-6 h-6" />
             </button>
             <Link href="/home" className="flex-shrink-0">
@@ -300,7 +304,7 @@ export function MainHeader({
             <SearchInput className="flex-1" />
 
             <Select value={category} onValueChange={onCategoryChange}>
-              <SelectTrigger className="w-40 rounded-full bg-gray-100 border-0 h-10">
+              <SelectTrigger className="w-40 rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="min-w-[120px]">
@@ -312,7 +316,7 @@ export function MainHeader({
             </Select>
 
             <Select value={language} onValueChange={onLanguageChange}>
-              <SelectTrigger className="w-36 rounded-full bg-gray-100 border-0 h-10">
+              <SelectTrigger className="w-36 rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="min-w-[120px]">
@@ -324,7 +328,7 @@ export function MainHeader({
             </Select>
 
             <Select value={sortBy} onValueChange={onSortChange}>
-              <SelectTrigger className="w-36 rounded-full bg-gray-100 border-0 h-10 text-sm">
+              <SelectTrigger className="w-36 rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 h-10 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="min-w-[120px]">
@@ -363,7 +367,7 @@ export function MainHeader({
         {/* 모바일/태블릿 필터 */}
         <div className="lg:hidden mt-3 grid grid-cols-3 gap-2">
           <Select value={category} onValueChange={onCategoryChange}>
-            <SelectTrigger className="rounded-full bg-gray-100 border-0 text-xs">
+            <SelectTrigger className="rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="min-w-[120px]">
@@ -375,7 +379,7 @@ export function MainHeader({
           </Select>
 
           <Select value={language} onValueChange={onLanguageChange}>
-            <SelectTrigger className="rounded-full bg-gray-100 border-0 text-xs">
+            <SelectTrigger className="rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="min-w-[120px]">
@@ -387,7 +391,7 @@ export function MainHeader({
           </Select>
 
           <Select value={sortBy} onValueChange={onSortChange}>
-            <SelectTrigger className="rounded-full bg-gray-100 border-0 text-xs h-9">
+            <SelectTrigger className="rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 text-xs h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="min-w-[120px]">

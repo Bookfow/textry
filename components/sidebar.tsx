@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Crown,
   Shield,
+  ListVideo,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -92,8 +93,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer relative group
           ${active
-            ? 'bg-blue-50 text-blue-600 font-semibold'
-            : 'hover:bg-gray-100 text-gray-700'
+            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold'
+            : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
           }
         `}
       >
@@ -123,7 +124,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           ))}
         </div>
 
-        <div className="border-t my-3" />
+        <div className="border-t dark:border-gray-800 my-3" />
 
         {/* 내 페이지 섹션 */}
         {user && (
@@ -131,7 +132,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="px-2">
               <button
                 onClick={() => setMyPageOpen(!myPageOpen)}
-                className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 relative group"
+                className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 relative group"
               >
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5 flex-shrink-0" />
@@ -145,7 +146,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <div className={`mt-1 space-y-1 ${isOpen ? 'pl-2' : 'pl-0'}`}>
                   {myPageMenuItems.map((item) => (
                     <Link key={item.path} href={item.path} onClick={handleLinkClick}>
-                      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 text-sm hover:bg-gray-100 relative group ${!isOpen ? 'justify-end' : ''} ${isActive(item.path) ? 'bg-blue-50 text-blue-600 font-semibold' : ''}`}>
+                      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 relative group ${!isOpen ? 'justify-end' : ''} ${isActive(item.path) ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold' : ''}`}>
                         <item.icon className="flex-shrink-0 w-4 h-4" />
                         {isOpen && <span className="whitespace-nowrap">{item.label}</span>}
                         <Tooltip label={item.label} />
@@ -156,7 +157,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               )}
             </div>
 
-            <div className="border-t my-3" />
+            <div className="border-t dark:border-gray-800 my-3" />
           </>
         )}
 
@@ -165,7 +166,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="px-2">
             <button
               onClick={() => setSubscriptionsOpen(!subscriptionsOpen)}
-              className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 relative group"
+              className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 relative group"
             >
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 flex-shrink-0" />
@@ -201,7 +202,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             )}
 
             {subscriptionsOpen && subscribedAuthors.length === 0 && isOpen && (
-              <div className="mt-1 px-3 py-2 text-xs text-gray-400">구독한 작가가 없습니다</div>
+              <div className="mt-1 px-3 py-2 text-xs text-gray-400 dark:text-gray-500">구독한 작가가 없습니다</div>
             )}
           </div>
         )}
@@ -209,8 +210,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* ━━━ 하단: 프리미엄 & 관리자 ━━━ */}
         {user && (
           <>
-            <div className="border-t my-3" />
+            <div className="border-t dark:border-gray-800 my-3" />
             <div className="space-y-1 px-2">
+              {/* 시리즈 (작가만) */}
+              {isAdmin && (
+                <MenuItem
+                  icon={ListVideo}
+                  label="시리즈"
+                  path="/series"
+                  active={isActive('/series')}
+                />
+              )}
+
               {/* 프리미엄 */}
               <MenuItem
                 icon={Crown}
@@ -248,7 +259,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <aside
         className={`
-          fixed top-0 left-0 h-screen bg-white border-r z-40 transition-all lg:static overflow-visible
+          fixed top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r dark:border-gray-800 z-40 transition-all lg:static overflow-visible
           ${isOpen ? 'translate-x-0 w-60 lg:w-60 xl:w-60' : '-translate-x-full lg:translate-x-0 lg:w-16 xl:w-16'}
         `}
       >

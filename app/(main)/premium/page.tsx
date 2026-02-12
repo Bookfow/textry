@@ -107,25 +107,25 @@ export default function PremiumPage() {
   // 이미 프리미엄인 경우
   if (isPremium) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <main className="flex-1 p-4 md:p-6 lg:p-8">
           <div className="max-w-2xl mx-auto">
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 p-8 text-center">
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-2xl border border-amber-200 dark:border-amber-800 p-8 text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Crown className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Textry Premium 활성</h2>
-              <p className="text-gray-600 mb-6">광고 없는 깨끗한 읽기 환경을 즐기고 계십니다</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Textry Premium 활성</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">광고 없는 깨끗한 읽기 환경을 즐기고 계십니다</p>
 
-              <div className="bg-white rounded-xl p-6 mb-6 text-left">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6 text-left">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">구독 상태</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">구독 상태</span>
                     <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">활성</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">만료일</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">만료일</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
                       {profile?.premium_expires_at
                         ? new Date(profile.premium_expires_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
                         : '-'
@@ -146,7 +146,7 @@ export default function PremiumPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
 
@@ -155,19 +155,19 @@ export default function PremiumPage() {
             <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <Crown className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Textry Premium</h1>
-            <p className="text-lg text-gray-600 max-w-md mx-auto">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white dark:text-white mb-3">Textry Premium</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto">
               광고 없이 몰입하여 읽으세요. 당신의 읽기 시간이 작가의 수익이 됩니다.
             </p>
           </div>
 
           {/* 요금제 선택 */}
           <div className="flex justify-center mb-8">
-            <div className="bg-gray-200 rounded-full p-1 flex">
+            <div className="bg-gray-200 dark:bg-gray-800 rounded-full p-1 flex">
               <button
                 onClick={() => setSelectedPlan('monthly')}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedPlan === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                  selectedPlan === 'monthly' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-600'
                 }`}
               >
                 월간
@@ -175,7 +175,7 @@ export default function PremiumPage() {
               <button
                 onClick={() => setSelectedPlan('yearly')}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedPlan === 'yearly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                  selectedPlan === 'yearly' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-600'
                 }`}
               >
                 연간 <span className="text-green-600 font-bold">25% 할인</span>
@@ -186,11 +186,11 @@ export default function PremiumPage() {
           {/* 가격 카드 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             {/* 무료 */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Free</h3>
-              <p className="text-sm text-gray-500 mb-4">기본 이용</p>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Free</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">기본 이용</p>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">$0</span>
+                <span className="text-4xl font-bold text-gray-900 dark:text-white">$0</span>
                 <span className="text-gray-500">/월</span>
               </div>
               <div className="space-y-3 mb-6">
@@ -209,16 +209,16 @@ export default function PremiumPage() {
             </div>
 
             {/* 프리미엄 */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-300 p-8 relative">
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-2xl border-2 border-amber-300 dark:border-amber-700 p-8 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full">
                 RECOMMENDED
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-500" /> Premium
               </h3>
-              <p className="text-sm text-gray-500 mb-4">광고 없는 읽기</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">광고 없는 읽기</p>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">
+                <span className="text-4xl font-bold text-gray-900 dark:text-white">
                   ${selectedPlan === 'monthly' ? '3.99' : '2.99'}
                 </span>
                 <span className="text-gray-500">/월</span>
@@ -233,7 +233,7 @@ export default function PremiumPage() {
                 {features.map((f, i) => (
                   <div key={i} className="flex items-center gap-3 text-sm">
                     <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">{f.label}</span>
+                    <span className="text-gray-700 dark:text-gray-300">{f.label}</span>
                   </div>
                 ))}
               </div>
@@ -258,7 +258,7 @@ export default function PremiumPage() {
 
           {/* FAQ */}
           <div className="max-w-2xl mx-auto">
-            <h3 className="text-xl font-bold text-gray-900 text-center mb-6">자주 묻는 질문</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white text-center mb-6">자주 묻는 질문</h3>
             <div className="space-y-4">
               {[
                 { q: '프리미엄을 구독하면 어떤 혜택이 있나요?', a: '모든 광고(전면 광고, 배너, 사이드바)가 완전히 제거되어 깨끗한 환경에서 문서를 읽을 수 있습니다.' },
@@ -266,9 +266,9 @@ export default function PremiumPage() {
                 { q: '언제든 해지할 수 있나요?', a: '네, 언제든 해지 가능합니다. 해지 후에도 현재 결제 기간이 끝날 때까지는 프리미엄 혜택을 이용하실 수 있습니다.' },
                 { q: '결제 수단은 무엇인가요?', a: '현재는 수동 결제로 운영되며, 곧 신용카드 및 PayPal 결제가 지원될 예정입니다.' },
               ].map((item, i) => (
-                <div key={i} className="bg-white rounded-xl border border-gray-200 p-5">
-                  <h4 className="font-medium text-gray-900 mb-2">{item.q}</h4>
-                  <p className="text-sm text-gray-600">{item.a}</p>
+                <div key={i} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">{item.q}</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">{item.a}</p>
                 </div>
               ))}
             </div>

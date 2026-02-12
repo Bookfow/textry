@@ -83,37 +83,37 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  --background: oklch(0.145 0.03 264);
+  --foreground: oklch(0.95 0.006 264);
+  --card: oklch(0.205 0.035 265);
+  --card-foreground: oklch(0.95 0.006 264);
+  --popover: oklch(0.205 0.035 265);
+  --popover-foreground: oklch(0.95 0.006 264);
+  --primary: oklch(0.55 0.2 264);
+  --primary-foreground: oklch(0.98 0.003 247);
+  --secondary: oklch(0.27 0.035 264);
+  --secondary-foreground: oklch(0.95 0.006 264);
+  --muted: oklch(0.27 0.035 264);
+  --muted-foreground: oklch(0.65 0.03 264);
+  --accent: oklch(0.27 0.035 264);
+  --accent-foreground: oklch(0.95 0.006 264);
+  --destructive: oklch(0.65 0.2 25);
+  --border: oklch(0.3 0.025 264);
+  --input: oklch(0.3 0.025 264);
+  --ring: oklch(0.55 0.2 264);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --sidebar: oklch(0.17 0.03 264);
+  --sidebar-foreground: oklch(0.95 0.006 264);
+  --sidebar-primary: oklch(0.55 0.2 264);
+  --sidebar-primary-foreground: oklch(0.98 0.003 247);
+  --sidebar-accent: oklch(0.27 0.035 264);
+  --sidebar-accent-foreground: oklch(0.95 0.006 264);
+  --sidebar-border: oklch(0.3 0.025 264);
+  --sidebar-ring: oklch(0.55 0.2 264);
 }
 
 @layer base {
@@ -124,6 +124,86 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ━━━ 다크모드 글로벌 오버라이드 ━━━ */
+/* 아직 dark: 클래스가 없는 페이지(admin, dashboard, premium 등)에 자동 적용 */
+.dark .bg-gray-50 { background-color: oklch(0.145 0.03 264) !important; }
+.dark .bg-white { background-color: oklch(0.205 0.035 265) !important; }
+.dark .border-gray-200 { border-color: oklch(0.3 0.025 264) !important; }
+.dark .border-gray-100 { border-color: oklch(0.27 0.03 264) !important; }
+.dark .text-gray-900 { color: oklch(0.95 0.006 264) !important; }
+.dark .text-gray-800 { color: oklch(0.9 0.006 264) !important; }
+.dark .text-gray-700 { color: oklch(0.8 0.01 264) !important; }
+.dark .text-gray-600 { color: oklch(0.7 0.015 264) !important; }
+.dark .text-gray-500 { color: oklch(0.6 0.02 264) !important; }
+.dark .bg-gray-100 { background-color: oklch(0.25 0.025 264) !important; }
+.dark .hover\:bg-gray-100:hover { background-color: oklch(0.28 0.025 264) !important; }
+.dark .hover\:bg-gray-50:hover { background-color: oklch(0.22 0.025 264) !important; }
+.dark .border-b { border-bottom-color: oklch(0.3 0.025 264); }
+.dark .border-t { border-top-color: oklch(0.3 0.025 264); }
+.dark .divide-gray-200 > * + * { border-color: oklch(0.3 0.025 264); }
+
+/* 카드 내부 배경 */
+.dark .bg-blue-50 { background-color: oklch(0.25 0.06 264) !important; }
+.dark .bg-green-50 { background-color: oklch(0.22 0.05 160) !important; }
+.dark .bg-red-50 { background-color: oklch(0.22 0.05 25) !important; }
+.dark .bg-purple-50 { background-color: oklch(0.22 0.05 300) !important; }
+.dark .bg-amber-50 { background-color: oklch(0.25 0.05 80) !important; }
+.dark .bg-orange-50 { background-color: oklch(0.25 0.05 60) !important; }
+
+/* 그래디언트 배경 (카드 썸네일 등) */
+.dark .from-blue-100 { --tw-gradient-from: oklch(0.25 0.04 264) !important; }
+.dark .to-purple-100 { --tw-gradient-to: oklch(0.23 0.04 300) !important; }
+.dark .from-blue-100.to-purple-100,
+.dark .bg-gradient-to-br.from-blue-100 {
+  --tw-gradient-from: oklch(0.22 0.03 264);
+  --tw-gradient-to: oklch(0.2 0.03 300);
+}
+
+/* 프리미엄 카드 */
+.dark .from-amber-50 { --tw-gradient-from: oklch(0.22 0.04 80) !important; }
+.dark .to-orange-50 { --tw-gradient-to: oklch(0.2 0.04 60) !important; }
+.dark .border-amber-200 { border-color: oklch(0.4 0.08 80) !important; }
+.dark .border-amber-300 { border-color: oklch(0.45 0.1 80) !important; }
+
+/* 텍스트 보강 */
+.dark .text-gray-400 { color: oklch(0.55 0.015 264) !important; }
+.dark .text-gray-300 { color: oklch(0.7 0.01 264) !important; }
+.dark .text-gray-200 { color: oklch(0.8 0.008 264) !important; }
+
+/* 배지 / 작은 배경 */
+.dark .bg-green-100 { background-color: oklch(0.25 0.05 160) !important; }
+.dark .bg-red-100 { background-color: oklch(0.25 0.05 25) !important; }
+.dark .bg-blue-100 { background-color: oklch(0.25 0.05 264) !important; }
+.dark .bg-purple-100 { background-color: oklch(0.25 0.05 300) !important; }
+.dark .bg-amber-100 { background-color: oklch(0.28 0.05 80) !important; }
+.dark .bg-orange-100 { background-color: oklch(0.28 0.05 60) !important; }
+
+/* Select / Textarea (Input은 shadcn 컴포넌트가 처리) */
+.dark select,
+.dark textarea {
+  background-color: oklch(0.22 0.025 264) !important;
+  color: oklch(0.95 0.006 264) !important;
+  border-color: oklch(0.3 0.025 264) !important;
+}
+.dark input[type="text"]::placeholder,
+.dark textarea::placeholder {
+  color: oklch(0.5 0.015 264) !important;
+}
+
+/* 카드 shadow */
+.dark .shadow-sm { box-shadow: 0 1px 2px 0 oklch(0 0 0 / 0.3) !important; }
+
+/* Dialog / Dropdown */
+.dark [data-radix-popper-content-wrapper] .bg-white,
+.dark [role="dialog"] .bg-white {
+  background-color: oklch(0.22 0.03 264) !important;
+}
+.dark [data-radix-popper-content-wrapper] .border-gray-200,
+.dark [role="dialog"] .border-gray-200 {
+  border-color: oklch(0.3 0.025 264) !important;
+}
+
 /* React-PDF 스타일 */
 .react-pdf__Page {
   margin: 0 auto;
@@ -135,33 +215,4 @@
 
 .react-pdf__Page__annotations {
   border: 1px solid lightgray;
-}
-/* 다크모드 스타일 */
-@layer base {
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-  }
-}
-
-.dark body {
-  background-color: hsl(222.2 84% 4.9%);
-  color: hsl(210 40% 98%);
 }

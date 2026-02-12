@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
-import { Eye, ThumbsUp, Play, ChevronRight, ChevronLeft, BookOpen, Users, TrendingUp, Sparkles } from 'lucide-react'
+import { Eye, ThumbsUp, BookOpen as ReadIcon, ChevronRight, ChevronLeft, BookOpen, Users, TrendingUp, Sparkles } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 
@@ -97,7 +97,7 @@ export default function HomePage() {
   const DocumentCard = ({ doc }: { doc: DocWithAuthor }) => (
     <Link href={`/read/${doc.id}`} className="flex-shrink-0 w-[160px] sm:w-[180px] md:w-[200px]">
       <div className="group cursor-pointer">
-        <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl overflow-hidden mb-2">
+        <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
           {doc.thumbnail_url ? (
             <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
           ) : (
@@ -109,7 +109,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <Play className="w-5 h-5 text-black ml-0.5" fill="black" />
+                <ReadIcon className="w-5 h-5 text-black" />
               </div>
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function HomePage() {
         <div className="flex items-center justify-between mb-4 px-1">
           <div className="flex items-center gap-2">
             <Icon className="w-5 h-5 text-gray-700" />
-            <h2 className="text-lg md:text-xl font-bold text-gray-900">{title}</h2>
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
           </div>
           {linkHref && (
             <Link href={linkHref} className="text-sm text-blue-600 hover:underline flex items-center gap-1">
@@ -209,7 +209,7 @@ export default function HomePage() {
           {canScrollLeft && (
             <button
               onClick={() => scroll('left')}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center opacity-0 group-hover/section:opacity-100 transition-opacity hover:bg-gray-50"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 shadow-lg rounded-full flex items-center justify-center opacity-0 group-hover/section:opacity-100 transition-opacity hover:bg-gray-50"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -219,7 +219,7 @@ export default function HomePage() {
           {canScrollRight && (
             <button
               onClick={() => scroll('right')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center opacity-0 group-hover/section:opacity-100 transition-opacity hover:bg-gray-50"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 shadow-lg rounded-full flex items-center justify-center opacity-0 group-hover/section:opacity-100 transition-opacity hover:bg-gray-50"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -239,10 +239,10 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-gray-500">로딩 중...</p>
+          <p className="text-gray-500 dark:text-gray-400">로딩 중...</p>
         </div>
       </div>
     )
@@ -251,12 +251,12 @@ export default function HomePage() {
   const hasAnyContent = continueReading.length > 0 || subscribedDocs.length > 0 || popularDocs.length > 0 || recentDocs.length > 0
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <main className="p-4 md:p-6 lg:p-8">
         <div className="max-w-[1600px] mx-auto">
           {!hasAnyContent ? (
             <div className="text-center py-20">
-              <p className="text-gray-500 mb-4">추천할 문서가 없습니다</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">추천할 문서가 없습니다</p>
               <Link href="/browse" className="text-blue-600 hover:underline">문서 둘러보기</Link>
             </div>
           ) : (

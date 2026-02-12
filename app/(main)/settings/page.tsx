@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Camera, ImagePlus, Crown } from 'lucide-react'
+import { Camera, ImagePlus, Crown, Sun, Moon, Monitor } from 'lucide-react'
+import { useTheme } from '@/lib/theme-context'
 import Link from 'next/link'
 
 export default function SettingsPage() {
@@ -19,6 +20,8 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     if (profile) {
@@ -258,6 +261,37 @@ export default function SettingsPage() {
                     {isPremium ? '관리' : '업그레이드'}
                   </Button>
                 </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 테마 설정 */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>테마</CardTitle>
+              <CardDescription>화면 밝기 모드를 설정합니다</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { value: 'light' as const, icon: Sun, label: '라이트', desc: '밝은 배경' },
+                  { value: 'dark' as const, icon: Moon, label: '다크', desc: '어두운 배경' },
+                  { value: 'system' as const, icon: Monitor, label: '시스템', desc: '기기 설정 따르기' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setTheme(opt.value)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                      theme === opt.value
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <opt.icon className={`w-6 h-6 ${theme === opt.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} />
+                    <span className={`text-sm font-medium ${theme === opt.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>{opt.label}</span>
+                    <span className="text-[11px] text-gray-400">{opt.desc}</span>
+                  </button>
+                ))}
               </div>
             </CardContent>
           </Card>
