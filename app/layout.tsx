@@ -1,32 +1,23 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import { AuthProvider } from '@/lib/auth-context'
-import { ThemeProvider } from '@/lib/theme-context'
-
-const inter = Inter({ subsets: ['latin'] })
+import type { Metadata } from "next"
+import "./globals.css"
+import { AuthProvider } from "@/lib/auth-context"
 
 export const metadata: Metadata = {
-  title: {
-    default: 'Textry - 지식을 스트리밍하다',
-    template: '%s | Textry'
-  },
-  description: '유튜브처럼 자유롭게 문서를 읽고, 공유하고, 소통하세요',
+  title: "Textry",
+  description: "Document streaming platform",
 }
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
     <html lang="ko">
-      <body className={inter.className}>
-        <ThemeProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )
