@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useRef } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
@@ -24,7 +24,7 @@ export default function HomePage() {
 
   const loadAllSections = async () => {
     try {
-      // 1. 이어 읽기 (로그인 시)
+      // 1. 읽고 있는 콘텐츠 (로그인 시)
       if (user) {
         const { data: progress } = await supabase
           .from('reading_progress')
@@ -261,13 +261,11 @@ export default function HomePage() {
             </div>
           ) : (
             <>
-              {/* 이어 읽기 */}
+              {/* 읽고 있는 콘텐츠 */}
               <ScrollableSection
-                title="이어 읽기"
+                title="읽고 있는 콘텐츠"
                 icon={BookOpen}
                 docs={continueReading}
-                linkHref="/reading-list"
-                linkLabel="읽기 목록"
               />
 
               {/* 구독 작가의 새 문서 */}
@@ -282,8 +280,6 @@ export default function HomePage() {
                 title="인기 문서"
                 icon={TrendingUp}
                 docs={popularDocs}
-                linkHref="/browse?sort=popular"
-                linkLabel="더보기"
               />
 
               {/* 최신 문서 */}
@@ -291,8 +287,6 @@ export default function HomePage() {
                 title="최신 문서"
                 icon={Sparkles}
                 docs={recentDocs}
-                linkHref="/browse?sort=recent"
-                linkLabel="더보기"
               />
             </>
           )}

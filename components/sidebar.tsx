@@ -9,7 +9,7 @@ import {
   Home,
   TrendingUp,
   Users,
-  Bookmark,
+  Heart,
   BookOpen,
   ChevronDown,
   ChevronRight,
@@ -70,8 +70,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const myPageMenuItems = [
     { icon: TrendingUp, label: '인기', path: '/browse?sort=popular' },
-    { icon: Bookmark, label: '읽기 목록', path: '/reading-list' },
-    { icon: BookOpen, label: '이어 읽기', path: '/home?section=continue' },
+    { icon: BookOpen, label: '읽고 있는 콘텐츠', path: '/continue-reading' },
+    { icon: Heart, label: '찜한 콘텐츠', path: '/reading-list' },
   ]
 
   const handleLinkClick = () => {

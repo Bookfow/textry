@@ -4,14 +4,15 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
-import { Bookmark, BookmarkCheck } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface ReadingListButtonProps {
   documentId: string
+  compact?: boolean
 }
 
-export function ReadingListButton({ documentId }: ReadingListButtonProps) {
+export function ReadingListButton({ documentId, compact = false }: ReadingListButtonProps) {
   const { user } = useAuth()
   const router = useRouter()
   const [inList, setInList] = useState(false)
@@ -19,13 +20,11 @@ export function ReadingListButton({ documentId }: ReadingListButtonProps) {
 
   useEffect(() => {
     if (!user) return
-
     checkInList()
   }, [user, documentId])
 
   const checkInList = async () => {
     if (!user) return
-
     try {
       const { data } = await supabase
         .from('reading_list')
@@ -33,7 +32,6 @@ export function ReadingListButton({ documentId }: ReadingListButtonProps) {
         .eq('user_id', user.id)
         .eq('document_id', documentId)
         .single()
-
       setInList(!!data)
     } catch (err) {
       // 없으면 에러 발생 (정상)
@@ -48,55 +46,60 @@ export function ReadingListButton({ documentId }: ReadingListButtonProps) {
     }
 
     setLoading(true)
-
     try {
       if (inList) {
-        // 읽기 목록에서 제거
         await supabase
           .from('reading_list')
           .delete()
           .eq('user_id', user.id)
           .eq('document_id', documentId)
-
         setInList(false)
       } else {
-        // 읽기 목록에 추가
         await supabase
           .from('reading_list')
           .insert({
             user_id: user.id,
             document_id: documentId,
           })
-
         setInList(true)
       }
     } catch (err) {
       console.error('Error toggling reading list:', err)
-      alert('읽기 목록 처리에 실패했습니다.')
+      alert('처리에 실패했습니다.')
     } finally {
       setLoading(false)
     }
   }
 
+  // 상단 바용 컴팩트 모드
+  if (compact) {
+    return (
+      <button
+        onClick={handleToggle}
+        disabled={loading}
+        className={`p-2 rounded-lg transition-colors ${
+          inList
+            ? 'text-red-500 hover:bg-gray-800'
+            : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+        }`}
+        title={inList ? '찜 해제' : '찜하기'}
+      >
+        <Heart className="w-5 h-5" fill={inList ? 'currentColor' : 'none'} />
+      </button>
+    )
+  }
+
+  // 사이드 패널용 기본 모드
   return (
     <Button
       variant={inList ? 'default' : 'outline'}
       size="sm"
       onClick={handleToggle}
       disabled={loading}
-      className={`gap-2 ${inList ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
+      className={`gap-2 ${inList ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
     >
-      {inList ? (
-        <>
-          <BookmarkCheck className="w-4 h-4" />
-          <span className="text-white font-semibold">추가됨</span>
-        </>
-      ) : (
-        <>
-          <Bookmark className="w-4 h-4" />
-          <span className="font-semibold">읽기 목록</span>
-        </>
-      )}
+      <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} />
+      <span className="font-semibold">{inList ? '찜함' : '찜하기'}</span>
     </Button>
   )
 }

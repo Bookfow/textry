@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { supabase, Document } from '@/lib/supabase'
@@ -96,12 +96,12 @@ export default function ReadingListPage() {
       <main className="p-4 md:p-6 lg:p-8">
         <div className="max-w-[2000px] mx-auto">
           <div className="mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900 dark:text-white">읽기 목록</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900 dark:text-white">찜한 콘텐츠</h2>
             <p className="text-gray-600 dark:text-gray-400">총 {documents.length}개</p>
           </div>
           {documents.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-gray-500 dark:text-gray-400 mb-4">읽기 목록이 비어있습니다</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">찜한 콘텐츠가 없습니다</p>
               <Link href="/browse"><Button>문서 둘러보기</Button></Link>
             </div>
           ) : (

@@ -492,6 +492,7 @@ export default function ReadPage() {
             )}
 
             <div className="flex items-center gap-1 flex-shrink-0">
+            <ReadingListButton documentId={documentId} compact />
               <ShareButton documentId={documentId} title={document?.title || ''} />
               <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" title="전체화면 (F키)">
                 {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
