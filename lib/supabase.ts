@@ -1,20 +1,23 @@
 import { createClient } from '@supabase/supabase-js'
-
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
 export type Profile = {
   id: string
   email: string
   username: string | null
   avatar_url: string | null
+  bio: string
+  banner_url: string | null
   role: 'reader' | 'author'
   subscribers_count: number
+  is_premium: boolean
+  premium_expires_at: string | null
+  author_tier: number
+  total_revenue_usd: number
+  pending_payout_usd: number
   created_at: string
 }
-
 export type Document = {
   id: string
   title: string
@@ -33,7 +36,6 @@ export type Document = {
   created_at: string
   updated_at: string
 }
-
 export type Comment = {
   id: string
   document_id: string
@@ -43,12 +45,10 @@ export type Comment = {
   likes_count: number
   created_at: string
 }
-
 export type CommentWithProfile = Comment & {
   profile: Profile
   replies?: CommentWithProfile[]
 }
-
 export type ReadingProgress = {
   id: string
   user_id: string

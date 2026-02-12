@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -7,28 +7,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useRouter } from 'next/navigation'
-
-import { Camera } from 'lucide-react'
+import { Camera, ImagePlus, Crown } from 'lucide-react'
+import Link from 'next/link'
 
 export default function SettingsPage() {
   const { user, profile } = useAuth()
-  const router = useRouter()
-  const [username, setUsername] = useState(profile?.username || '')
-  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '')
+  const [username, setUsername] = useState('')
+  const [bio, setBio] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
+  const [bannerUrl, setBannerUrl] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
   const [saving, setSaving] = useState(false)
-
-  // 필터 상태 (MainHeader용)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [category, setCategory] = useState('all')
-  const [language, setLanguage] = useState('all')
-  const [sortBy, setSortBy] = useState('recent')
 
   useEffect(() => {
     if (profile) {
       setUsername(profile.username || '')
       setAvatarUrl(profile.avatar_url || '')
+      setBio((profile as any).bio || '')
+      setBannerUrl((profile as any).banner_url || '')
     }
   }, [profile])
 
@@ -40,64 +37,35 @@ export default function SettingsPage() {
     )
   }
 
+  const isPremium = profile?.is_premium && profile?.premium_expires_at
+    ? new Date(profile.premium_expires_at) > new Date()
+    : false
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    // 파일 크기 체크 (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('파일 크기는 5MB 이하여야 합니다.')
-      return
-    }
-
-    // 이미지 파일 체크
-    if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드 가능합니다.')
-      return
-    }
+    if (file.size > 5 * 1024 * 1024) { alert('파일 크기는 5MB 이하여야 합니다.'); return }
+    if (!file.type.startsWith('image/')) { alert('이미지 파일만 업로드 가능합니다.'); return }
 
     setUploading(true)
-
     try {
-      // 파일명 생성 (user_id/timestamp.확장자)
       const fileExt = file.name.split('.').pop()
       const fileName = `${user.id}/${Date.now()}.${fileExt}`
 
-      // 기존 아바타 삭제 (있으면)
       if (avatarUrl) {
         const oldPath = avatarUrl.split('/').slice(-2).join('/')
         await supabase.storage.from('avatars').remove([oldPath])
       }
 
-      // 새 이미지 업로드
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        })
-
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { cacheControl: '3600', upsert: false })
       if (uploadError) throw uploadError
 
-      // 공개 URL 가져오기
-      const { data: urlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName)
-
-      const publicUrl = urlData.publicUrl
-
-      // DB 업데이트
-      const { error: dbError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id)
-
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
+      const { error: dbError } = await supabase.from('profiles').update({ avatar_url: urlData.publicUrl }).eq('id', user.id)
       if (dbError) throw dbError
 
-      setAvatarUrl(publicUrl)
+      setAvatarUrl(urlData.publicUrl)
       alert('프로필 이미지가 업로드되었습니다!')
-
-      // 페이지 새로고침하여 변경사항 반영
       window.location.reload()
     } catch (err) {
       console.error('Upload error:', err)
@@ -107,19 +75,49 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSaveUsername = async () => {
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) { alert('배너 크기는 10MB 이하여야 합니다.'); return }
+    if (!file.type.startsWith('image/')) { alert('이미지 파일만 업로드 가능합니다.'); return }
+
+    setUploadingBanner(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${user.id}/banner_${Date.now()}.${fileExt}`
+
+      if (bannerUrl) {
+        const oldPath = bannerUrl.split('/').slice(-2).join('/')
+        await supabase.storage.from('avatars').remove([oldPath])
+      }
+
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { cacheControl: '3600', upsert: false })
+      if (uploadError) throw uploadError
+
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
+      const { error: dbError } = await supabase.from('profiles').update({ banner_url: urlData.publicUrl }).eq('id', user.id)
+      if (dbError) throw dbError
+
+      setBannerUrl(urlData.publicUrl)
+      alert('배너 이미지가 업로드되었습니다!')
+      window.location.reload()
+    } catch (err) {
+      console.error('Banner upload error:', err)
+      alert('업로드에 실패했습니다.')
+    } finally {
+      setUploadingBanner(false)
+    }
+  }
+
+  const handleSaveProfile = async () => {
     if (!user) return
-
     setSaving(true)
-
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ username })
+        .update({ username, bio })
         .eq('id', user.id)
-
       if (error) throw error
-
       alert('저장되었습니다!')
       window.location.reload()
     } catch (err) {
@@ -131,14 +129,45 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-     
-
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold mb-2">설정</h1>
             <p className="text-gray-600">프로필 및 계정 설정을 관리하세요</p>
           </div>
+
+          {/* 배너 이미지 */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>배너 이미지</CardTitle>
+              <CardDescription>채널 상단에 표시될 배너 이미지입니다</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="relative w-full aspect-[4/1] bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl overflow-hidden">
+                  {bannerUrl ? (
+                    <img src={bannerUrl} alt="배너" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-white/50">
+                      <ImagePlus className="w-10 h-10" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <Input id="banner-image" type="file" accept="image/*" onChange={handleBannerUpload} className="hidden" disabled={uploadingBanner} />
+                  <Label htmlFor="banner-image">
+                    <Button variant="outline" asChild disabled={uploadingBanner}>
+                      <span className="cursor-pointer">
+                        <ImagePlus className="w-4 h-4 mr-2" />
+                        {uploadingBanner ? '업로드 중...' : '배너 변경'}
+                      </span>
+                    </Button>
+                  </Label>
+                  <p className="text-xs text-gray-500 mt-2">권장: 1200x300px (4:1 비율), 최대 10MB</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* 프로필 이미지 */}
           <Card className="mb-6">
@@ -148,29 +177,15 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-6">
-                {/* 현재 아바타 */}
                 {avatarUrl ? (
-  <img
-    src={avatarUrl}
-    alt="프로필 이미지"
-    className="w-24 h-24 rounded-full object-cover"
-  />
-) : (
+                  <img src={avatarUrl} alt="프로필" className="w-24 h-24 rounded-full object-cover" />
+                ) : (
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-4xl font-bold">
                     {(profile?.username || profile?.email || 'U')[0].toUpperCase()}
                   </div>
                 )}
-
-                {/* 업로드 버튼 */}
                 <div>
-                  <Input
-                    id="profile-image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    disabled={uploading}
-                  />
+                  <Input id="profile-image" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
                   <Label htmlFor="profile-image">
                     <Button variant="outline" asChild disabled={uploading}>
                       <span className="cursor-pointer">
@@ -179,34 +194,70 @@ export default function SettingsPage() {
                       </span>
                     </Button>
                   </Label>
-                  <p className="text-xs text-gray-500 mt-2">
-                    JPG, PNG, GIF (최대 5MB)
-                  </p>
+                  <p className="text-xs text-gray-500 mt-2">JPG, PNG, GIF (최대 5MB)</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* 사용자 이름 */}
+          {/* 사용자 이름 + 자기소개 */}
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>사용자 이름</CardTitle>
-              <CardDescription>다른 사용자에게 표시될 이름입니다</CardDescription>
+              <CardTitle>프로필 정보</CardTitle>
+              <CardDescription>다른 사용자에게 표시될 정보입니다</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="username">사용자 이름</Label>
-                  <Input
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="사용자 이름"
-                  />
+                  <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="사용자 이름" />
                 </div>
-                <Button onClick={handleSaveUsername} disabled={saving}>
+                <div className="space-y-2">
+                  <Label htmlFor="bio">자기소개</Label>
+                  <textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="자신을 소개해주세요 (최대 300자)"
+                    maxLength={300}
+                    rows={3}
+                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                  <p className="text-xs text-gray-400 text-right">{bio.length}/300</p>
+                </div>
+                <Button onClick={handleSaveProfile} disabled={saving}>
                   {saving ? '저장 중...' : '저장'}
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 구독 상태 */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>구독 상태</CardTitle>
+              <CardDescription>프리미엄 구독 상태를 확인하세요</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isPremium ? 'bg-amber-100' : 'bg-gray-100'}`}>
+                    <Crown className={`w-5 h-5 ${isPremium ? 'text-amber-500' : 'text-gray-400'}`} />
+                  </div>
+                  <div>
+                    <p className="font-medium">{isPremium ? 'Premium 활성' : 'Free 플랜'}</p>
+                    <p className="text-xs text-gray-500">
+                      {isPremium && profile?.premium_expires_at
+                        ? `만료: ${new Date(profile.premium_expires_at).toLocaleDateString('ko-KR')}`
+                        : '광고가 포함된 기본 플랜'}
+                    </p>
+                  </div>
+                </div>
+                <Link href="/premium">
+                  <Button variant={isPremium ? 'outline' : 'default'} size="sm">
+                    {isPremium ? '관리' : '업그레이드'}
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -225,9 +276,18 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-gray-500">계정 유형</p>
+                  <p className="font-medium">{profile?.role === 'author' ? '작가' : '독자'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">작가 Tier</p>
                   <p className="font-medium">
-                    {profile?.role === 'author' ? '작가' : '독자'}
+                    {profile?.author_tier === 2 ? '⭐ Tier 2 (프로 작가)' :
+                     profile?.author_tier === 1 ? '✓ Tier 1 (파트너 작가)' : 'Tier 0 (일반)'}
                   </p>
+                </div>
+                <div>
+                  <p className="text-gray-500">가입일</p>
+                  <p className="font-medium">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : '-'}</p>
                 </div>
               </div>
             </CardContent>

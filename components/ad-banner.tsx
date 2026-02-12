@@ -1,23 +1,42 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { Card } from '@/components/ui/card'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth-context'
 
 interface AdBannerProps {
   position?: 'top' | 'bottom' | 'sidebar'
   documentId?: string
+  authorId?: string
 }
 
-export function AdBanner({ position = 'bottom', documentId }: AdBannerProps) {
-  const [adShown, setAdShown] = useState(false)
+export function AdBanner({ position = 'bottom', documentId, authorId }: AdBannerProps) {
+  const { user } = useAuth()
+  const loggedRef = useRef(false)
 
   useEffect(() => {
-    // 광고 노출 기록 (나중에 수익 계산용)
-    if (documentId) {
-      setAdShown(true)
-      // TODO: 광고 노출 로그 저장
+    // 한 번만 로그 기록
+    if (documentId && authorId && !loggedRef.current) {
+      loggedRef.current = true
+      logBannerImpression()
     }
-  }, [documentId])
+  }, [documentId, authorId])
+
+  const logBannerImpression = async () => {
+    try {
+      await supabase.from('ad_impressions').insert({
+        document_id: documentId,
+        author_id: authorId,
+        viewer_id: user?.id || null,
+        ad_type: 'banner',
+        ad_position: position === 'sidebar' ? 'side_panel' : 'control_bar',
+      })
+    } catch (err) {
+      // 배너 로그 실패는 무시 (UX 영향 없음)
+      console.error('Banner impression log error:', err)
+    }
+  }
 
   return (
     <Card className="bg-gray-100 p-4 text-center border-2 border-dashed">
