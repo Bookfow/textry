@@ -32,6 +32,7 @@ export type Document = {
   view_count: number
   likes_count: number
   dislikes_count: number
+  page_count: number
   is_published: boolean
   created_at: string
   updated_at: string
