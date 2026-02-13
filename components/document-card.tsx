@@ -137,7 +137,7 @@ export function DocumentCard({
     return `${days}일 전`
   }
 
-  // ─── 컴팩트 모드 (홈 피드 가로 스크롤) ───
+  // ─── 컴팩트 모드 ───
   if (variant === 'compact') {
     return (
       <Link href={`/read/${doc.id}`} className="flex-shrink-0 w-[160px] sm:w-[180px] md:w-[200px]">
@@ -159,7 +159,7 @@ export function DocumentCard({
               </div>
             </div>
 
-            <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
               <button onClick={handleToggleList}
                 className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
                 title={inList ? '찜 해제' : '찜하기'}>
@@ -223,16 +223,16 @@ export function DocumentCard({
             </div>
           </div>
 
-          <div className="absolute bottom-3 left-3 right-3 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button onClick={handleToggleList}
-              className={`p-2 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+              className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
               title={inList ? '찜 해제' : '찜하기'}>
-              <Heart className="w-5 h-5" fill={inList ? 'currentColor' : 'none'} />
+              <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} />
             </button>
             <button onClick={handleLike}
-              className={`p-2 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+              className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
               title={liked ? '좋아요 취소' : '좋아요'}>
-              <ThumbsUp className="w-5 h-5" fill={liked ? 'currentColor' : 'none'} />
+              <ThumbsUp className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} />
             </button>
           </div>
 
