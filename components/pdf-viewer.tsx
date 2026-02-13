@@ -168,14 +168,15 @@ export default function PDFViewer({
                 className="flex justify-center"
                 options={pdfOptions}
               >
-                <Page
-                  pageNumber={pageNumber}
-                  width={autoWidth * scale}
-                  renderTextLayer={true}
-                  renderAnnotationLayer={true}
-                  className="shadow-2xl"
-                  loading=""
-                />
+                <div className="border-[6px] border-amber-900/30 dark:border-amber-800/20 rounded-sm shadow-2xl" style={{ boxShadow: 'inset 0 0 8px rgba(120,70,20,0.1), 0 4px 20px rgba(0,0,0,0.3)' }}>
+                  <Page
+                    pageNumber={pageNumber}
+                    width={autoWidth * scale}
+                    renderTextLayer={true}
+                    renderAnnotationLayer={true}
+                    loading=""
+                  />
+                </div
               </PDFDocument>
             </div>
 
@@ -219,7 +220,7 @@ export default function PDFViewer({
                 options={pdfOptions}
               >
                 {Array.from({ length: numPages }, (_, index) => (
-                  <div key={`page_${index + 1}`} data-page-number={index + 1} className="shadow-2xl">
+                  <div key={`page_${index + 1}`} data-page-number={index + 1} className="border-[6px] border-amber-900/30 dark:border-amber-800/20 rounded-sm shadow-2xl" style={{ boxShadow: 'inset 0 0 8px rgba(120,70,20,0.1), 0 4px 20px rgba(0,0,0,0.3)' }}>
                     <Page
                       pageNumber={index + 1}
                       width={autoWidth * scale}
