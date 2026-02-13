@@ -78,7 +78,7 @@ function getTierConfig(tier: AdTier): TierConfig {
 export default function ReadPage() {
   const params = useParams()
   const router = useRouter()
-  const { user, profile } = useAuth()
+  const { user, profile, loading: authLoading } = useAuth()
   const documentId = params.id as string
 
   const [document, setDocument] = useState<Document | null>(null)
@@ -372,6 +372,12 @@ export default function ReadPage() {
   }
 
   const progress = numPages > 0 ? (pageNumber / numPages) * 100 : 0
+
+  // 비로그인 사용자 차단
+  if (!user && !loading && !authLoading) {
+    router.push('/login')
+    return null
+  }
 
   if (loading) {
     return (
