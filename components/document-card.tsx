@@ -142,49 +142,47 @@ export function DocumentCard({
     return (
       <Link href={`/read/${doc.id}`} className="flex-shrink-0 w-[160px] sm:w-[180px] md:w-[200px]">
         <div className="group cursor-pointer">
-          <div className="relative aspect-[3/4] rounded-xl mb-2 ring-1 ring-black/[0.15] dark:ring-white/[0.08] shadow-sm">
-            <div className="absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700">
-              {doc.thumbnail_url ? (
-                <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <BookOpen className="w-8 h-8 text-gray-300" />
-                </div>
-              )}
-
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all">
-                <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={handleToggleList}
-                    className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                    title={inList ? '찜 해제' : '찜하기'}>
-                    <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} />
-                  </button>
-                  <button onClick={handleLike}
-                    className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                    title={liked ? '좋아요 취소' : '좋아요'}>
-                    <ThumbsUp className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} />
-                  </button>
-                </div>
+          <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
+            {doc.thumbnail_url ? (
+              <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <BookOpen className="w-8 h-8 text-gray-300" />
               </div>
+            )}
 
-              <div className="absolute top-2 left-2">
-                <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
-                  {getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}
-                </span>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all">
+              <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={handleToggleList}
+                  className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                  title={inList ? '찜 해제' : '찜하기'}>
+                  <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} />
+                </button>
+                <button onClick={handleLike}
+                  className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                  title={liked ? '좋아요 취소' : '좋아요'}>
+                  <ThumbsUp className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} />
+                </button>
               </div>
-
-              {progress !== null && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50">
-                  <div className="h-full bg-blue-500" style={{ width: `${progress}%` }} />
-                </div>
-              )}
-
-              {progress === null && (
-                <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
-                  {Math.floor((doc.total_reading_time || 0) / 60)}분
-                </div>
-              )}
             </div>
+
+            <div className="absolute top-2 left-2">
+              <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
+                {getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}
+              </span>
+            </div>
+
+            {progress !== null && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50">
+                <div className="h-full bg-blue-500" style={{ width: `${progress}%` }} />
+              </div>
+            )}
+
+            {progress === null && (
+              <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
+                {Math.floor((doc.total_reading_time || 0) / 60)}분
+              </div>
+            )}
           </div>
 
           <div>
@@ -208,49 +206,47 @@ export function DocumentCard({
   return (
     <Link href={`/read/${doc.id}`}>
       <div className="group cursor-pointer">
-        <div className="relative aspect-[3/4] rounded-xl mb-2 ring-1 ring-black/[0.15] dark:ring-white/[0.08] shadow-sm">
-          <div className="absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700">
-            {doc.thumbnail_url ? (
-              <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <BookOpen className="w-10 h-10 text-gray-300" />
-              </div>
-            )}
-
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all">
-              <div className="absolute bottom-3 left-3 right-3 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={handleToggleList}
-                  className={`p-2 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                  title={inList ? '찜 해제' : '찜하기'}>
-                  <Heart className="w-5 h-5" fill={inList ? 'currentColor' : 'none'} />
-                </button>
-                <button onClick={handleLike}
-                  className={`p-2 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                  title={liked ? '좋아요 취소' : '좋아요'}>
-                  <ThumbsUp className="w-5 h-5" fill={liked ? 'currentColor' : 'none'} />
-                </button>
-              </div>
+        <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
+          {doc.thumbnail_url ? (
+            <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <BookOpen className="w-10 h-10 text-gray-300" />
             </div>
+          )}
 
-            <div className="absolute top-2 left-2">
-              <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
-                {getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}
-              </span>
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all">
+            <div className="absolute bottom-3 left-3 right-3 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+              <button onClick={handleToggleList}
+                className={`p-2 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                title={inList ? '찜 해제' : '찜하기'}>
+                <Heart className="w-5 h-5" fill={inList ? 'currentColor' : 'none'} />
+              </button>
+              <button onClick={handleLike}
+                className={`p-2 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                title={liked ? '좋아요 취소' : '좋아요'}>
+                <ThumbsUp className="w-5 h-5" fill={liked ? 'currentColor' : 'none'} />
+              </button>
             </div>
-
-            {progress !== null && (
-              <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200/50">
-                <div className="h-full bg-blue-500 transition-all" style={{ width: `${progress}%` }} />
-              </div>
-            )}
-
-            {progress === null && (
-              <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
-                {Math.floor((doc.total_reading_time || 0) / 60)}분
-              </div>
-            )}
           </div>
+
+          <div className="absolute top-2 left-2">
+            <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
+              {getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}
+            </span>
+          </div>
+
+          {progress !== null && (
+            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200/50">
+              <div className="h-full bg-blue-500 transition-all" style={{ width: `${progress}%` }} />
+            </div>
+          )}
+
+          {progress === null && (
+            <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
+              {Math.floor((doc.total_reading_time || 0) / 60)}분
+            </div>
+          )}
         </div>
 
         <div>

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useRef } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
@@ -129,7 +129,7 @@ export default function HomePage() {
     return (
       <Link href={`/read/${doc.id}`} className="flex-shrink-0 w-[160px] sm:w-[180px] md:w-[200px]">
         <div className="group cursor-pointer">
-          <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2 ring-1 ring-black/[0.15] dark:ring-white/[0.08] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)] shadow-sm">
+          <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
             {doc.thumbnail_url ? (
               <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
             ) : (
