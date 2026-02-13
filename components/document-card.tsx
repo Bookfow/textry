@@ -178,11 +178,7 @@ export function DocumentCard({
               </div>
             )}
 
-            {progress === null && (
-              <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
-                {Math.floor((doc.total_reading_time || 0) / 60)}분
-              </div>
-            )}
+            
           </div>
 
           <div>
@@ -242,11 +238,7 @@ export function DocumentCard({
             </div>
           )}
 
-          {progress === null && (
-            <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
-              {Math.floor((doc.total_reading_time || 0) / 60)}분
-            </div>
-          )}
+          
         </div>
 
         <div>
