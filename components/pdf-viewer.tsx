@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Document as PDFDocument, Page, pdfjs } from 'react-pdf'
@@ -7,6 +7,12 @@ import 'react-pdf/dist/Page/TextLayer.css'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+
+const pdfOptions = {
+  cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+  cMapPacked: true,
+  standardFontDataUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+}
 
 export type ViewMode = 'page' | 'scroll'
 
@@ -116,11 +122,10 @@ export default function PDFViewer({
     setTouchEnd(null)
   }
 
-  // PDF 페이지 영역 클릭으로 넘기기 (페이지 자체 기준)
+  // PDF 페이지 영역 클릭으로 넘기기
   const handlePageAreaClick = (e: React.MouseEvent) => {
     if (viewMode !== 'page' || !onPageChange) return
 
-    // 클릭된 곳에서 가장 가까운 .react-pdf__Page 요소를 찾음
     const pageEl = (e.target as HTMLElement).closest('.react-pdf__Page') as HTMLElement | null
     if (!pageEl) return
 
@@ -134,7 +139,6 @@ export default function PDFViewer({
 
   return (
     <div className="h-full w-full flex flex-col">
-      {/* PDF 콘텐츠 */}
       <div
         className="flex-1 relative overflow-hidden"
         onTouchStart={onTouchStart}
@@ -162,6 +166,7 @@ export default function PDFViewer({
                 onLoadSuccess={onDocumentLoadSuccess}
                 loading=""
                 className="flex justify-center"
+                options={pdfOptions}
               >
                 <Page
                   pageNumber={pageNumber}
@@ -211,6 +216,7 @@ export default function PDFViewer({
                 onLoadSuccess={onDocumentLoadSuccess}
                 loading=""
                 className="flex flex-col items-center gap-4"
+                options={pdfOptions}
               >
                 {Array.from({ length: numPages }, (_, index) => (
                   <div key={`page_${index + 1}`} data-page-number={index + 1} className="shadow-2xl">
