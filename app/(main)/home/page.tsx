@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useRef } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
@@ -289,10 +289,10 @@ export default function HomePage() {
             </div>
           ) : (
             <>
-              <ScrollableSection title="읽고 있는 콘텐츠" icon={BookOpen} docs={continueReading} />
-              <ScrollableSection title="구독자의 새 콘텐츠" icon={Users} docs={subscribedDocs} />
               <ScrollableSection title="인기 있는 콘텐츠" icon={TrendingUp} docs={popularDocs} />
               <ScrollableSection title="가장 최근 콘텐츠" icon={Sparkles} docs={recentDocs} />
+              <ScrollableSection title="구독자의 새 콘텐츠" icon={Users} docs={subscribedDocs} />
+              <ScrollableSection title="읽고 있는 콘텐츠" icon={BookOpen} docs={continueReading} />
             </>
           )}
         </div>
