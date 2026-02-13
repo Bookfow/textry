@@ -491,7 +491,7 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">
                               <span>{getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}</span>
                               <span>{getLanguageFlag(doc.language)}</span>
-                              <span>{new Date(doc.created_at).toLocaleDateString('ko-KR')}</span>
+                              <span>{new Date(doc.created_at).toLocaleDateString()}</span>
                             </div>
                           </div>
                         </Link>

@@ -115,7 +115,7 @@ export default function AuthorPage() {
           <div className="flex items-center gap-3 text-xs text-gray-500">
             <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{doc.view_count.toLocaleString()}</span>
             <span className="flex items-center gap-1"><ThumbsUp className="w-3 h-3" />{doc.likes_count.toLocaleString()}</span>
-            <span>{new Date(doc.created_at).toLocaleDateString('ko-KR')}</span>
+            <span>{new Date(doc.created_at).toLocaleDateString()}</span>
           </div>
         </div>
       </div>
@@ -295,7 +295,7 @@ export default function AuthorPage() {
                 <div>
                   <h3 className="font-bold text-gray-900 mb-2">정보</h3>
                   <div className="space-y-2 text-sm text-gray-600">
-                    <p className="flex items-center gap-2"><Calendar className="w-4 h-4" /> 가입일: {new Date(author.created_at).toLocaleDateString('ko-KR')}</p>
+                    <p className="flex items-center gap-2"><Calendar className="w-4 h-4" /> 가입일: {new Date(author.created_at).toLocaleDateString()}</p>
                     <p className="flex items-center gap-2"><Eye className="w-4 h-4" /> 이메일: {author.email}</p>
                   </div>
                 </div>

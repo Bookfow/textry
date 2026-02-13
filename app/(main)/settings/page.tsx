@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -416,7 +416,7 @@ export default function SettingsPage() {
                     <p className="font-medium">{isPremium ? 'Premium 활성' : 'Free 플랜'}</p>
                     <p className="text-xs text-gray-500">
                       {isPremium && profile?.premium_expires_at
-                        ? `만료: ${new Date(profile.premium_expires_at).toLocaleDateString('ko-KR')}`
+                        ? `만료: ${new Date(profile.premium_expires_at).toLocaleDateString()}`
                         : '광고가 포함된 기본 플랜'}
                     </p>
                   </div>
@@ -486,7 +486,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-gray-500">가입일</p>
-                  <p className="font-medium">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : '-'}</p>
+                  <p className="font-medium">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : '-'}</p>
                 </div>
               </div>
             </CardContent>

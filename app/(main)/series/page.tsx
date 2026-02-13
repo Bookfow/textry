@@ -245,7 +245,7 @@ export default function SeriesPage() {
                         </div>
                         <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-4">
                           <span>{series.documents_count}개 문서</span>
-                          <span>{new Date(series.created_at).toLocaleDateString('ko-KR')}</span>
+                          <span>{new Date(series.created_at).toLocaleDateString()}</span>
                         </div>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" className="flex-1" onClick={() => loadSeriesDocs(series)}>

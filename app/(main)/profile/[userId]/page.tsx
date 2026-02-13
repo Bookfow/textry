@@ -176,7 +176,7 @@ export default function ProfilePage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      가입일 {new Date(profile.created_at).toLocaleDateString('ko-KR')}
+                      가입일 {new Date(profile.created_at).toLocaleDateString()}
                     </span>
                   </div>
 

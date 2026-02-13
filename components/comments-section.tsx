@@ -323,7 +323,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
               {comment.profile.username || comment.profile.email}
             </Link>
             <span className="text-[11px] text-gray-500">
-              {new Date(comment.created_at).toLocaleDateString('ko-KR')}
+              {new Date(comment.created_at).toLocaleDateString()}
             </span>
           </div>
           <p className="text-xs text-gray-300 mb-1.5 whitespace-pre-wrap break-words">{comment.content}</p>

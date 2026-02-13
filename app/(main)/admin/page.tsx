@@ -392,7 +392,7 @@ export default function AdminPage() {
                       )}
                     </div>
                     <div className="col-span-2 text-center text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(author.created_at).toLocaleDateString('ko-KR')}
+                      {new Date(author.created_at).toLocaleDateString()}
                     </div>
                     <div className="col-span-1 text-center">
                       <button className="text-xs text-blue-600 hover:underline">상세</button>
@@ -441,7 +441,7 @@ export default function AdminPage() {
                     <div className="col-span-1 text-center">{formatNumber(doc.view_count)}</div>
                     <div className="col-span-2 text-center">{formatTime(doc.total_reading_time)}</div>
                     <div className="col-span-1 text-center">{doc.likes_count}</div>
-                    <div className="col-span-1 text-center text-xs text-gray-400">{new Date(doc.created_at).toLocaleDateString('ko-KR')}</div>
+                    <div className="col-span-1 text-center text-xs text-gray-400">{new Date(doc.created_at).toLocaleDateString()}</div>
                   </div>
                 ))}
               </div>
