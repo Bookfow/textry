@@ -149,16 +149,23 @@ export default function PDFViewer({
     const pageEl = (e.target as HTMLElement).closest('.react-pdf__Page') as HTMLElement | null
     if (!pageEl) return
 
-    // 책 모드에서는 전체 컨테이너 기준으로 좌/우 판단
-    const container = containerRef.current
-    if (!container) return
-    const rect = container.getBoundingClientRect()
-    const clickX = e.clientX - rect.left
-    const width = rect.width
     const step = viewMode === 'book' ? 2 : 1
 
-    if (clickX < width * 0.3) onPageChange(Math.max(pageNumber - step, 1), numPages)
-    else if (clickX > width * 0.7) onPageChange(Math.min(pageNumber + step, numPages), numPages)
+    if (viewMode === 'book') {
+      // 책 모드: 전체 컨테이너 기준
+      const container = containerRef.current
+      if (!container) return
+      const rect = container.getBoundingClientRect()
+      const clickX = e.clientX - rect.left
+      if (clickX < rect.width * 0.3) onPageChange(Math.max(pageNumber - step, 1), numPages)
+      else if (clickX > rect.width * 0.7) onPageChange(Math.min(pageNumber + step, numPages), numPages)
+    } else {
+      // 페이지 모드: PDF 페이지 기준
+      const rect = pageEl.getBoundingClientRect()
+      const clickX = e.clientX - rect.left
+      if (clickX < rect.width * 0.33) onPageChange(Math.max(pageNumber - 1, 1), numPages)
+      else if (clickX > rect.width * 0.67) onPageChange(Math.min(pageNumber + 1, numPages), numPages)
+    }
   }
 
   const renderWidth = fitWidth * scale
