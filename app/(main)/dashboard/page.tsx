@@ -60,6 +60,7 @@ export default function DashboardPage() {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [editingDescription, setEditingDescription] = useState<string | null>(null)
   const [newDescription, setNewDescription] = useState('')
+  const [newTitle, setNewTitle] = useState('')
   const [savingDescription, setSavingDescription] = useState(false)
   const [sortBy, setSortBy] = useState<'views' | 'time' | 'revenue' | 'date'>('date')
 
@@ -175,22 +176,23 @@ export default function DashboardPage() {
     }
   }
 
-  const handleUpdateDescription = async (docId: string) => {
+  const handleUpdateDocument = async (docId: string) => {
     if (!user) return
     setSavingDescription(true)
     try {
       const { error } = await supabase
         .from('documents')
-        .update({ description: newDescription.trim() || null })
+        .update({ title: newTitle.trim(), description: newDescription.trim() || null })
         .eq('id', docId)
       if (error) throw error
-      alert('설명이 수정되었습니다.')
+      alert('문서가 수정되었습니다.')
       setEditingDescription(null)
+      setNewTitle('')
       setNewDescription('')
       loadDashboard()
     } catch (err) {
-      console.error('Error updating description:', err)
-      alert('설명 수정에 실패했습니다.')
+      console.error('Error updating document:', err)
+      alert('문서 수정에 실패했습니다.')
     } finally {
       setSavingDescription(false)
     }
@@ -307,7 +309,6 @@ export default function DashboardPage() {
           {/* ━━━ 개요 탭 ━━━ */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {/* Tier 상태 카드 */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -354,7 +355,6 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* 통계 카드 4개 */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
                   <div className="flex items-center justify-between mb-3">
@@ -390,7 +390,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* 인기 문서 Top 5 */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-gray-900 dark:text-white">인기 문서 TOP 5</h3>
@@ -504,9 +503,9 @@ export default function DashboardPage() {
                       </div>
                       <div className="col-span-2 flex items-center justify-center gap-2">
                         <button
-                          onClick={() => { setEditingDescription(doc.id); setNewDescription(doc.description || '') }}
+                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || '') }}
                           className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-colors"
-                          title="설명 수정"
+                          title="수정"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
@@ -535,7 +534,6 @@ export default function DashboardPage() {
           {/* ━━━ 분석 탭 ━━━ */}
           {activeTab === 'analytics' && (
             <div className="space-y-6">
-              {/* 핵심 분석 지표 3개 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">평균 읽기 완료율</p>
@@ -572,7 +570,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* 문서별 읽기 완료율 & 이탈률 */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 읽기 완료율</h3>
                 <div className="space-y-3">
@@ -603,7 +600,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* 기간별 통계 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                   <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 조회수</h3>
@@ -648,7 +644,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* 독자 유입 분석 */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">독자 유입 경로 (추정)</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -671,7 +666,6 @@ export default function DashboardPage() {
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">* 유입 경로 데이터는 조회수 패턴 기반 추정치입니다</p>
               </div>
 
-              {/* 카테고리 분포 */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">카테고리별 현황</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -850,21 +844,27 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ━━━ 설명 수정 다이얼로그 ━━━ */}
+      {/* ━━━ 문서 수정 다이얼로그 ━━━ */}
       <Dialog open={!!editingDescription} onOpenChange={() => {
-        setEditingDescription(null); setNewDescription('')
+        setEditingDescription(null); setNewTitle(''); setNewDescription('')
       }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>설명 수정</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>문서 수정</DialogTitle></DialogHeader>
           <div className="space-y-4 pt-4">
             {(() => {
               const descDoc = documents.find(d => d.id === editingDescription)
               if (!descDoc) return null
               return (
                 <>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{descDoc.title}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">카드 호버 시 표시되는 설명입니다</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-title">문서 제목</Label>
+                    <input
+                      id="edit-title"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      placeholder="문서 제목"
+                      className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-description">설명 (최대 50자)</Label>
@@ -875,13 +875,13 @@ export default function DashboardPage() {
                       placeholder="문서에 대한 간단한 설명"
                       rows={2}
                       maxLength={50}
-                      className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
                     <p className="text-xs text-gray-400 dark:text-gray-500 text-right">{newDescription.length}/50</p>
                   </div>
                   <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => { setEditingDescription(null); setNewDescription('') }}>취소</Button>
-                    <Button onClick={() => handleUpdateDescription(descDoc.id)} disabled={savingDescription}>
+                    <Button variant="outline" onClick={() => { setEditingDescription(null); setNewTitle(''); setNewDescription('') }}>취소</Button>
+                    <Button onClick={() => handleUpdateDocument(descDoc.id)} disabled={savingDescription || !newTitle.trim()}>
                       {savingDescription ? '저장 중...' : '저장'}
                     </Button>
                   </div>
