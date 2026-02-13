@@ -37,41 +37,45 @@ export default function PDFViewer({
 }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pdfLoading, setPdfLoading] = useState(true)
-  const [autoWidth, setAutoWidth] = useState<number>(0)
+  const [fitWidth, setFitWidth] = useState<number>(0)
+
+  // PDF 실제 페이지 비율
+  const [pageAspect, setPageAspect] = useState<number>(1.414) // 기본 A4
 
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null)
   const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null)
   const [swipeOffset, setSwipeOffset] = useState(0)
 
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const calculateOptimalWidth = useCallback(() => {
+  // 화면에 딱 맞는 너비 계산 (PDF 비율 기반)
+  const calculateFitWidth = useCallback(() => {
     const screenWidth = window.innerWidth
     const screenHeight = window.innerHeight
     const sidePanelWidth = showSidePanel ? 380 : 0
+    const controlBarHeight = 50
+    const frameSize = 24 // 테두리 12px * 2
+
     const availableWidth = screenWidth - sidePanelWidth
-    const padding = screenWidth < 640 ? 0 : screenWidth < 1024 ? 16 : 40
-    let optimalWidth = availableWidth - padding * 2
+    const availableHeight = screenHeight - controlBarHeight
 
-    if (screenWidth >= 1280) optimalWidth = Math.min(optimalWidth, 900)
-    else if (screenWidth >= 1024) optimalWidth = Math.min(optimalWidth, 800)
-    else if (screenWidth >= 768) optimalWidth = Math.min(optimalWidth, 700)
+    // 프레임 포함한 실제 사용 가능 영역
+    const contentWidth = availableWidth - frameSize
+    const contentHeight = availableHeight - frameSize
 
-    // 화면 높이에 맞추기 (컨트롤바 ~50px + 프레임 테두리 ~24px)
-    const availableHeight = screenHeight - 74
-    const widthFromHeight = availableHeight / 1.414
+    // PDF 비율 기반으로 너비/높이 맞춤
+    const widthFromHeight = contentHeight / pageAspect
+    const optimal = Math.min(contentWidth, widthFromHeight)
 
-    // 너비/높이 중 작은 쪽에 맞춤 (fit-to-screen)
-    optimalWidth = Math.min(optimalWidth, widthFromHeight)
-
-    setAutoWidth(optimalWidth)
-  }, [showSidePanel])
+    setFitWidth(Math.max(optimal, 200))
+  }, [showSidePanel, pageAspect])
 
   useEffect(() => {
-    calculateOptimalWidth()
-    window.addEventListener('resize', calculateOptimalWidth)
-    return () => window.removeEventListener('resize', calculateOptimalWidth)
-  }, [calculateOptimalWidth])
+    calculateFitWidth()
+    window.addEventListener('resize', calculateFitWidth)
+    return () => window.removeEventListener('resize', calculateFitWidth)
+  }, [calculateFitWidth])
 
   useEffect(() => {
     if (viewMode !== 'scroll' || !scrollContainerRef.current) return
@@ -92,10 +96,22 @@ export default function PDFViewer({
     return () => container.removeEventListener('scroll', handleScroll)
   }, [viewMode, numPages, onPageChange])
 
-  const onDocumentLoadSuccess = ({ numPages: total }: { numPages: number }) => {
+  const onDocumentLoadSuccess = async ({ numPages: total }: { numPages: number }) => {
     setNumPages(total)
     setPdfLoading(false)
     if (onDocumentLoad) onDocumentLoad(total)
+
+    // PDF 첫 페이지 실제 크기 가져오기
+    try {
+      const loadingTask = pdfjs.getDocument(pdfUrl)
+      const pdf = await loadingTask.promise
+      const page = await pdf.getPage(1)
+      const viewport = page.getViewport({ scale: 1 })
+      const aspect = viewport.height / viewport.width
+      setPageAspect(aspect)
+    } catch (err) {
+      console.error('Error getting page dimensions:', err)
+    }
   }
 
   const minSwipeDistance = 50
@@ -137,6 +153,9 @@ export default function PDFViewer({
     else if (clickX > width * 0.67) onPageChange(Math.min(pageNumber + 1, numPages), numPages)
   }
 
+  // 실제 렌더링 너비 (fitWidth * 사용자 줌)
+  const renderWidth = fitWidth * scale
+
   // 원목 프레임 스타일
   const frameStyle: React.CSSProperties = {
     borderWidth: '12px',
@@ -155,7 +174,7 @@ export default function PDFViewer({
   }
 
   return (
-    <div className="h-full w-full flex flex-col">
+    <div ref={containerRef} className="h-full w-full flex flex-col">
       <div
         className="flex-1 relative overflow-hidden"
         onTouchStart={onTouchStart}
@@ -188,7 +207,7 @@ export default function PDFViewer({
                 <div className="dark:hidden" style={frameStyle}>
                   <Page
                     pageNumber={pageNumber}
-                    width={autoWidth * scale}
+                    width={renderWidth}
                     renderTextLayer={true}
                     renderAnnotationLayer={true}
                     loading=""
@@ -197,7 +216,7 @@ export default function PDFViewer({
                 <div className="hidden dark:block" style={frameStyleDark}>
                   <Page
                     pageNumber={pageNumber}
-                    width={autoWidth * scale}
+                    width={renderWidth}
                     renderTextLayer={true}
                     renderAnnotationLayer={true}
                     loading=""
@@ -250,13 +269,13 @@ export default function PDFViewer({
                     <div className="dark:hidden" style={frameStyle}>
                       <Page
                         pageNumber={index + 1}
-                        width={autoWidth * scale}
+                        width={renderWidth}
                         renderTextLayer={true}
                         renderAnnotationLayer={true}
                         loading={
                           <div
                             className="flex items-center justify-center bg-gray-900 border border-gray-800"
-                            style={{ width: autoWidth * scale, height: autoWidth * scale * 1.414 }}
+                            style={{ width: renderWidth, height: renderWidth * pageAspect }}
                           >
                             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                           </div>
@@ -266,13 +285,13 @@ export default function PDFViewer({
                     <div className="hidden dark:block" style={frameStyleDark}>
                       <Page
                         pageNumber={index + 1}
-                        width={autoWidth * scale}
+                        width={renderWidth}
                         renderTextLayer={true}
                         renderAnnotationLayer={true}
                         loading={
                           <div
                             className="flex items-center justify-center bg-gray-900 border border-gray-800"
-                            style={{ width: autoWidth * scale, height: autoWidth * scale * 1.414 }}
+                            style={{ width: renderWidth, height: renderWidth * pageAspect }}
                           >
                             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                           </div>
