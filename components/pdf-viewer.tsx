@@ -160,16 +160,16 @@ export default function PDFViewer({
   const frameStyle: React.CSSProperties = {
     borderWidth: '12px',
     borderStyle: 'solid',
-    borderImage: 'linear-gradient(135deg, #c9a05c 0%, #a67c3d 20%, #d4aa60 40%, #b8892e 60%, #c9a05c 80%, #a67c3d 100%) 1',
-    boxShadow: 'inset 0 0 10px rgba(100,60,10,0.2), 0 6px 24px rgba(0,0,0,0.5)',
+    borderImage: 'linear-gradient(135deg, #8b6529 0%, #6b4820 20%, #9a7035 40%, #5c3a18 60%, #7a5525 80%, #6b4820 100%) 1',
+    boxShadow: 'inset 0 0 10px rgba(80,40,5,0.3), 0 6px 24px rgba(0,0,0,0.5)',
     borderRadius: '2px',
   }
 
   const frameStyleDark: React.CSSProperties = {
     borderWidth: '12px',
     borderStyle: 'solid',
-    borderImage: 'linear-gradient(135deg, #8b6914 0%, #6b4f10 20%, #9a7520 40%, #7a5c16 60%, #8b6914 80%, #6b4f10 100%) 1',
-    boxShadow: 'inset 0 0 10px rgba(100,60,10,0.15), 0 6px 24px rgba(0,0,0,0.6)',
+    borderImage: 'linear-gradient(135deg, #6b4820 0%, #4a3010 20%, #7a5525 40%, #3d2508 60%, #5c3a18 80%, #4a3010 100%) 1',
+    boxShadow: 'inset 0 0 10px rgba(60,30,5,0.25), 0 6px 24px rgba(0,0,0,0.7)',
     borderRadius: '2px',
   }
 
