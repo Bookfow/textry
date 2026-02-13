@@ -26,12 +26,9 @@ interface DocumentCardProps {
     profiles?: { username?: string | null; email?: string; avatar_url?: string | null } | null
   }
   authorName?: string | null
-  // 홈 피드 가로 스크롤용 (작은 카드)
   variant?: 'compact' | 'grid'
-  // 읽고 있는 콘텐츠용
   currentPage?: number
   lastReadAt?: string
-  // 찜 목록에서 제거 콜백
   onRemoveFromList?: (docId: string) => void
 }
 
@@ -96,7 +93,6 @@ export function DocumentCard({
         setLiked(false)
         setLikesCount(prev => Math.max(0, prev - 1))
       } else {
-        // 싫어요 제거 후 좋아요
         await supabase.from('reactions').delete()
           .eq('user_id', user.id).eq('document_id', doc.id)
         await supabase.from('reactions')
@@ -146,7 +142,7 @@ export function DocumentCard({
     return (
       <Link href={`/read/${doc.id}`} className="flex-shrink-0 w-[160px] sm:w-[180px] md:w-[200px]">
         <div className="group cursor-pointer">
-          <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
+          <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2 ring-1 ring-black/[0.08] dark:ring-white/[0.08]">
             {doc.thumbnail_url ? (
               <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
             ) : (
@@ -155,7 +151,6 @@ export function DocumentCard({
               </div>
             )}
 
-            {/* 호버 오버레이 + 액션 버튼 */}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all">
               <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
                 <button onClick={handleToggleList}
@@ -177,7 +172,6 @@ export function DocumentCard({
               </span>
             </div>
 
-            {/* 진행률 바 (읽고 있는 콘텐츠) */}
             {progress !== null && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50">
                 <div className="h-full bg-blue-500" style={{ width: `${progress}%` }} />
@@ -212,7 +206,7 @@ export function DocumentCard({
   return (
     <Link href={`/read/${doc.id}`}>
       <div className="group cursor-pointer">
-        <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
+        <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2 ring-1 ring-black/[0.08] dark:ring-white/[0.08]">
           {doc.thumbnail_url ? (
             <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
           ) : (
@@ -221,7 +215,6 @@ export function DocumentCard({
             </div>
           )}
 
-          {/* 호버 오버레이 + 액션 버튼 */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all">
             <div className="absolute bottom-3 left-3 right-3 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
               <button onClick={handleToggleList}
@@ -237,21 +230,18 @@ export function DocumentCard({
             </div>
           </div>
 
-          {/* 카테고리 태그 */}
           <div className="absolute top-2 left-2">
             <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
               {getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}
             </span>
           </div>
 
-          {/* 진행률 바 (읽고 있는 콘텐츠) */}
           {progress !== null && (
             <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200/50">
               <div className="h-full bg-blue-500 transition-all" style={{ width: `${progress}%` }} />
             </div>
           )}
 
-          {/* 읽기 시간 (진행률 없을 때) */}
           {progress === null && (
             <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
               {Math.floor((doc.total_reading_time || 0) / 60)}분
