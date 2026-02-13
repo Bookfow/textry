@@ -133,12 +133,30 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
               />
-              <p className="text-xs text-gray-400 mt-1">6자 이상</p>
+              {password && (() => {
+                const hasLength = password.length >= 8
+                const hasNumber = /[0-9]/.test(password)
+                const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)
+                return (
+                  <div className="space-y-1 mt-2">
+                    <p className={`text-xs ${hasLength ? 'text-green-500' : 'text-gray-400'}`}>
+                      {hasLength ? '✓' : '○'} 8자 이상
+                    </p>
+                    <p className={`text-xs ${hasNumber ? 'text-green-500' : 'text-gray-400'}`}>
+                      {hasNumber ? '✓' : '○'} 숫자 포함
+                    </p>
+                    <p className={`text-xs ${hasSpecial ? 'text-green-500' : 'text-gray-400'}`}>
+                      {hasSpecial ? '✓' : '○'} 특수문자 포함
+                    </p>
+                  </div>
+                )
+              })()}
+              {!password && <p className="text-xs text-gray-400 mt-1">8자 이상, 숫자·특수문자 포함</p>}
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || !password || password.length < 8 || !/[0-9]/.test(password) || !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)}>
               {loading ? '가입 중...' : '회원가입'}
             </Button>
           </form>
