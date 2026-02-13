@@ -25,7 +25,6 @@ export default function HomePage() {
 
   const loadAllSections = async () => {
     try {
-      // 찜 목록 가져오기
       if (user) {
         const { data: favData } = await supabase
           .from('reading_list')
@@ -34,7 +33,6 @@ export default function HomePage() {
         if (favData) setFavSet(new Set(favData.map(f => f.document_id)))
       }
 
-      // 1. 읽고 있는 콘텐츠 (로그인 시)
       if (user) {
         const { data: progress } = await supabase
           .from('reading_progress')
@@ -60,7 +58,6 @@ export default function HomePage() {
           }
         }
 
-        // 2. 구독 작가의 새 문서
         const { data: subs } = await supabase
           .from('subscriptions')
           .select('author_id')
@@ -79,7 +76,6 @@ export default function HomePage() {
         }
       }
 
-      // 3. 인기 문서 (최근 7일 + 복합점수)
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const { data: popular } = await supabase
         .from('documents')
@@ -96,7 +92,6 @@ export default function HomePage() {
         setPopularDocs(sorted.slice(0, 12))
       }
 
-      // 4. 최신 문서
       const { data: recent } = await supabase
         .from('documents')
         .select('*, profiles!documents_author_id_fkey(username, email, avatar_url)')
@@ -134,7 +129,7 @@ export default function HomePage() {
     return (
       <Link href={`/read/${doc.id}`} className="flex-shrink-0 w-[160px] sm:w-[180px] md:w-[200px]">
         <div className="group cursor-pointer">
-          <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
+          <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2 ring-1 ring-black/20 dark:ring-white/10 shadow-md">
             {doc.thumbnail_url ? (
               <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
             ) : (
@@ -151,7 +146,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* 찜 버튼 */}
             <button
               onClick={(e) => toggleFav(e, doc.id)}
               className={`absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-sm transition-all
@@ -170,12 +164,12 @@ export default function HomePage() {
           </div>
 
           <div>
-            <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors">
+            <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors dark:text-white">
               {doc.title}
             </h3>
 
             {doc.profiles && (
-              <p className="text-[11px] text-gray-500 truncate mb-1">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mb-1">
                 {doc.profiles.username || doc.profiles.email}
               </p>
             )}
@@ -233,9 +227,9 @@ export default function HomePage() {
 
     return (
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center justify-between mb-4 px-2 md:px-4">
           <div className="flex items-center gap-2">
-            <Icon className="w-5 h-5 text-gray-700" />
+            <Icon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
           </div>
         </div>
@@ -261,7 +255,7 @@ export default function HomePage() {
 
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 px-1"
+            className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 px-2 md:px-4"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {docs.map(doc => <DocumentCard key={doc.id} doc={doc} />)}
