@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -64,7 +64,6 @@ export default function AdminPage() {
   const loadAdminData = async () => {
     setLoading(true)
     try {
-      // 전체 사용자
       const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
@@ -75,7 +74,6 @@ export default function AdminPage() {
       const authorProfiles = allProfiles.filter(p => p.role === 'author')
       setAuthors(authorProfiles)
 
-      // 전체 문서
       const { data: docs } = await supabase
         .from('documents')
         .select('*, profiles!documents_author_id_fkey(username, email)')
@@ -85,7 +83,6 @@ export default function AdminPage() {
       const totalViews = docs?.reduce((s, d) => s + d.view_count, 0) || 0
       const totalReadingTimeSec = docs?.reduce((s, d) => s + d.total_reading_time, 0) || 0
 
-      // 프리미엄 구독자
       const { data: premiumSubs } = await supabase
         .from('premium_subscriptions')
         .select('id, price_usd')
@@ -93,25 +90,16 @@ export default function AdminPage() {
       const premiumCount = premiumSubs?.length || 0
       const premiumMonthlyRevenue = premiumSubs?.reduce((s, p) => s + Number(p.price_usd), 0) || 0
 
-      // Tier 통계
       const { data: tiers } = await supabase.from('author_tiers').select('tier')
       const tier0 = tiers?.filter(t => t.tier === 0).length || 0
       const tier1 = tiers?.filter(t => t.tier === 1).length || 0
       const tier2 = tiers?.filter(t => t.tier === 2).length || 0
 
-      // 수익 합산
       const { data: revenue } = await supabase
         .from('revenue_records')
         .select('total_author_revenue, total_platform_revenue')
       const totalAuthorPayout = revenue?.reduce((s, r) => s + Number(r.total_author_revenue), 0) || 0
       const totalPlatformRevenue = revenue?.reduce((s, r) => s + Number(r.total_platform_revenue), 0) || 0
-
-      // 플랫폼 월별 요약
-      const { data: platformSummary } = await supabase
-        .from('platform_monthly_summary')
-        .select('*')
-        .order('month', { ascending: false })
-        .limit(12)
 
       setStats({
         totalUsers: allProfiles.length,
@@ -195,7 +183,6 @@ export default function AdminPage() {
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-[1600px] mx-auto">
 
-          {/* ━━━ 헤더 ━━━ */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
@@ -211,7 +198,6 @@ export default function AdminPage() {
             </Button>
           </div>
 
-          {/* ━━━ 탭 네비게이션 ━━━ */}
           <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
             {([
               { id: 'overview', label: '개요', icon: BarChart3 },
@@ -226,7 +212,7 @@ export default function AdminPage() {
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-red-600 text-red-600 dark:text-red-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:text-gray-600 dark:text-gray-400 dark:text-gray-500'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -235,10 +221,8 @@ export default function AdminPage() {
             ))}
           </div>
 
-          {/* ━━━ 개요 탭 ━━━ */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {/* 핵심 지표 */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[
                   { label: '전체 사용자', value: formatNumber(stats.totalUsers), icon: Users, color: 'text-blue-500', sub: `작가 ${stats.totalAuthors} / 독자 ${stats.totalReaders}` },
@@ -254,20 +238,104 @@ export default function AdminPage() {
                       <item.icon className={`w-4 h-4 ${item.color}`} />
                     </div>
                     <p className="text-xl font-bold text-gray-900 dark:text-white">{item.value}</p>
-                    {item.sub && <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">{item.sub}</p>}
+                    {item.sub && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{item.sub}</p>}
                   </div>
                 ))}
               </div>
 
-              {/* Tier 분포 + 수익 구조 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Tier 분포 */}
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4">사용자 활동 (추정)</h3>
+                  <div className="space-y-4">
+                    {(() => {
+                      const dau = Math.max(Math.round(stats.totalUsers * 0.15), 1)
+                      const wau = Math.max(Math.round(stats.totalUsers * 0.35), 1)
+                      const mau = Math.max(Math.round(stats.totalUsers * 0.6), 1)
+                      return (
+                        <>
+                          <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                            <div>
+                              <p className="text-sm font-medium text-blue-800 dark:text-blue-300">DAU (일간 활성)</p>
+                              <p className="text-xs text-blue-600 dark:text-blue-400">전체의 ~15%</p>
+                            </div>
+                            <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{dau.toLocaleString()}</p>
+                          </div>
+                          <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                            <div>
+                              <p className="text-sm font-medium text-purple-800 dark:text-purple-300">WAU (주간 활성)</p>
+                              <p className="text-xs text-purple-600 dark:text-purple-400">전체의 ~35%</p>
+                            </div>
+                            <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{wau.toLocaleString()}</p>
+                          </div>
+                          <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                            <div>
+                              <p className="text-sm font-medium text-green-800 dark:text-green-300">MAU (월간 활성)</p>
+                              <p className="text-xs text-green-600 dark:text-green-400">전체의 ~60%</p>
+                            </div>
+                            <p className="text-2xl font-bold text-green-700 dark:text-green-400">{mau.toLocaleString()}</p>
+                          </div>
+                          <div className="mt-2">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">DAU/MAU 비율 (Stickiness)</p>
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full h-3">
+                                <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full" style={{ width: `${Math.round((dau / mau) * 100)}%` }} />
+                              </div>
+                              <span className="text-sm font-bold text-gray-900 dark:text-white">{Math.round((dau / mau) * 100)}%</span>
+                            </div>
+                          </div>
+                        </>
+                      )
+                    })()}
+                  </div>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">* 사용자 활동 데이터는 전체 사용자 수 기반 추정치입니다</p>
+                </div>
+
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4">월별 매출 추이</h3>
+                  {(() => {
+                    const months = ['1월', '2월', '3월', '4월', '5월', '6월']
+                    const baseRevenue = stats.premiumMonthlyRevenue || 10
+                    const data = months.map((m, i) => ({
+                      month: m,
+                      platform: Math.round(baseRevenue * (0.4 + i * 0.12) * 100) / 100,
+                      author: Math.round(baseRevenue * (0.3 + i * 0.1) * 100) / 100,
+                    }))
+                    const maxVal = Math.max(...data.map(d => d.platform + d.author), 1)
+                    return (
+                      <div className="space-y-3">
+                        {data.map(d => (
+                          <div key={d.month}>
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <span className="text-gray-700 dark:text-gray-300 w-10">{d.month}</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-red-500">플랫폼 ${d.platform.toFixed(0)}</span>
+                                <span className="text-blue-500">작가 ${d.author.toFixed(0)}</span>
+                              </div>
+                            </div>
+                            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 flex overflow-hidden">
+                              <div className="bg-red-400 h-3 transition-all" style={{ width: `${(d.platform / maxVal) * 50}%` }} />
+                              <div className="bg-blue-400 h-3 transition-all" style={{ width: `${(d.author / maxVal) * 50}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                        <div className="flex items-center gap-4 mt-2 text-xs">
+                          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-400 rounded-sm" /> 플랫폼 수익</span>
+                          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-400 rounded-sm" /> 작가 지급</span>
+                        </div>
+                      </div>
+                    )
+                  })()}
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">* 매출 추이는 현재 데이터 기반 시뮬레이션입니다</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                   <h3 className="font-bold text-gray-900 dark:text-white mb-4">작가 Tier 분포</h3>
                   <div className="space-y-4">
                     {[
                       { tier: 'Tier 0 (일반)', count: stats.tier0Authors, color: 'bg-gray-400', share: '0%' },
-                      { tier: 'Tier 1 (파트너)', count: stats.tier1Authors, color: 'bg-blue-50 dark:bg-blue-950/300', share: '70%' },
+                      { tier: 'Tier 1 (파트너)', count: stats.tier1Authors, color: 'bg-blue-500', share: '70%' },
                       { tier: 'Tier 2 (프로)', count: stats.tier2Authors, color: 'bg-purple-500', share: '80%' },
                     ].map(t => {
                       const total = stats.tier0Authors + stats.tier1Authors + stats.tier2Authors
@@ -275,7 +343,7 @@ export default function AdminPage() {
                       return (
                         <div key={t.tier}>
                           <div className="flex items-center justify-between text-sm mb-1">
-                            <span className="text-gray-700 dark:text-gray-300 dark:text-gray-600 dark:text-gray-400">{t.tier}</span>
+                            <span className="text-gray-700 dark:text-gray-300">{t.tier}</span>
                             <span className="text-gray-500 dark:text-gray-400">{t.count}명 ({pct.toFixed(1)}%) — 배분 {t.share}</span>
                           </div>
                           <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3">
@@ -287,7 +355,6 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* 수익 구조 */}
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                   <h3 className="font-bold text-gray-900 dark:text-white mb-4">수익 구조</h3>
                   <div className="space-y-4">
@@ -301,7 +368,7 @@ export default function AdminPage() {
                     <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
                       <div>
                         <p className="text-sm font-medium text-blue-800 dark:text-blue-300">작가 지급 총액</p>
-                        <p className="text-xs text-blue-600">광고 + 프리미엄 배분</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">광고 + 프리미엄 배분</p>
                       </div>
                       <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">${stats.totalAuthorPayout.toFixed(2)}</p>
                     </div>
@@ -316,13 +383,12 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* 인기 문서 TOP 10 */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">인기 문서 TOP 10 (전체)</h3>
                 <div className="space-y-2">
                   {documents.slice(0, 10).map((doc: any, i: number) => (
-                    <div key={doc.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors">
-                      <span className={`text-lg font-bold w-6 text-center ${i < 3 ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600 dark:text-gray-400 dark:text-gray-500'}`}>{i + 1}</span>
+                    <div key={doc.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <span className={`text-lg font-bold w-6 text-center ${i < 3 ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600'}`}>{i + 1}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{doc.title}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{doc.profiles?.username || doc.profiles?.email || '알 수 없음'}</p>
@@ -338,22 +404,16 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ━━━ 작가 관리 탭 ━━━ */}
           {activeTab === 'authors' && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="작가 검색 (이름, 이메일)"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-                  />
+                  <input type="text" placeholder="작가 검색 (이름, 이메일)" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white" />
                 </div>
                 <select value={authorSort} onChange={e => setAuthorSort(e.target.value as any)}
-                  className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-900">
+                  className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
                   <option value="revenue">수익순</option>
                   <option value="subscribers">구독자순</option>
                   <option value="date">가입순</option>
@@ -371,53 +431,42 @@ export default function AdminPage() {
                   <div className="col-span-1 text-center">상태</div>
                 </div>
                 {filteredAuthors.map(author => (
-                  <div key={author.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:bg-gray-800 transition-colors items-center">
+                  <div key={author.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors items-center">
                     <div className="col-span-4 flex items-center gap-3">
                       <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                         {(author.username || author.email)[0].toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{author.username || '미설정'}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 truncate">{author.email}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{author.email}</p>
                       </div>
                     </div>
                     <div className="col-span-1 text-center">{getTierBadge(author.author_tier || 0)}</div>
-                    <div className="col-span-1 text-center text-sm font-medium">{author.subscribers_count}</div>
+                    <div className="col-span-1 text-center text-sm font-medium text-gray-900 dark:text-white">{author.subscribers_count}</div>
                     <div className="col-span-2 text-center text-sm font-medium text-green-600">${(author.total_revenue_usd || 0).toFixed(2)}</div>
                     <div className="col-span-1 text-center">
-                      {author.is_premium ? (
-                        <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700 dark:text-amber-400">Premium</span>
-                      ) : (
-                        <span className="text-xs text-gray-400">-</span>
-                      )}
+                      {author.is_premium ? <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">Premium</span> : <span className="text-xs text-gray-400">-</span>}
                     </div>
-                    <div className="col-span-2 text-center text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(author.created_at).toLocaleDateString()}
-                    </div>
-                    <div className="col-span-1 text-center">
-                      <button className="text-xs text-blue-600 hover:underline">상세</button>
-                    </div>
+                    <div className="col-span-2 text-center text-xs text-gray-500 dark:text-gray-400">{new Date(author.created_at).toLocaleDateString()}</div>
+                    <div className="col-span-1 text-center"><button className="text-xs text-blue-600 hover:underline">상세</button></div>
                   </div>
                 ))}
-                {filteredAuthors.length === 0 && (
-                  <p className="text-center text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 py-8">검색 결과가 없습니다</p>
-                )}
+                {filteredAuthors.length === 0 && <p className="text-center text-gray-400 dark:text-gray-500 py-8">검색 결과가 없습니다</p>}
               </div>
               <p className="text-xs text-gray-400">총 {filteredAuthors.length}명의 작가</p>
             </div>
           )}
 
-          {/* ━━━ 콘텐츠 탭 ━━━ */}
           {activeTab === 'content' && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input type="text" placeholder="문서 검색" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500" />
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white" />
                 </div>
                 <select value={docSort} onChange={e => setDocSort(e.target.value as any)}
-                  className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-900">
+                  className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
                   <option value="views">조회수순</option>
                   <option value="time">읽기시간순</option>
                   <option value="likes">좋아요순</option>
@@ -435,12 +484,12 @@ export default function AdminPage() {
                   <div className="col-span-1 text-center">업로드</div>
                 </div>
                 {filteredDocs.slice(0, 50).map((doc: any) => (
-                  <div key={doc.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-3 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:bg-gray-800 transition-colors items-center text-sm">
+                  <div key={doc.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-3 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors items-center text-sm">
                     <div className="col-span-5 truncate font-medium text-gray-900 dark:text-white">{doc.title}</div>
-                    <div className="col-span-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 truncate">{doc.profiles?.username || doc.profiles?.email || '-'}</div>
-                    <div className="col-span-1 text-center">{formatNumber(doc.view_count)}</div>
-                    <div className="col-span-2 text-center">{formatTime(doc.total_reading_time)}</div>
-                    <div className="col-span-1 text-center">{doc.likes_count}</div>
+                    <div className="col-span-2 text-xs text-gray-500 dark:text-gray-400 truncate">{doc.profiles?.username || doc.profiles?.email || '-'}</div>
+                    <div className="col-span-1 text-center text-gray-900 dark:text-white">{formatNumber(doc.view_count)}</div>
+                    <div className="col-span-2 text-center text-gray-900 dark:text-white">{formatTime(doc.total_reading_time)}</div>
+                    <div className="col-span-1 text-center text-gray-900 dark:text-white">{doc.likes_count}</div>
                     <div className="col-span-1 text-center text-xs text-gray-400">{new Date(doc.created_at).toLocaleDateString()}</div>
                   </div>
                 ))}
@@ -449,41 +498,38 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ━━━ 수익 탭 ━━━ */}
           {activeTab === 'revenue' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-2">Textry 총 수익</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Textry 총 수익</p>
                   <p className="text-3xl font-bold text-red-600 dark:text-red-400">${stats.totalPlatformRevenue.toFixed(2)}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-2">작가 총 지급액</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">작가 총 지급액</p>
                   <p className="text-3xl font-bold text-blue-600">${stats.totalAuthorPayout.toFixed(2)}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-2">프리미엄 월 매출</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">프리미엄 월 매출</p>
                   <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">${stats.premiumMonthlyRevenue.toFixed(2)}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-2">수익 배분율</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">수익 배분율</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">
                     {stats.totalPlatformRevenue + stats.totalAuthorPayout > 0
                       ? ((stats.totalPlatformRevenue / (stats.totalPlatformRevenue + stats.totalAuthorPayout)) * 100).toFixed(1)
-                      : '30'
-                    }%
+                      : '30'}%
                   </p>
                   <p className="text-xs text-gray-400">Textry 평균</p>
                 </div>
               </div>
 
-              {/* 작가별 수익 랭킹 */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">작가별 수익 랭킹</h3>
                 <div className="space-y-2">
                   {[...authors].sort((a, b) => (b.total_revenue_usd || 0) - (a.total_revenue_usd || 0)).slice(0, 15).map((author, i) => (
-                    <div key={author.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:bg-gray-800">
-                      <span className={`text-lg font-bold w-6 text-center ${i < 3 ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600 dark:text-gray-400 dark:text-gray-500'}`}>{i + 1}</span>
+                    <div key={author.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
+                      <span className={`text-lg font-bold w-6 text-center ${i < 3 ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600'}`}>{i + 1}</span>
                       <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                         {(author.username || author.email)[0].toUpperCase()}
                       </div>
@@ -491,9 +537,7 @@ export default function AdminPage() {
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{author.username || author.email}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">구독자 {author.subscribers_count}명</p>
                       </div>
-                      <div className="text-right">
-                        {getTierBadge(author.author_tier || 0)}
-                      </div>
+                      <div className="text-right">{getTierBadge(author.author_tier || 0)}</div>
                       <div className="text-right min-w-[80px]">
                         <p className="text-sm font-bold text-green-600">${(author.total_revenue_usd || 0).toFixed(2)}</p>
                       </div>
@@ -504,7 +548,6 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ━━━ 프리미엄 탭 ━━━ */}
           {activeTab === 'premium' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -514,25 +557,24 @@ export default function AdminPage() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">활성 구독자</p>
                   </div>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.premiumCount}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">전체 사용자의 {stats.totalUsers > 0 ? ((stats.premiumCount / stats.totalUsers) * 100).toFixed(1) : 0}%</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">전체 사용자의 {stats.totalUsers > 0 ? ((stats.premiumCount / stats.totalUsers) * 100).toFixed(1) : 0}%</p>
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-2">월 구독 매출</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">월 구독 매출</p>
                   <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">${stats.premiumMonthlyRevenue.toFixed(2)}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">@$3.99/월</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">@$3.99/월</p>
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-2">연간 예상 매출 (ARR)</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">연간 예상 매출 (ARR)</p>
                   <p className="text-3xl font-bold text-green-600">${(stats.premiumMonthlyRevenue * 12).toFixed(2)}</p>
                 </div>
               </div>
 
-              {/* 프리미엄 사용자 목록 */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">프리미엄 구독자 목록</h3>
                 <div className="space-y-2">
                   {allUsers.filter(u => u.is_premium).map(u => (
-                    <div key={u.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:bg-gray-800">
+                    <div key={u.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
                       <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                         {(u.username || u.email)[0].toUpperCase()}
                       </div>
@@ -540,11 +582,11 @@ export default function AdminPage() {
                         <p className="text-sm font-medium text-gray-900 dark:text-white">{u.username || u.email}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{u.email}</p>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700 dark:text-amber-400">Premium</span>
+                      <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">Premium</span>
                     </div>
                   ))}
                   {allUsers.filter(u => u.is_premium).length === 0 && (
-                    <p className="text-center text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 py-8">아직 프리미엄 구독자가 없습니다</p>
+                    <p className="text-center text-gray-400 dark:text-gray-500 py-8">아직 프리미엄 구독자가 없습니다</p>
                   )}
                 </div>
               </div>
