@@ -143,57 +143,58 @@ export default function AuthorPage() {
 
   return (
     <div className="min-h-screen">
-      {/* 배너 — 컴팩트 + 세련된 디자인 */}
-      <div className="relative h-36 md:h-44 lg:h-48 overflow-hidden">
-        {author.banner_url ? (
-          <img src={author.banner_url} alt="배너" className="w-full h-full object-cover" />
-        ) : (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900" />
-            {/* 장식 패턴 */}
-            <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
-            {/* 글로우 효과 */}
-            <div className="absolute top-0 right-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl" />
-          </>
-        )}
-        {/* 하단 페이드 */}
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-gray-50 dark:from-gray-950 to-transparent" />
+      {/* ━━━ 배너 ━━━ */}
+      <div className="px-4 md:px-6 lg:px-8 pt-4">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="relative h-28 sm:h-36 md:h-44 rounded-xl overflow-hidden">
+            {author.banner_url ? (
+              <img src={author.banner_url} alt="배너" className="w-full h-full object-cover" />
+            ) : (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-800 via-blue-900 to-indigo-900" />
+                <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '20px 20px' }} />
+                <div className="absolute top-0 right-1/4 w-48 h-48 bg-blue-500/15 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-1/3 w-40 h-40 bg-purple-500/15 rounded-full blur-3xl" />
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
-      <main className="p-4 md:p-6 lg:p-8">
+      {/* ━━━ 프로필 영역 ━━━ */}
+      <div className="px-4 md:px-6 lg:px-8 pt-4 pb-2">
         <div className="max-w-[1400px] mx-auto">
-          {/* 프로필 헤더 */}
-          <div className="flex flex-col md:flex-row items-start gap-5 -mt-16 md:-mt-20 mb-6 relative z-10">
+          <div className="flex items-start gap-4 md:gap-5">
             {/* 아바타 */}
             <div className="relative flex-shrink-0">
               {author.avatar_url ? (
-                <img src={author.avatar_url} alt={author.username || ''} className="w-24 h-24 md:w-28 md:h-28 rounded-2xl object-cover border-4 border-white dark:border-gray-900 shadow-lg" />
+                <img src={author.avatar_url} alt={author.username || ''} className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover" />
               ) : (
-                <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-4xl font-bold border-4 border-white dark:border-gray-900 shadow-lg">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-2xl md:text-3xl font-bold">
                   {(author.username || author.email)[0].toUpperCase()}
                 </div>
               )}
               {(author.author_tier || 0) >= 1 && (
-                <div className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-lg flex items-center justify-center shadow-md ${
+                <div className={`absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full flex items-center justify-center shadow-md border-2 border-white dark:border-gray-950 ${
                   author.author_tier === 2 ? 'bg-purple-500' : 'bg-blue-500'
                 }`}>
-                  <Award className="w-3.5 h-3.5 text-white" />
+                  <Award className="w-3 h-3 text-white" />
                 </div>
               )}
             </div>
 
-            {/* 정보 */}
+            {/* 이름 + 메타 + 구독 */}
             <div className="flex-1 min-w-0">
+              {/* 이름 줄 */}
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{author.username || author.email}</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate">{author.username || author.email}</h1>
                 {isPremium && (
-                  <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-medium flex items-center gap-1">
+                  <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-[10px] font-medium flex items-center gap-0.5">
                     <Crown className="w-3 h-3" /> Premium
                   </span>
                 )}
                 {(author.author_tier || 0) >= 1 && (
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                     author.author_tier === 2 ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                   }`}>
                     {author.author_tier === 2 ? '프로 작가' : '파트너 작가'}
@@ -201,17 +202,22 @@ export default function AuthorPage() {
                 )}
               </div>
 
-              {author.bio && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 max-w-xl">{author.bio}</p>
-              )}
-
-              <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mt-2">
-                <span className="flex items-center gap-1"><Users className="w-4 h-4" /> 구독자 {author.subscribers_count?.toLocaleString() || 0}명</span>
-                <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> 문서 {documents.length}개</span>
-                <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> 총 {totalViews.toLocaleString()}회</span>
+              {/* 메타 정보 — 한 줄 */}
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <span>@{author.username || author.email.split('@')[0]}</span>
+                <span>·</span>
+                <span>구독자 {author.subscribers_count?.toLocaleString() || 0}명</span>
+                <span>·</span>
+                <span>문서 {documents.length}개</span>
               </div>
 
-              <div className="flex items-center gap-3 mt-3">
+              {/* 소개 (짧게) */}
+              {author.bio && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 max-w-2xl">{author.bio}</p>
+              )}
+
+              {/* 구독 + 공유 버튼 */}
+              <div className="flex items-center gap-2 mt-3">
                 {user && user.id !== authorId && (
                   <SubscribeButton
                     authorId={authorId}
@@ -219,33 +225,42 @@ export default function AuthorPage() {
                     initialSubscribersCount={author.subscribers_count || 0}
                   />
                 )}
-                <Button variant="outline" size="sm" onClick={handleShare} className="gap-1">
+                <Button variant="outline" size="sm" onClick={handleShare} className="gap-1 rounded-full">
                   <Share2 className="w-4 h-4" /> 공유
                 </Button>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* 탭 */}
-          <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-gray-800">
+      {/* ━━━ 탭 ━━━ */}
+      <div className="px-4 md:px-6 lg:px-8 sticky top-0 z-20 bg-gray-50/80 dark:bg-gray-950/80 backdrop-blur-sm">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="flex gap-0 border-b border-gray-200 dark:border-gray-800">
             <button
               onClick={() => setActiveTab('documents')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'documents' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'documents' ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
             >
-              문서 ({documents.length})
+              문서
             </button>
             <button
               onClick={() => setActiveTab('about')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'about' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'about' ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
             >
               정보
             </button>
           </div>
+        </div>
+      </div>
 
+      {/* ━━━ 콘텐츠 ━━━ */}
+      <div className="px-4 md:px-6 lg:px-8 py-6">
+        <div className="max-w-[1400px] mx-auto">
           {/* 문서 탭 */}
           {activeTab === 'documents' && (
             <>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-5">
                 <p className="text-sm text-gray-500 dark:text-gray-400">총 {documents.length}개</p>
                 <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
                   className="text-sm border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200">
@@ -255,7 +270,10 @@ export default function AuthorPage() {
                 </select>
               </div>
               {documents.length === 0 ? (
-                <div className="text-center py-20"><p className="text-gray-500 dark:text-gray-400">아직 업로드한 문서가 없습니다</p></div>
+                <div className="text-center py-20">
+                  <FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">아직 업로드한 문서가 없습니다</p>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
                   {sortedDocuments.map(doc => <DocumentCard key={doc.id} doc={doc} />)}
@@ -267,27 +285,28 @@ export default function AuthorPage() {
           {/* 정보 탭 */}
           {activeTab === 'about' && (
             <div className="max-w-2xl">
-              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 space-y-6">
+              <div className="space-y-6">
                 {author.bio && (
-                  <div>
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">소개</h3>
+                  <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">소개</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{author.bio}</p>
                   </div>
                 )}
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white mb-3">통계</h3>
-                  <div className="grid grid-cols-2 gap-4">
+
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">통계</h3>
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">{documents.length}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">총 문서</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">총 문서</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">{(author.subscribers_count || 0).toLocaleString()}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">구독자</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">구독자</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalViews.toLocaleString()}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">총 조회수</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">총 조회수</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -296,22 +315,23 @@ export default function AuthorPage() {
                           : `${Math.floor(totalReadingTime / 60)}분`
                         }
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">총 읽기 시간</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">총 읽기 시간</p>
                     </div>
                   </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white mb-2">정보</h3>
+
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">정보</h3>
                   <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                     <p className="flex items-center gap-2"><Calendar className="w-4 h-4" /> 가입일: {new Date(author.created_at).toLocaleDateString()}</p>
-                    <p className="flex items-center gap-2"><Eye className="w-4 h-4" /> 이메일: {author.email}</p>
+                    <p className="flex items-center gap-2"><Eye className="w-4 h-4" /> 총 조회수: {totalViews.toLocaleString()}회</p>
                   </div>
                 </div>
               </div>
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }
