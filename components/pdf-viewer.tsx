@@ -47,6 +47,7 @@ export default function PDFViewer({
 
   const calculateOptimalWidth = useCallback(() => {
     const screenWidth = window.innerWidth
+    const screenHeight = window.innerHeight
     const sidePanelWidth = showSidePanel ? 380 : 0
     const availableWidth = screenWidth - sidePanelWidth
     const padding = screenWidth < 640 ? 0 : screenWidth < 1024 ? 16 : 40
@@ -55,6 +56,13 @@ export default function PDFViewer({
     if (screenWidth >= 1280) optimalWidth = Math.min(optimalWidth, 900)
     else if (screenWidth >= 1024) optimalWidth = Math.min(optimalWidth, 800)
     else if (screenWidth >= 768) optimalWidth = Math.min(optimalWidth, 700)
+
+    // 화면 높이에 맞추기 (컨트롤바 ~50px + 프레임 테두리 ~24px + 여유 ~30px)
+    const availableHeight = screenHeight - 104
+    const widthFromHeight = availableHeight / 1.414
+
+    // 너비/높이 중 작은 쪽에 맞춤 (fit-to-screen)
+    optimalWidth = Math.min(optimalWidth, widthFromHeight)
 
     setAutoWidth(optimalWidth)
   }, [showSidePanel])
