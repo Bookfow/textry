@@ -137,6 +137,11 @@ export default function PDFViewer({
     else if (clickX > width * 0.67) onPageChange(Math.min(pageNumber + 1, numPages), numPages)
   }
 
+  // 원목 테두리 스타일
+  const frameStyle = {
+    boxShadow: 'inset 0 0 8px rgba(120,70,20,0.1), 0 4px 20px rgba(0,0,0,0.3)',
+  }
+
   return (
     <div className="h-full w-full flex flex-col">
       <div
@@ -168,7 +173,10 @@ export default function PDFViewer({
                 className="flex justify-center"
                 options={pdfOptions}
               >
-                <div className="border-[6px] border-amber-900/30 dark:border-amber-800/20 rounded-sm shadow-2xl" style={{ boxShadow: 'inset 0 0 8px rgba(120,70,20,0.1), 0 4px 20px rgba(0,0,0,0.3)' }}>
+                <div
+                  className="border-[6px] border-amber-900/30 dark:border-amber-800/20 rounded-sm"
+                  style={frameStyle}
+                >
                   <Page
                     pageNumber={pageNumber}
                     width={autoWidth * scale}
@@ -176,7 +184,7 @@ export default function PDFViewer({
                     renderAnnotationLayer={true}
                     loading=""
                   />
-                </div
+                </div>
               </PDFDocument>
             </div>
 
@@ -220,7 +228,12 @@ export default function PDFViewer({
                 options={pdfOptions}
               >
                 {Array.from({ length: numPages }, (_, index) => (
-                  <div key={`page_${index + 1}`} data-page-number={index + 1} className="border-[6px] border-amber-900/30 dark:border-amber-800/20 rounded-sm shadow-2xl" style={{ boxShadow: 'inset 0 0 8px rgba(120,70,20,0.1), 0 4px 20px rgba(0,0,0,0.3)' }}>
+                  <div
+                    key={`page_${index + 1}`}
+                    data-page-number={index + 1}
+                    className="border-[6px] border-amber-900/30 dark:border-amber-800/20 rounded-sm"
+                    style={frameStyle}
+                  >
                     <Page
                       pageNumber={index + 1}
                       width={autoWidth * scale}
