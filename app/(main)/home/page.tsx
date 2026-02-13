@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
@@ -151,8 +151,11 @@ export default function HomePage() {
   const hasAnyContent = continueReading.length > 0 || subscribedDocs.length > 0 || popularDocs.length > 0 || recentDocs.length > 0
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <main className="p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 relative">
+      {/* 천장 전구색 조명 효과 */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[500px] bg-gradient-to-b from-amber-100/40 via-orange-50/20 to-transparent dark:from-amber-900/10 dark:via-amber-950/5 dark:to-transparent" />
+      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-radial-gradient rounded-full opacity-30 dark:opacity-10" style={{ background: 'radial-gradient(ellipse at center, rgba(251,191,36,0.15) 0%, transparent 70%)' }} />
+      <main className="p-4 md:p-6 lg:p-8 relative z-10">
         <div className="max-w-[1600px] mx-auto">
           {!hasAnyContent ? (
             <div className="text-center py-20">
