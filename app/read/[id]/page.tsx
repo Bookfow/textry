@@ -18,6 +18,7 @@ import {
   ZoomOut,
   BookOpen,
   ScrollText,
+  BookOpenCheck,
 } from 'lucide-react'
 import { AdBanner } from '@/components/ad-banner'
 import { AdOverlay } from '@/components/ad-overlay'
@@ -221,12 +222,14 @@ export default function ReadPage() {
         case 'ArrowUp':
           e.preventDefault()
           if (viewMode === 'page') goToPrevPage()
+          else if (viewMode === 'book') setPageNumber((prev) => Math.max(prev - 2, 1))
           break
         case 'ArrowRight':
         case 'ArrowDown':
         case ' ':
           e.preventDefault()
           if (viewMode === 'page') goToNextPage()
+          else if (viewMode === 'book') setPageNumber((prev) => Math.min(prev + 2, numPages))
           break
         case 'Escape':
           if (isFullscreen) toggleFullscreen()
@@ -432,13 +435,20 @@ export default function ReadPage() {
             </div>
 
             <div className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5">
-              <div className="flex items-center bg-gray-800 rounded-lg p-0.5">
+            <div className="flex items-center bg-gray-800 rounded-lg p-0.5">
                 <button
                   onClick={() => setViewMode('page')}
                   className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
                   title="페이지 모드"
                 >
                   <BookOpen className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('book')}
+                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'book' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  title="책 모드 (2페이지)"
+                >
+                  <BookOpenCheck className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('scroll')}
