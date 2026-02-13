@@ -8,6 +8,7 @@ type AuthContextType = {
   user: User | null
   profile: Profile | null
   loading: boolean
+  refreshProfile: () => Promise<void>
   signUp: (email: string, password: string, role: 'author' | 'reader') => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -51,35 +52,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfile(data)
   }
 
+  const refreshProfile = async () => {
+    if (user) {
+      await loadProfile(user.id)
+    }
+  }
+
   const signUp = async (email: string, password: string, role: 'author' | 'reader') => {
-    // role을 metadata에 포함
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          role: role, // metadata에 role 저장
+          role: role,
         },
       },
     })
   
     if (error) throw error
-  
-    // Trigger가 자동으로 프로필 생성하므로 수동 생성 코드 삭제!
-    // 아래 코드 전체 삭제 또는 주석 처리
-    /*
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          email: data.user.email!,
-          role,
-        })
-  
-      if (profileError) throw profileError
-    }
-    */
   }
 
   const signIn = async (email: string, password: string) => {
@@ -97,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, refreshProfile, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )

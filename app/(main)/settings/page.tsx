@@ -12,7 +12,7 @@ import { useTheme } from '@/lib/theme-context'
 import Link from 'next/link'
 
 export default function SettingsPage() {
-  const { user, profile } = useAuth()
+  const { user, profile, refreshProfile } = useAuth()
   const [username, setUsername] = useState('')
   const [bio, setBio] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
@@ -77,8 +77,8 @@ export default function SettingsPage() {
       if (dbError) throw dbError
 
       setAvatarUrl(urlData.publicUrl)
+      await refreshProfile()
       alert('프로필 이미지가 업로드되었습니다!')
-      window.location.reload()
     } catch (err) {
       console.error('Upload error:', err)
       alert('업로드에 실패했습니다.')
@@ -111,8 +111,8 @@ export default function SettingsPage() {
       if (dbError) throw dbError
 
       setBannerUrl(urlData.publicUrl)
+      await refreshProfile()
       alert('배너 이미지가 업로드되었습니다!')
-      window.location.reload()
     } catch (err) {
       console.error('Banner upload error:', err)
       alert('업로드에 실패했습니다.')
@@ -130,8 +130,8 @@ export default function SettingsPage() {
         .update({ username, bio })
         .eq('id', user.id)
       if (error) throw error
+      await refreshProfile()
       alert('저장되었습니다!')
-      window.location.reload()
     } catch (err) {
       alert('저장에 실패했습니다.')
     } finally {
@@ -186,7 +186,6 @@ export default function SettingsPage() {
 
     setDeletingAccount(true)
     try {
-      // 1. 사용자의 문서 파일 삭제 (storage)
       const { data: docs } = await supabase
         .from('documents')
         .select('file_path, thumbnail_url')
@@ -211,7 +210,6 @@ export default function SettingsPage() {
         }
       }
 
-      // 2. 아바타/배너 삭제
       if (avatarUrl) {
         const path = avatarUrl.split('/avatars/').pop()
         if (path) await supabase.storage.from('avatars').remove([path])
@@ -221,11 +219,9 @@ export default function SettingsPage() {
         if (path) await supabase.storage.from('avatars').remove([path])
       }
 
-      // 3. DB 데이터 삭제 (CASCADE가 설정되어 있으면 documents 삭제 시 관련 데이터 자동 삭제)
       await supabase.from('documents').delete().eq('author_id', user.id)
       await supabase.from('profiles').delete().eq('id', user.id)
 
-      // 4. 로그아웃 후 홈으로
       await supabase.auth.signOut()
       alert('계정이 삭제되었습니다. 이용해 주셔서 감사합니다.')
       window.location.href = '/'
