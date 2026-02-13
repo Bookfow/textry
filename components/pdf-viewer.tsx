@@ -60,9 +60,9 @@ export default function PDFViewer({
     const availableWidth = screenWidth - sidePanelWidth
     const availableHeight = screenHeight - controlBarHeight
 
-    // 프레임 포함한 실제 사용 가능 영역
-    const contentWidth = availableWidth - frameSize
-    const contentHeight = availableHeight - frameSize
+    // 프레임 테두리 + 약간의 여백 감안
+    const contentWidth = availableWidth - frameSize - 16
+    const contentHeight = availableHeight - frameSize - 16
 
     // PDF 비율 기반으로 너비/높이 맞춤
     const widthFromHeight = contentHeight / pageAspect
