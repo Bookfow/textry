@@ -145,12 +145,12 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <main className="p-4 md:p-6 lg:p-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">문서 업로드</h1>
-            <p className="text-gray-600">새로운 문서를 공유하세요</p>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2 dark:text-white">문서 업로드</h1>
+            <p className="text-gray-600 dark:text-gray-400">새로운 문서를 공유하세요</p>
           </div>
 
           <Card>
@@ -236,11 +236,11 @@ export default function UploadPage() {
                       onChange={handleThumbnailChange}
                       disabled={uploading}
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       권장: 600x800px (3:4 비율), 최대 5MB
                     </p>
                     {thumbnailPreview && (
-                      <div className="w-48 aspect-[3/4] rounded-lg overflow-hidden border">
+                      <div className="w-48 aspect-[3/4] rounded-lg overflow-hidden border dark:border-gray-700">
                         <img
                           src={thumbnailPreview}
                           alt="썸네일 미리보기"
@@ -262,11 +262,11 @@ export default function UploadPage() {
                     accept=".txt,.pdf,.docx,.md"
                     required
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     지원 형식: TXT, PDF, DOCX, MD (최대 100MB)
                   </p>
                   {file && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <FileText className="w-4 h-4" />
                       <span>{file.name}</span>
                       <span className="text-xs">
@@ -279,20 +279,20 @@ export default function UploadPage() {
                 {/* 진행률 */}
                 {uploading && (
                   <div className="space-y-2">
-                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                       <div 
                         className="bg-blue-600 h-full transition-all duration-300"
                         style={{ width: `${progress}%` }}
                       />
                     </div>
-                    <p className="text-sm text-gray-600 text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
                       업로드 중... {progress}%
                     </p>
                   </div>
                 )}
 
                 {/* 저작권 동의 */}
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
@@ -301,8 +301,8 @@ export default function UploadPage() {
                       className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <div className="text-sm">
-                      <p className="font-medium text-amber-800">저작권 확인 *</p>
-                      <p className="text-amber-700 mt-1">
+                      <p className="font-medium text-amber-800 dark:text-amber-300">저작권 확인 *</p>
+                      <p className="text-amber-700 dark:text-amber-400 mt-1">
                         본인이 이 문서의 저작권을 보유하고 있거나, 저작권자로부터 배포 권한을 부여받았음을 확인합니다.
                         타인의 저작권을 침해하는 콘텐츠를 업로드할 경우 계정 정지 및 법적 책임이 발생할 수 있습니다.
                       </p>
