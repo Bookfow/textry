@@ -151,19 +151,25 @@ export function DocumentCard({
               </div>
             )}
 
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all">
-              <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={handleToggleList}
-                  className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                  title={inList ? '찜 해제' : '찜하기'}>
-                  <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} />
-                </button>
-                <button onClick={handleLike}
-                  className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                  title={liked ? '좋아요 취소' : '좋아요'}>
-                  <ThumbsUp className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} />
-                </button>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex flex-col justify-end">
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 w-full">
+                <p className="text-white text-[11px] leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                  {doc.description || '설명이 없습니다'}
+                </p>
               </div>
+            </div>
+
+            <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <button onClick={handleToggleList}
+                className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                title={inList ? '찜 해제' : '찜하기'}>
+                <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} />
+              </button>
+              <button onClick={handleLike}
+                className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                title={liked ? '좋아요 취소' : '좋아요'}>
+                <ThumbsUp className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} />
+              </button>
             </div>
 
             <div className="absolute top-2 left-2">
@@ -177,8 +183,6 @@ export function DocumentCard({
                 <div className="h-full bg-blue-500" style={{ width: `${progress}%` }} />
               </div>
             )}
-
-            
           </div>
 
           <div>
@@ -198,7 +202,7 @@ export function DocumentCard({
     )
   }
 
-  // ─── 그리드 모드 (browse, reading-list, continue-reading) ───
+  // ─── 그리드 모드 (browse, reading-list, continue-reading, home) ───
   return (
     <Link href={`/read/${doc.id}`}>
       <div className="group cursor-pointer">
@@ -211,19 +215,25 @@ export function DocumentCard({
             </div>
           )}
 
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all">
-            <div className="absolute bottom-3 left-3 right-3 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-              <button onClick={handleToggleList}
-                className={`p-2 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                title={inList ? '찜 해제' : '찜하기'}>
-                <Heart className="w-5 h-5" fill={inList ? 'currentColor' : 'none'} />
-              </button>
-              <button onClick={handleLike}
-                className={`p-2 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                title={liked ? '좋아요 취소' : '좋아요'}>
-                <ThumbsUp className="w-5 h-5" fill={liked ? 'currentColor' : 'none'} />
-              </button>
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex flex-col justify-end">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 w-full">
+              <p className="text-white text-[11px] leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                {doc.description || '설명이 없습니다'}
+              </p>
             </div>
+          </div>
+
+          <div className="absolute bottom-3 left-3 right-3 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <button onClick={handleToggleList}
+              className={`p-2 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+              title={inList ? '찜 해제' : '찜하기'}>
+              <Heart className="w-5 h-5" fill={inList ? 'currentColor' : 'none'} />
+            </button>
+            <button onClick={handleLike}
+              className={`p-2 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+              title={liked ? '좋아요 취소' : '좋아요'}>
+              <ThumbsUp className="w-5 h-5" fill={liked ? 'currentColor' : 'none'} />
+            </button>
           </div>
 
           <div className="absolute top-2 left-2">
@@ -237,8 +247,6 @@ export function DocumentCard({
               <div className="h-full bg-blue-500 transition-all" style={{ width: `${progress}%` }} />
             </div>
           )}
-
-          
         </div>
 
         <div>
