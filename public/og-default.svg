@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="50%" style="stop-color:#1e1b4b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#a855f7"/>
+    </linearGradient>
+    <linearGradient id="accent2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:0.05"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.08"/>
+      <stop offset="50%" style="stop-color:#ffffff;stop-opacity:0"/>
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.04"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="20" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softglow">
+      <feGaussianBlur stdDeviation="40" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- 배경 장식 원들 -->
+  <circle cx="150" cy="500" r="300" fill="#3b82f6" opacity="0.03"/>
+  <circle cx="1050" cy="130" r="250" fill="#a855f7" opacity="0.04"/>
+  <circle cx="600" cy="315" r="400" fill="url(#accent2)" opacity="0.5"/>
+
+  <!-- 그리드 패턴 -->
+  <g opacity="0.04">
+    <line x1="0" y1="0" x2="0" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="120" y1="0" x2="120" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="240" y1="0" x2="240" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="360" y1="0" x2="360" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="480" y1="0" x2="480" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="600" y1="0" x2="600" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="720" y1="0" x2="720" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="840" y1="0" x2="840" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="960" y1="0" x2="960" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="1080" y1="0" x2="1080" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="1200" y1="0" x2="1200" y2="630" stroke="white" stroke-width="0.5"/>
+    <line x1="0" y1="0" x2="1200" y2="0" stroke="white" stroke-width="0.5"/>
+    <line x1="0" y1="126" x2="1200" y2="126" stroke="white" stroke-width="0.5"/>
+    <line x1="0" y1="252" x2="1200" y2="252" stroke="white" stroke-width="0.5"/>
+    <line x1="0" y1="378" x2="1200" y2="378" stroke="white" stroke-width="0.5"/>
+    <line x1="0" y1="504" x2="1200" y2="504" stroke="white" stroke-width="0.5"/>
+    <line x1="0" y1="630" x2="1200" y2="630" stroke="white" stroke-width="0.5"/>
+  </g>
+
+  <!-- 플로팅 문서 아이콘들 -->
+  <g transform="translate(100, 80) rotate(-12)" opacity="0.08">
+    <rect x="0" y="0" width="70" height="90" rx="6" fill="white"/>
+    <rect x="12" y="20" width="46" height="3" rx="1.5" fill="#3b82f6"/>
+    <rect x="12" y="30" width="36" height="3" rx="1.5" fill="#3b82f6"/>
+    <rect x="12" y="40" width="42" height="3" rx="1.5" fill="#3b82f6"/>
+    <rect x="12" y="50" width="30" height="3" rx="1.5" fill="#3b82f6"/>
+    <rect x="12" y="60" width="38" height="3" rx="1.5" fill="#3b82f6"/>
+  </g>
+  <g transform="translate(1020, 60) rotate(8)" opacity="0.07">
+    <rect x="0" y="0" width="65" height="85" rx="6" fill="white"/>
+    <rect x="10" y="18" width="44" height="3" rx="1.5" fill="#a855f7"/>
+    <rect x="10" y="28" width="34" height="3" rx="1.5" fill="#a855f7"/>
+    <rect x="10" y="38" width="40" height="3" rx="1.5" fill="#a855f7"/>
+    <rect x="10" y="48" width="28" height="3" rx="1.5" fill="#a855f7"/>
+  </g>
+  <g transform="translate(60, 430) rotate(6)" opacity="0.06">
+    <rect x="0" y="0" width="60" height="78" rx="5" fill="white"/>
+    <rect x="10" y="16" width="40" height="3" rx="1.5" fill="#3b82f6"/>
+    <rect x="10" y="24" width="32" height="3" rx="1.5" fill="#3b82f6"/>
+    <rect x="10" y="32" width="36" height="3" rx="1.5" fill="#3b82f6"/>
+  </g>
+  <g transform="translate(1060, 440) rotate(-6)" opacity="0.06">
+    <rect x="0" y="0" width="55" height="72" rx="5" fill="white"/>
+    <rect x="10" y="15" width="35" height="3" rx="1.5" fill="#a855f7"/>
+    <rect x="10" y="23" width="28" height="3" rx="1.5" fill="#a855f7"/>
+    <rect x="10" y="31" width="32" height="3" rx="1.5" fill="#a855f7"/>
+  </g>
+
+  <!-- 장식 점들 -->
+  <circle cx="300" cy="150" r="2" fill="#3b82f6" opacity="0.3"/>
+  <circle cx="900" cy="180" r="2.5" fill="#a855f7" opacity="0.25"/>
+  <circle cx="200" cy="350" r="1.5" fill="#3b82f6" opacity="0.2"/>
+  <circle cx="1000" cy="380" r="2" fill="#a855f7" opacity="0.2"/>
+  <circle cx="350" cy="520" r="1.5" fill="#3b82f6" opacity="0.15"/>
+  <circle cx="850" cy="500" r="2" fill="#a855f7" opacity="0.15"/>
+  <circle cx="500" cy="100" r="1.5" fill="white" opacity="0.1"/>
+  <circle cx="700" cy="550" r="1.5" fill="white" opacity="0.1"/>
+
+  <!-- 중앙 글로우 -->
+  <ellipse cx="600" cy="260" rx="200" ry="80" fill="#3b82f6" opacity="0.06" filter="url(#softglow)"/>
+
+  <!-- 로고: 펼친 책 -->
+  <g transform="translate(545, 160)" filter="url(#glow)">
+    <rect x="0" y="0" width="46" height="58" rx="4" fill="none" stroke="url(#accent)" stroke-width="2.5"/>
+    <rect x="64" y="0" width="46" height="58" rx="4" fill="none" stroke="url(#accent)" stroke-width="2.5"/>
+    <path d="M46 8 C52 8 52 8 55 12 C58 8 58 8 64 8" fill="none" stroke="url(#accent)" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="55" y1="12" x2="55" y2="58" stroke="url(#accent)" stroke-width="2" stroke-dasharray="3,3" opacity="0.5"/>
+    <rect x="10" y="18" width="26" height="2" rx="1" fill="#3b82f6" opacity="0.5"/>
+    <rect x="10" y="26" width="20" height="2" rx="1" fill="#3b82f6" opacity="0.4"/>
+    <rect x="10" y="34" width="24" height="2" rx="1" fill="#3b82f6" opacity="0.3"/>
+    <rect x="74" y="18" width="26" height="2" rx="1" fill="#a855f7" opacity="0.5"/>
+    <rect x="74" y="26" width="20" height="2" rx="1" fill="#a855f7" opacity="0.4"/>
+    <rect x="74" y="34" width="24" height="2" rx="1" fill="#a855f7" opacity="0.3"/>
+  </g>
+
+  <!-- 메인 타이틀 -->
+  <text x="600" y="298" text-anchor="middle" font-family="'SF Pro Display',Arial,sans-serif" font-size="72" font-weight="800" fill="white" letter-spacing="-2">Textry</text>
+
+  <!-- 그라데이션 언더라인 -->
+  <rect x="460" y="312" width="280" height="3" rx="1.5" fill="url(#accent)" opacity="0.6"/>
+
+  <!-- 서브타이틀 -->
+  <text x="600" y="355" text-anchor="middle" font-family="'SF Pro Display',Arial,sans-serif" font-size="22" fill="rgba(255,255,255,0.7)" letter-spacing="4">지식을 스트리밍하다</text>
+
+  <!-- 하단 태그 -->
+  <g transform="translate(600, 420)">
+    <rect x="-180" y="-16" width="360" height="32" rx="16" fill="white" opacity="0.06"/>
+    <text x="0" y="5" text-anchor="middle" font-family="'SF Pro Display',Arial,sans-serif" font-size="13" fill="rgba(255,255,255,0.45)" letter-spacing="1">UPLOAD · READ · SHARE · EARN</text>
+  </g>
+
+  <!-- 하단 URL -->
+  <text x="600" y="580" text-anchor="middle" font-family="'SF Pro Display',Arial,sans-serif" font-size="13" fill="rgba(255,255,255,0.2)" letter-spacing="1">textry-v1.vercel.app</text>
+
+  <!-- 엣지 라인 -->
+  <rect x="0" y="0" width="1200" height="2" fill="url(#accent)" opacity="0.3"/>
+  <rect x="0" y="628" width="1200" height="2" fill="url(#accent)" opacity="0.15"/>
+
+  <!-- 빛 반사 -->
+  <rect width="1200" height="630" fill="url(#shine)"/>
+</svg>
