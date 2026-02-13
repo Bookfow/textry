@@ -39,14 +39,12 @@ export default function PDFViewer({
   const [pdfLoading, setPdfLoading] = useState(true)
   const [autoWidth, setAutoWidth] = useState<number>(0)
 
-  // 터치/스와이프
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null)
   const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null)
   const [swipeOffset, setSwipeOffset] = useState(0)
 
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-  // 자동 크기 조정
   const calculateOptimalWidth = useCallback(() => {
     const screenWidth = window.innerWidth
     const sidePanelWidth = showSidePanel ? 380 : 0
@@ -67,7 +65,6 @@ export default function PDFViewer({
     return () => window.removeEventListener('resize', calculateOptimalWidth)
   }, [calculateOptimalWidth])
 
-  // 스크롤 모드 페이지 추적
   useEffect(() => {
     if (viewMode !== 'scroll' || !scrollContainerRef.current) return
     const container = scrollContainerRef.current
@@ -93,7 +90,6 @@ export default function PDFViewer({
     if (onDocumentLoad) onDocumentLoad(total)
   }
 
-  // 터치 스와이프
   const minSwipeDistance = 50
   const onTouchStart = (e: React.TouchEvent) => {
     if (viewMode !== 'page') return
@@ -122,24 +118,32 @@ export default function PDFViewer({
     setTouchEnd(null)
   }
 
-  // PDF 페이지 영역 클릭으로 넘기기
   const handlePageAreaClick = (e: React.MouseEvent) => {
     if (viewMode !== 'page' || !onPageChange) return
-
     const pageEl = (e.target as HTMLElement).closest('.react-pdf__Page') as HTMLElement | null
     if (!pageEl) return
-
     const rect = pageEl.getBoundingClientRect()
     const clickX = e.clientX - rect.left
     const width = rect.width
-
     if (clickX < width * 0.33) onPageChange(Math.max(pageNumber - 1, 1), numPages)
     else if (clickX > width * 0.67) onPageChange(Math.min(pageNumber + 1, numPages), numPages)
   }
 
-  // 원목 테두리 스타일
-  const frameStyle = {
-    boxShadow: 'inset 0 0 8px rgba(120,70,20,0.1), 0 4px 20px rgba(0,0,0,0.3)',
+  // 원목 프레임 스타일
+  const frameStyle: React.CSSProperties = {
+    borderWidth: '12px',
+    borderStyle: 'solid',
+    borderImage: 'linear-gradient(135deg, #c9a05c 0%, #a67c3d 20%, #d4aa60 40%, #b8892e 60%, #c9a05c 80%, #a67c3d 100%) 1',
+    boxShadow: 'inset 0 0 10px rgba(100,60,10,0.2), 0 6px 24px rgba(0,0,0,0.5)',
+    borderRadius: '2px',
+  }
+
+  const frameStyleDark: React.CSSProperties = {
+    borderWidth: '12px',
+    borderStyle: 'solid',
+    borderImage: 'linear-gradient(135deg, #8b6914 0%, #6b4f10 20%, #9a7520 40%, #7a5c16 60%, #8b6914 80%, #6b4f10 100%) 1',
+    boxShadow: 'inset 0 0 10px rgba(100,60,10,0.15), 0 6px 24px rgba(0,0,0,0.6)',
+    borderRadius: '2px',
   }
 
   return (
@@ -173,10 +177,16 @@ export default function PDFViewer({
                 className="flex justify-center"
                 options={pdfOptions}
               >
-                <div
-                  className="border-[6px] border-amber-900/30 dark:border-amber-800/20 rounded-sm"
-                  style={frameStyle}
-                >
+                <div className="dark:hidden" style={frameStyle}>
+                  <Page
+                    pageNumber={pageNumber}
+                    width={autoWidth * scale}
+                    renderTextLayer={true}
+                    renderAnnotationLayer={true}
+                    loading=""
+                  />
+                </div>
+                <div className="hidden dark:block" style={frameStyleDark}>
                   <Page
                     pageNumber={pageNumber}
                     width={autoWidth * scale}
@@ -228,26 +238,39 @@ export default function PDFViewer({
                 options={pdfOptions}
               >
                 {Array.from({ length: numPages }, (_, index) => (
-                  <div
-                    key={`page_${index + 1}`}
-                    data-page-number={index + 1}
-                    className="border-[6px] border-amber-900/30 dark:border-amber-800/20 rounded-sm"
-                    style={frameStyle}
-                  >
-                    <Page
-                      pageNumber={index + 1}
-                      width={autoWidth * scale}
-                      renderTextLayer={true}
-                      renderAnnotationLayer={true}
-                      loading={
-                        <div
-                          className="flex items-center justify-center bg-gray-900 border border-gray-800"
-                          style={{ width: autoWidth * scale, height: autoWidth * scale * 1.414 }}
-                        >
-                          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                        </div>
-                      }
-                    />
+                  <div key={`page_${index + 1}`} data-page-number={index + 1}>
+                    <div className="dark:hidden" style={frameStyle}>
+                      <Page
+                        pageNumber={index + 1}
+                        width={autoWidth * scale}
+                        renderTextLayer={true}
+                        renderAnnotationLayer={true}
+                        loading={
+                          <div
+                            className="flex items-center justify-center bg-gray-900 border border-gray-800"
+                            style={{ width: autoWidth * scale, height: autoWidth * scale * 1.414 }}
+                          >
+                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        }
+                      />
+                    </div>
+                    <div className="hidden dark:block" style={frameStyleDark}>
+                      <Page
+                        pageNumber={index + 1}
+                        width={autoWidth * scale}
+                        renderTextLayer={true}
+                        renderAnnotationLayer={true}
+                        loading={
+                          <div
+                            className="flex items-center justify-center bg-gray-900 border border-gray-800"
+                            style={{ width: autoWidth * scale, height: autoWidth * scale * 1.414 }}
+                          >
+                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        }
+                      />
+                    </div>
                   </div>
                 ))}
               </PDFDocument>
