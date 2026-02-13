@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -18,6 +18,8 @@ function BrowseContent() {
   const [authors, setAuthors] = useState<Map<string, Profile>>(new Map())
   const [loading, setLoading] = useState(true)
   const [favSet, setFavSet] = useState<Set<string>>(new Set())
+  const [likedSet, setLikedSet] = useState<Set<string>>(new Set())
+  const [likesMap, setLikesMap] = useState<Map<string, number>>(new Map())
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
 
@@ -39,11 +41,14 @@ function BrowseContent() {
         setLoadingMore(true)
       }
 
-      // 찜 목록
       if (user && isInitial) {
         const { data: favData } = await supabase
           .from('reading_list').select('document_id').eq('user_id', user.id)
         if (favData) setFavSet(new Set(favData.map(f => f.document_id)))
+
+        const { data: likeData } = await supabase
+          .from('reactions').select('document_id').eq('user_id', user.id).eq('type', 'like')
+        if (likeData) setLikedSet(new Set(likeData.map(l => l.document_id)))
       }
 
       const offset = isInitial ? 0 : documents.length
@@ -77,16 +82,19 @@ function BrowseContent() {
         })
       }
 
-      if (sorted.length < PAGE_SIZE) {
-        setHasMore(false)
-      } else {
-        setHasMore(true)
-      }
+      if (sorted.length < PAGE_SIZE) setHasMore(false)
+      else setHasMore(true)
 
       if (isInitial) {
         setDocuments(sorted)
+        setLikesMap(new Map(sorted.map(d => [d.id, d.likes_count])))
       } else {
         setDocuments(prev => [...prev, ...sorted])
+        setLikesMap(prev => {
+          const n = new Map(prev)
+          sorted.forEach(d => n.set(d.id, d.likes_count))
+          return n
+        })
       }
 
       if (sorted.length > 0) {
@@ -125,6 +133,29 @@ function BrowseContent() {
     }
   }
 
+  const toggleLike = async (e: React.MouseEvent, docId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!user) return
+    try {
+      const currentLikes = likesMap.get(docId) || 0
+      if (likedSet.has(docId)) {
+        await supabase.from('reactions').delete().eq('user_id', user.id).eq('document_id', docId).eq('type', 'like')
+        await supabase.from('documents').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', docId)
+        setLikedSet(prev => { const n = new Set(prev); n.delete(docId); return n })
+        setLikesMap(prev => { const n = new Map(prev); n.set(docId, Math.max(0, currentLikes - 1)); return n })
+      } else {
+        await supabase.from('reactions').delete().eq('user_id', user.id).eq('document_id', docId)
+        await supabase.from('reactions').insert({ user_id: user.id, document_id: docId, type: 'like' })
+        await supabase.from('documents').update({ likes_count: currentLikes + 1 }).eq('id', docId)
+        setLikedSet(prev => new Set(prev).add(docId))
+        setLikesMap(prev => { const n = new Map(prev); n.set(docId, currentLikes + 1); return n })
+      }
+    } catch (err) {
+      console.error('Like toggle error:', err)
+    }
+  }
+
   if (loading) {
     return (
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-8">
@@ -157,6 +188,8 @@ function BrowseContent() {
           {documents.map(doc => {
             const author = authors.get(doc.author_id)
             const isFav = favSet.has(doc.id)
+            const isLiked = likedSet.has(doc.id)
+            const likes = likesMap.get(doc.id) ?? doc.likes_count
             return (
               <Link key={doc.id} href={`/read/${doc.id}`}>
                 <div className="group cursor-pointer">
@@ -168,22 +201,29 @@ function BrowseContent() {
                         <div className="text-5xl opacity-20">📄</div>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-end justify-center">
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex flex-col justify-end">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 w-full">
                         <p className="text-white text-[11px] leading-relaxed line-clamp-3 whitespace-pre-wrap">
                           {doc.description || '설명이 없습니다'}
                         </p>
                       </div>
                     </div>
-                    {/* 찜 버튼 */}
-                    <button
-                      onClick={(e) => toggleFav(e, doc.id)}
-                      className={`absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-sm transition-all
-                        ${isFav ? 'bg-red-500 text-white opacity-100' : 'bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-black/70'}`}
-                      title={isFav ? '찜 해제' : '찜하기'}
-                    >
-                      <Heart className="w-4 h-4" fill={isFav ? 'currentColor' : 'none'} />
-                    </button>
+                    <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <button
+                        onClick={(e) => toggleFav(e, doc.id)}
+                        className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${isFav ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                        title={isFav ? '찜 해제' : '찜하기'}
+                      >
+                        <Heart className="w-4 h-4" fill={isFav ? 'currentColor' : 'none'} />
+                      </button>
+                      <button
+                        onClick={(e) => toggleLike(e, doc.id)}
+                        className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${isLiked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                        title={isLiked ? '좋아요 취소' : '좋아요'}
+                      >
+                        <ThumbsUp className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} />
+                      </button>
+                    </div>
                     <div className="absolute top-2 left-2">
                       <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
                         {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
@@ -199,7 +239,7 @@ function BrowseContent() {
                     </p>
                     <div className="flex items-center gap-2 text-[11px] text-gray-400">
                       <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{doc.view_count.toLocaleString()}</span>
-                      <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{doc.likes_count.toLocaleString()}</span>
+                      <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{likes.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -209,7 +249,6 @@ function BrowseContent() {
         </div>
       )}
 
-      {/* 더보기 버튼 */}
       {!loading && documents.length > 0 && hasMore && (
         <div className="flex justify-center mt-8">
           <button

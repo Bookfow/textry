@@ -15,6 +15,8 @@ export default function ReadingListPage() {
   const [documents, setDocuments] = useState<Document[]>([])
   const [authors, setAuthors] = useState<Map<string, Profile>>(new Map())
   const [loading, setLoading] = useState(true)
+  const [likedSet, setLikedSet] = useState<Set<string>>(new Set())
+  const [likesMap, setLikesMap] = useState<Map<string, number>>(new Map())
 
   useEffect(() => {
     if (!user) { router.push('/'); return }
@@ -24,6 +26,10 @@ export default function ReadingListPage() {
   const loadReadingList = async () => {
     if (!user) return
     try {
+      const { data: likeData } = await supabase
+        .from('reactions').select('document_id').eq('user_id', user.id).eq('type', 'like')
+      if (likeData) setLikedSet(new Set(likeData.map(l => l.document_id)))
+
       const { data: listData, error: listError } = await supabase
         .from('reading_list').select('document_id').eq('user_id', user.id).order('created_at', { ascending: false })
       if (listError) throw listError
@@ -36,6 +42,7 @@ export default function ReadingListPage() {
       const docMap = new Map((docsData || []).map(d => [d.id, d]))
       const ordered = documentIds.map(id => docMap.get(id)).filter(Boolean) as Document[]
       setDocuments(ordered)
+      setLikesMap(new Map(ordered.map(d => [d.id, d.likes_count])))
 
       if (docsData && docsData.length > 0) {
         const authorIds = [...new Set(docsData.map(d => d.author_id))]
@@ -58,6 +65,29 @@ export default function ReadingListPage() {
       setDocuments(documents.filter(doc => doc.id !== documentId))
     } catch (err) {
       console.error('Error removing from reading list:', err)
+    }
+  }
+
+  const toggleLike = async (e: React.MouseEvent, docId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!user) return
+    try {
+      const currentLikes = likesMap.get(docId) || 0
+      if (likedSet.has(docId)) {
+        await supabase.from('reactions').delete().eq('user_id', user.id).eq('document_id', docId).eq('type', 'like')
+        await supabase.from('documents').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', docId)
+        setLikedSet(prev => { const n = new Set(prev); n.delete(docId); return n })
+        setLikesMap(prev => { const n = new Map(prev); n.set(docId, Math.max(0, currentLikes - 1)); return n })
+      } else {
+        await supabase.from('reactions').delete().eq('user_id', user.id).eq('document_id', docId)
+        await supabase.from('reactions').insert({ user_id: user.id, document_id: docId, type: 'like' })
+        await supabase.from('documents').update({ likes_count: currentLikes + 1 }).eq('id', docId)
+        setLikedSet(prev => new Set(prev).add(docId))
+        setLikesMap(prev => { const n = new Map(prev); n.set(docId, currentLikes + 1); return n })
+      }
+    } catch (err) {
+      console.error('Like toggle error:', err)
     }
   }
 
@@ -95,6 +125,8 @@ export default function ReadingListPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
           {documents.map(doc => {
             const author = authors.get(doc.author_id)
+            const isLiked = likedSet.has(doc.id)
+            const likes = likesMap.get(doc.id) ?? doc.likes_count
             return (
               <Link key={doc.id} href={`/read/${doc.id}`}>
                 <div className="group cursor-pointer">
@@ -106,21 +138,29 @@ export default function ReadingListPage() {
                         <div className="text-5xl opacity-20">📄</div>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-end justify-center">
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex flex-col justify-end">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 w-full">
                         <p className="text-white text-[11px] leading-relaxed line-clamp-3 whitespace-pre-wrap">
                           {doc.description || '설명이 없습니다'}
                         </p>
                       </div>
                     </div>
-                    {/* 찜 해제 버튼 */}
-                    <button
-                      onClick={(e) => handleRemove(e, doc.id)}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 hover:bg-red-600"
-                      title="찜 해제"
-                    >
-                      <HeartOff className="w-4 h-4" />
-                    </button>
+                    <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <button
+                        onClick={(e) => handleRemove(e, doc.id)}
+                        className="p-1.5 rounded-full bg-red-500 text-white backdrop-blur-sm transition-colors hover:bg-red-600"
+                        title="찜 해제"
+                      >
+                        <HeartOff className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => toggleLike(e, doc.id)}
+                        className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${isLiked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                        title={isLiked ? '좋아요 취소' : '좋아요'}
+                      >
+                        <ThumbsUp className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} />
+                      </button>
+                    </div>
                     <div className="absolute top-2 left-2">
                       <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
                         {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
@@ -136,7 +176,7 @@ export default function ReadingListPage() {
                     </p>
                     <div className="flex items-center gap-2 text-[11px] text-gray-400">
                       <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{doc.view_count.toLocaleString()}</span>
-                      <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{doc.likes_count.toLocaleString()}</span>
+                      <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{likes.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
