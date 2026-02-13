@@ -78,6 +78,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     if (window.innerWidth < 1024) onClose()
   }
 
+  const handleResetCookieConsent = () => {
+    localStorage.removeItem('cookie-consent')
+    window.location.reload()
+  }
+
   const Tooltip = ({ label }: { label: string }) => (
     <>
       {!isOpen && (
@@ -258,6 +263,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <Link href="/policies/terms" className="hover:text-gray-600 dark:hover:text-gray-300">서비스약관</Link>
             <Link href="/policies/privacy" className="hover:text-gray-600 dark:hover:text-gray-300">개인정보처리방침</Link>
             <Link href="/policies/safety" className="hover:text-gray-600 dark:hover:text-gray-300">정책및안전</Link>
+            <button onClick={handleResetCookieConsent} className="hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer">쿠키 설정</button>
           </div>
           <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-2">© 2026 Textry</p>
         </div>

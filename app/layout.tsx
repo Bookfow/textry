@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/lib/theme-context"
+import { CookieConsent } from "@/components/cookie-consent"
 
 export const metadata: Metadata = {
   title: "Textry",
@@ -19,6 +20,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             {children}
+            <CookieConsent />
           </AuthProvider>
         </ThemeProvider>
       </body>
