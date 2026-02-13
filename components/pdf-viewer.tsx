@@ -57,8 +57,8 @@ export default function PDFViewer({
     else if (screenWidth >= 1024) optimalWidth = Math.min(optimalWidth, 800)
     else if (screenWidth >= 768) optimalWidth = Math.min(optimalWidth, 700)
 
-    // 화면 높이에 맞추기 (컨트롤바 ~50px + 프레임 테두리 ~24px + 여유 ~30px)
-    const availableHeight = screenHeight - 104
+    // 화면 높이에 맞추기 (컨트롤바 ~50px + 프레임 테두리 ~24px)
+    const availableHeight = screenHeight - 74
     const widthFromHeight = availableHeight / 1.414
 
     // 너비/높이 중 작은 쪽에 맞춤 (fit-to-screen)
