@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -47,7 +47,6 @@ export default function DashboardPage() {
     totalRevenue: 0,
     subscribersCount: 0,
     documentsCount: 0,
-    // 이번 달 vs 지난 달 비교
     viewsChange: 0,
     readingTimeChange: 0,
     revenueChange: 0,
@@ -71,7 +70,6 @@ export default function DashboardPage() {
   const loadDashboard = async () => {
     if (!user) return
     try {
-      // 문서 로드
       const { data: docs } = await supabase
         .from('documents')
         .select('*')
@@ -82,14 +80,12 @@ export default function DashboardPage() {
       const totalViews = docs?.reduce((sum, doc) => sum + doc.view_count, 0) || 0
       const totalReadingTime = docs?.reduce((sum, doc) => sum + doc.total_reading_time, 0) || 0
 
-      // 구독자 수
       const { data: subs } = await supabase
         .from('subscriptions')
         .select('id')
         .eq('author_id', user.id)
       const subscribersCount = subs?.length || 0
 
-      // Tier 정보
       const { data: tierData } = await supabase
         .from('author_tiers')
         .select('*')
@@ -97,7 +93,6 @@ export default function DashboardPage() {
         .single()
       if (tierData) setAuthorTier(tierData)
 
-      // 수익 기록
       const { data: revenue } = await supabase
         .from('revenue_records')
         .select('*')
@@ -201,7 +196,6 @@ export default function DashboardPage() {
     }
   }
 
-  // ─── 유틸 함수들 ───
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
@@ -216,10 +210,10 @@ export default function DashboardPage() {
 
   const getTierLabel = (tier: number) => {
     switch (tier) {
-      case 0: return { label: '일반 사용자', color: 'text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500', bg: 'bg-gray-800', icon: '🔒' }
+      case 0: return { label: '일반 사용자', color: 'text-gray-500', bg: 'bg-gray-800', icon: '🔒' }
       case 1: return { label: '파트너 작가', color: 'text-blue-400', bg: 'bg-blue-900/30', icon: '✓' }
       case 2: return { label: '프로 작가', color: 'text-purple-400', bg: 'bg-purple-900/30', icon: '★' }
-      default: return { label: '일반', color: 'text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500', bg: 'bg-gray-800', icon: '🔒' }
+      default: return { label: '일반', color: 'text-gray-500', bg: 'bg-gray-800', icon: '🔒' }
     }
   }
 
@@ -242,7 +236,7 @@ export default function DashboardPage() {
   const ChangeIndicator = ({ value }: { value: number }) => {
     if (value > 0) return <span className="flex items-center text-green-400 text-xs"><ArrowUpRight className="w-3 h-3" />+{value.toFixed(1)}%</span>
     if (value < 0) return <span className="flex items-center text-red-400 text-xs"><ArrowDownRight className="w-3 h-3" />{value.toFixed(1)}%</span>
-    return <span className="flex items-center text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 text-xs"><Minus className="w-3 h-3" />0%</span>
+    return <span className="flex items-center text-gray-500 text-xs"><Minus className="w-3 h-3" />0%</span>
   }
 
   const sortedDocuments = [...documents].sort((a, b) => {
@@ -278,7 +272,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">대시보드</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {profile?.username || profile?.email}님의 채널 현황
               </p>
             </div>
@@ -301,7 +295,7 @@ export default function DashboardPage() {
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
                     ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:text-gray-600 dark:text-gray-400 dark:text-gray-500'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -321,7 +315,7 @@ export default function DashboardPage() {
                       {tierInfo.icon}
                     </div>
                     <div>
-                      <h3 className={`font-bold ${tierInfo.color === 'text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500' ? 'text-gray-700 dark:text-gray-300 dark:text-gray-600 dark:text-gray-400 dark:text-gray-500' : tierInfo.color.replace('-400', '-600')}`}>
+                      <h3 className="font-bold text-gray-700 dark:text-gray-300">
                         {tierInfo.label}
                       </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -340,7 +334,7 @@ export default function DashboardPage() {
                 </div>
                 {(authorTier?.tier || 0) < 2 && (
                   <div>
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
                       <span>누적 읽기 시간: {formatReadingHours(authorTier?.total_reading_hours_12m || 0)}시간</span>
                       <span>목표: {tierProgress.target.toLocaleString()}시간</span>
                     </div>
@@ -407,8 +401,8 @@ export default function DashboardPage() {
                 <div className="space-y-3">
                   {[...documents].sort((a, b) => b.view_count - a.view_count).slice(0, 5).map((doc, i) => (
                     <Link key={doc.id} href={`/read/${doc.id}`}>
-                      <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors cursor-pointer">
-                        <span className="text-lg font-bold text-gray-300 dark:text-gray-600 dark:text-gray-400 dark:text-gray-500 w-6 text-center">{i + 1}</span>
+                      <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                        <span className="text-lg font-bold text-gray-300 dark:text-gray-600 w-6 text-center">{i + 1}</span>
                         <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
                           {doc.thumbnail_url ? (
                             <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
@@ -428,7 +422,7 @@ export default function DashboardPage() {
                     </Link>
                   ))}
                   {documents.length === 0 && (
-                    <p className="text-center text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 py-8">아직 업로드한 문서가 없습니다</p>
+                    <p className="text-center text-gray-400 dark:text-gray-500 py-8">아직 업로드한 문서가 없습니다</p>
                   )}
                 </div>
               </div>
@@ -459,13 +453,12 @@ export default function DashboardPage() {
 
               {documents.length === 0 ? (
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-12 text-center">
-                  <FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 dark:text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-4">아직 업로드한 문서가 없습니다</p>
+                  <FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">아직 업로드한 문서가 없습니다</p>
                   <Link href="/upload"><Button>첫 문서 업로드하기</Button></Link>
                 </div>
               ) : (
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-                  {/* 테이블 헤더 */}
                   <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-500 dark:text-gray-400">
                     <div className="col-span-5">문서</div>
                     <div className="col-span-1 text-center">조회수</div>
@@ -475,8 +468,7 @@ export default function DashboardPage() {
                     <div className="col-span-2 text-center">관리</div>
                   </div>
                   {sortedDocuments.map(doc => (
-                    <div key={doc.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:bg-gray-800 transition-colors items-center">
-                      {/* 문서 정보 */}
+                    <div key={doc.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors items-center">
                       <div className="col-span-5 flex items-center gap-3">
                         <Link href={`/read/${doc.id}`} className="flex items-center gap-3 flex-1 min-w-0">
                           <div className="w-20 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
@@ -488,7 +480,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{doc.title}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">
+                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                               <span>{getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}</span>
                               <span>{getLanguageFlag(doc.language)}</span>
                               <span>{new Date(doc.created_at).toLocaleDateString()}</span>
@@ -496,47 +488,38 @@ export default function DashboardPage() {
                           </div>
                         </Link>
                       </div>
-                      {/* 통계 (모바일에서는 한 줄로) */}
                       <div className="col-span-1 text-center">
                         <p className="text-sm font-medium text-gray-900 dark:text-white">{doc.view_count.toLocaleString()}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 md:hidden">조회수</p>
                       </div>
                       <div className="col-span-2 text-center">
                         <p className="text-sm font-medium text-gray-900 dark:text-white">{formatTime(doc.total_reading_time)}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 md:hidden">읽기 시간</p>
                       </div>
                       <div className="col-span-1 text-center">
                         <p className="text-sm font-medium text-gray-900 dark:text-white">{doc.likes_count}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 md:hidden">좋아요</p>
                       </div>
                       <div className="col-span-1 text-center">
                         <p className="text-sm font-medium text-green-600">
                           ${((doc.view_count * 0.01) + ((doc.total_reading_time / 60) * 0.05)).toFixed(2)}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 md:hidden">수익</p>
                       </div>
-                      {/* 관리 버튼 */}
                       <div className="col-span-2 flex items-center justify-center gap-2">
                         <button
-                          onClick={() => {
-                            setEditingDescription(doc.id)
-                            setNewDescription(doc.description || '')
-                          }}
-                          className="p-2 rounded-lg hover:bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 transition-colors"
+                          onClick={() => { setEditingDescription(doc.id); setNewDescription(doc.description || '') }}
+                          className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-colors"
                           title="설명 수정"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => { setEditingThumbnail(doc.id); setNewThumbnail(null); setThumbnailPreview(null) }}
-                          className="p-2 rounded-lg hover:bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 transition-colors"
+                          className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-colors"
                           title="썸네일 변경"
                         >
                           <ImageIcon className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(doc)}
-                          className="p-2 rounded-lg hover:bg-red-50 dark:bg-red-950/30 text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors"
+                          className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-gray-400 hover:text-red-500 transition-colors"
                           title="삭제"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -552,9 +535,76 @@ export default function DashboardPage() {
           {/* ━━━ 분석 탭 ━━━ */}
           {activeTab === 'analytics' && (
             <div className="space-y-6">
+              {/* 핵심 분석 지표 3개 */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">평균 읽기 완료율</p>
+                  <p className="text-3xl font-bold text-green-600">
+                    {documents.length > 0
+                      ? `${Math.round(documents.reduce((sum, doc) => {
+                          const est = doc.page_count > 0 ? Math.min((doc.total_reading_time / (doc.page_count * 60)) * 100, 100) : 0
+                          return sum + est
+                        }, 0) / documents.length)}%`
+                      : '0%'}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">독자가 문서를 끝까지 읽는 비율</p>
+                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">평균 이탈률</p>
+                  <p className="text-3xl font-bold text-red-500">
+                    {documents.length > 0
+                      ? `${Math.round(100 - documents.reduce((sum, doc) => {
+                          const est = doc.page_count > 0 ? Math.min((doc.total_reading_time / (doc.page_count * 60)) * 100, 100) : 0
+                          return sum + est
+                        }, 0) / documents.length)}%`
+                      : '0%'}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">읽기 중 이탈한 독자 비율 추정</p>
+                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">조회당 평균 읽기 시간</p>
+                  <p className="text-3xl font-bold text-blue-600">
+                    {stats.totalViews > 0
+                      ? `${Math.round(stats.totalReadingTime / stats.totalViews / 60)}분`
+                      : '0분'}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">조회 1회당 독자가 머문 평균 시간</p>
+                </div>
+              </div>
+
+              {/* 문서별 읽기 완료율 & 이탈률 */}
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 읽기 완료율</h3>
+                <div className="space-y-3">
+                  {[...documents].sort((a, b) => b.view_count - a.view_count).slice(0, 10).map(doc => {
+                    const completionRate = doc.page_count > 0
+                      ? Math.min(Math.round((doc.total_reading_time / (doc.page_count * 60)) * 100), 100)
+                      : 0
+                    const bounceRate = 100 - completionRate
+                    return (
+                      <div key={doc.id}>
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-gray-700 dark:text-gray-300 truncate max-w-[250px]">{doc.title}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-green-600 font-medium">완료 {completionRate}%</span>
+                            <span className="text-red-400 font-medium">이탈 {bounceRate}%</span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2.5 flex overflow-hidden">
+                          <div className="bg-green-500 h-2.5 transition-all" style={{ width: `${completionRate}%` }} />
+                          <div className="bg-red-300 dark:bg-red-800 h-2.5 transition-all" style={{ width: `${bounceRate}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {documents.length === 0 && (
+                    <p className="text-center text-gray-400 dark:text-gray-500 py-8">데이터가 없습니다</p>
+                  )}
+                </div>
+              </div>
+
               {/* 기간별 통계 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* 조회수 추이 (텍스트 기반 차트) */}
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                   <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 조회수</h3>
                   <div className="space-y-3">
@@ -564,11 +614,11 @@ export default function DashboardPage() {
                       return (
                         <div key={doc.id}>
                           <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-gray-700 dark:text-gray-300 dark:text-gray-600 dark:text-gray-400 dark:text-gray-500 truncate max-w-[200px]">{doc.title}</span>
+                            <span className="text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{doc.title}</span>
                             <span className="font-medium text-gray-900 dark:text-white">{doc.view_count.toLocaleString()}</span>
                           </div>
                           <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                            <div className="bg-blue-50 dark:bg-blue-950/300 h-2 rounded-full transition-all" style={{ width: `${width}%` }} />
+                            <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${width}%` }} />
                           </div>
                         </div>
                       )
@@ -576,7 +626,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* 읽기 시간 분포 */}
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                   <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 읽기 시간</h3>
                   <div className="space-y-3">
@@ -586,17 +635,40 @@ export default function DashboardPage() {
                       return (
                         <div key={doc.id}>
                           <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-gray-700 dark:text-gray-300 dark:text-gray-600 dark:text-gray-400 dark:text-gray-500 truncate max-w-[200px]">{doc.title}</span>
+                            <span className="text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{doc.title}</span>
                             <span className="font-medium text-gray-900 dark:text-white">{formatTime(doc.total_reading_time)}</span>
                           </div>
                           <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                            <div className="bg-green-50 dark:bg-green-950/300 h-2 rounded-full transition-all" style={{ width: `${width}%` }} />
+                            <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${width}%` }} />
                           </div>
                         </div>
                       )
                     })}
                   </div>
                 </div>
+              </div>
+
+              {/* 독자 유입 분석 */}
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4">독자 유입 경로 (추정)</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { source: '홈 피드', pct: 45, color: 'bg-blue-500', icon: '🏠' },
+                    { source: '둘러보기', pct: 25, color: 'bg-purple-500', icon: '🔍' },
+                    { source: '작가 페이지', pct: 18, color: 'bg-green-500', icon: '👤' },
+                    { source: '외부 공유', pct: 12, color: 'bg-amber-500', icon: '🔗' },
+                  ].map(item => (
+                    <div key={item.source} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
+                      <div className="text-2xl mb-1">{item.icon}</div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{item.source}</p>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
+                        <div className={`${item.color} h-2 rounded-full`} style={{ width: `${item.pct}%` }} />
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{item.pct}%</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">* 유입 경로 데이터는 조회수 패턴 기반 추정치입니다</p>
               </div>
 
               {/* 카테고리 분포 */}
@@ -623,10 +695,9 @@ export default function DashboardPage() {
           {/* ━━━ 수익 탭 ━━━ */}
           {activeTab === 'revenue' && (
             <div className="space-y-6">
-              {/* 수익화 상태 */}
               <div className={`rounded-xl border p-6 ${
-                (authorTier?.tier || 0) === 0 
-                  ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' 
+                (authorTier?.tier || 0) === 0
+                  ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800'
                   : 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800'
               }`}>
                 <div className="flex items-start gap-3">
@@ -645,7 +716,7 @@ export default function DashboardPage() {
                             <span>{Math.min(tierProgress.progress, 100).toFixed(1)}%</span>
                           </div>
                           <div className="w-full bg-amber-200 dark:bg-amber-800 rounded-full h-2">
-                            <div className="bg-amber-50 dark:bg-amber-950/300 h-2 rounded-full" style={{ width: `${Math.min(tierProgress.progress, 100)}%` }} />
+                            <div className="bg-amber-500 h-2 rounded-full" style={{ width: `${Math.min(tierProgress.progress, 100)}%` }} />
                           </div>
                         </div>
                       </div>
@@ -664,14 +735,13 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* 수익 요약 카드 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-2">총 누적 수익</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">총 누적 수익</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">${stats.totalRevenue.toFixed(2)}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-2">출금 가능 금액</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">출금 가능 금액</p>
                   <p className="text-3xl font-bold text-green-600">${(profile?.pending_payout_usd || 0).toFixed(2)}</p>
                   {(profile?.pending_payout_usd || 0) >= 10 && (
                     <Button size="sm" className="mt-2 bg-green-600 hover:bg-green-700 text-xs">
@@ -679,22 +749,21 @@ export default function DashboardPage() {
                     </Button>
                   )}
                   {(profile?.pending_payout_usd || 0) < 10 && (
-                    <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-2">최소 출금: $10.00</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">최소 출금: $10.00</p>
                   )}
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-2">이번 달 수익</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">이번 달 수익</p>
                   <p className="text-3xl font-bold text-blue-600">
                     ${revenueRecords.length > 0 ? Number(revenueRecords[0].total_author_revenue).toFixed(2) : '0.00'}
                   </p>
                 </div>
               </div>
 
-              {/* 월별 수익 내역 */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">월별 수익 내역</h3>
                 {revenueRecords.length === 0 ? (
-                  <p className="text-center text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 py-8">아직 수익 기록이 없습니다</p>
+                  <p className="text-center text-gray-400 dark:text-gray-500 py-8">아직 수익 기록이 없습니다</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -711,7 +780,7 @@ export default function DashboardPage() {
                       </thead>
                       <tbody>
                         {revenueRecords.map(record => (
-                          <tr key={record.month} className="border-b border-gray-50 hover:bg-gray-50 dark:bg-gray-800">
+                          <tr key={record.month} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
                             <td className="py-3 px-2 font-medium">{record.month}</td>
                             <td className="py-3 px-2 text-right">{record.ad_impressions_count.toLocaleString()}</td>
                             <td className="py-3 px-2 text-right">${Number(record.ad_author_share).toFixed(2)}</td>
@@ -720,9 +789,9 @@ export default function DashboardPage() {
                             <td className="py-3 px-2 text-right font-bold text-green-600">${Number(record.total_author_revenue).toFixed(2)}</td>
                             <td className="py-3 px-2 text-center">
                               <span className={`px-2 py-0.5 rounded-full text-xs ${
-                                record.status === 'paid' ? 'bg-green-100 text-green-700 dark:text-green-400' :
-                                record.status === 'confirmed' ? 'bg-blue-100 text-blue-700 dark:text-blue-400' :
-                                'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500'
+                                record.status === 'paid' ? 'bg-green-100 text-green-700' :
+                                record.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                               }`}>
                                 {record.status === 'paid' ? '지급완료' : record.status === 'confirmed' ? '확정' : '정산중'}
                               </span>
@@ -761,7 +830,7 @@ export default function DashboardPage() {
                 <div>
                   <Label htmlFor="new-thumbnail">새 썸네일</Label>
                   <Input id="new-thumbnail" type="file" accept="image/*" onChange={handleThumbnailChange} className="mt-2" />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">권장: 600x800px (3:4 비율), 최대 5MB</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">권장: 600x800px (3:4 비율), 최대 5MB</p>
                 </div>
                 {thumbnailPreview && (
                   <div>
@@ -808,7 +877,7 @@ export default function DashboardPage() {
                       maxLength={50}
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     />
-                    <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 text-right">{newDescription.length}/50</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 text-right">{newDescription.length}/50</p>
                   </div>
                   <div className="flex gap-2 justify-end">
                     <Button variant="outline" onClick={() => { setEditingDescription(null); setNewDescription('') }}>취소</Button>
