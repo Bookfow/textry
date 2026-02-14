@@ -35,10 +35,10 @@ if (loading || user) {
             </h1>
             <div className="flex gap-4">
             <Link href="/browse">
-            <Button variant="ghost" className="text-gray-900 hover:text-black font-medium">둘러보기</Button>
+            <Button variant="ghost" className="text-gray-900 dark:text-gray-200 hover:text-black dark:hover:text-white font-medium">둘러보기</Button>
 </Link>
 <Link href="/login">
-<Button variant="ghost" className="text-gray-900 hover:text-black font-medium">로그인</Button>
+<Button variant="ghost" className="text-gray-900 dark:text-gray-200 hover:text-black dark:hover:text-white font-medium">로그인</Button>
 </Link>
               <Link href="/signup">
                 <Button className="bg-gradient-to-r from-[#a67c52] to-[#c9a96e] hover:from-[#8a6842] hover:to-[#b89860]">
@@ -55,7 +55,7 @@ if (loading || user) {
         <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-[#7a5a30] via-[#c9a96e] to-[#7a5a30] bg-clip-text text-transparent">
             지식을 스트리밍하다
           </h2>
-          <p className="text-xl md:text-2xl text-gray-900 mb-8">
+          <p className="text-xl md:text-2xl text-gray-900 dark:text-gray-200 mb-8">
             유튜브처럼 자유롭게 문서를 읽고, 공유하고, 소통하세요
           </p>
           <div className="flex gap-4 justify-center">
@@ -179,7 +179,7 @@ if (loading || user) {
           <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#c9a96e] via-[#f0d58c] to-[#c9a96e] bg-clip-text text-transparent" style={{WebkitTextStroke: '0.3px #daa520', paintOrder: 'stroke fill', letterSpacing: '1px'}}>
             Textry
           </h2>
-          <p className="text-gray-400 mb-6">문서를 스트리밍하다</p>
+          <p className="text-gray-400 mb-6">문서 스트리밍 플랫폼</p>
           <div className="flex gap-6 justify-center text-sm text-gray-400">
             <Link href="/browse" className="hover:text-white">둘러보기</Link>
             <Link href="/signup" className="hover:text-white">회원가입</Link>
