@@ -35,10 +35,10 @@ if (loading || user) {
             </h1>
             <div className="flex gap-4">
             <Link href="/browse">
-            <Button variant="ghost" className="text-gray-900 dark:text-gray-200 hover:text-black dark:hover:text-white font-medium">둘러보기</Button>
+            <Button variant="ghost" className="text-gray-900 dark:text-gray-900 hover:text-black dark:hover:text-white font-medium">둘러보기</Button>
 </Link>
 <Link href="/login">
-<Button variant="ghost" className="text-gray-900 dark:text-gray-200 hover:text-black dark:hover:text-white font-medium">로그인</Button>
+<Button variant="ghost" className="text-gray-900 dark:text-gray-900 hover:text-black dark:hover:text-white font-medium">로그인</Button>
 </Link>
               <Link href="/signup">
                 <Button className="bg-gradient-to-r from-[#a67c52] to-[#c9a96e] hover:from-[#8a6842] hover:to-[#b89860]">
