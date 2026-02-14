@@ -532,7 +532,7 @@ export default function ReadPage() {
       {/* ━━━ 상단 오버레이: 컨트롤바 OR 배너 광고 ━━━ */}
       {showControls ? (
         <div className="absolute top-0 left-0 right-0 z-50">
-        <div className="h-1 bg-[#153024] w-full">
+        <div className="h-1 bg-gray-800 w-full" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label={`읽기 진행률 ${Math.round(progress)}%`}>
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -546,9 +546,9 @@ export default function ReadPage() {
               <button
                 onClick={() => router.push('/')}
                 className="p-1.5 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white transition-colors"
-                title="홈으로"
+                aria-label="홈으로"
               >
-                <Home className="w-5 h-5" />
+                <Home className="w-5 h-5" aria-hidden="true" />
               </button>
               <div className="hidden lg:block max-w-[180px]">
                 <h1 className="text-sm font-medium text-white truncate">{document?.title}</h1>
@@ -563,31 +563,33 @@ export default function ReadPage() {
                 <button
                   onClick={() => setViewMode('page')}
                   className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-blue-600 text-white' : 'text-[#6b9b84] hover:text-white'}`}
-                  title="페이지 모드"
+                  aria-label="페이지 모드" aria-pressed={viewMode === 'page'}
                 >
-                  <BookOpen className="w-4 h-4" />
+                  <BookOpen className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
                   onClick={() => setViewMode('book')}
                   className={`p-1.5 rounded-md transition-colors hidden md:block ${viewMode === 'book' ? 'bg-blue-600 text-white' : 'text-[#6b9b84] hover:text-white'}`}
-                  title="책 모드 (2페이지)"
+                  aria-label="책 모드 (2페이지)" aria-pressed={viewMode === 'book'}
                 >
-                  <BookOpenCheck className="w-4 h-4" />
+                  <BookOpenCheck className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
                   onClick={() => setViewMode('scroll')}
                   className={`p-1.5 rounded-md transition-colors ${viewMode === 'scroll' ? 'bg-blue-600 text-white' : 'text-[#6b9b84] hover:text-white'}`}
-                  title="스크롤 모드"
+                  aria-label="스크롤 모드" aria-pressed={viewMode === 'scroll'}
                 >
-                  <ScrollText className="w-4 h-4" />
+                  <ScrollText className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
 
               <div className="w-px h-4 bg-[#1c3d2e]" />
 
               <button onClick={goToPrevPage} disabled={pageNumber <= 1}
-                className="p-1.5 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white disabled:opacity-30 transition-colors">
-                <ChevronLeft className="w-5 h-5" />
+                className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
+                aria-label="이전 페이지">
+                <ChevronLeft className="w-5 h-5" aria-hidden="true" />
+
               </button>
 
               {showPageInput ? (
@@ -601,29 +603,30 @@ export default function ReadPage() {
                   <span className="text-[#6b9b84] text-xs">{numPages}</span>
                 </form>
               ) : (
-                <button onClick={() => setShowPageInput(true)} className="px-2 py-0.5 rounded-lg hover:bg-[#153024] transition-colors text-sm" title="페이지 직접 이동 (G키)">
+                <button onClick={() => setShowPageInput(true)} className="px-2 py-0.5 rounded-lg hover:bg-gray-800 transition-colors text-sm" aria-label={`현재 ${pageNumber}/${numPages} 페이지, 클릭하여 이동`}>
                   <span className="text-white font-medium">{pageNumber}</span>
                   <span className="text-[#4d7a65] mx-0.5">/</span>
                   <span className="text-[#6b9b84]">{numPages}</span>
                 </button>
               )}
 
-              <button onClick={goToNextPage} disabled={pageNumber >= numPages}
-                className="p-1.5 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white disabled:opacity-30 transition-colors">
-                <ChevronRight className="w-5 h-5" />
+<button onClick={goToNextPage} disabled={pageNumber >= numPages}
+                className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
+                aria-label="다음 페이지">
+                <ChevronRight className="w-5 h-5" aria-hidden="true" />
               </button>
 
               <div className="w-px h-4 bg-[#1c3d2e] hidden lg:block" />
 
               <div className="flex items-center gap-0.5">
-                <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white transition-colors">
-                  <ZoomOut className="w-4 h-4" />
+              <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" aria-label="축소">
+              <ZoomOut className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button onClick={resetZoom} className="px-1.5 py-0.5 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white transition-colors text-xs font-mono">
                   {Math.round(scale * 100)}%
                 </button>
-                <button onClick={zoomIn} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white transition-colors">
-                  <ZoomIn className="w-4 h-4" />
+                <button onClick={zoomIn} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" aria-label="확대">
+                  <ZoomIn className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -639,13 +642,13 @@ export default function ReadPage() {
             <div className="flex items-center gap-1 flex-shrink-0">
               <ReadingListButton documentId={documentId} compact />
               <ShareButton documentId={documentId} title={document?.title || ''} />
-              <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white transition-colors" title="전체화면 (F키)">
-                {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+              <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" aria-label={isFullscreen ? '전체화면 나가기' : '전체화면'}>
+                {isFullscreen ? <Minimize className="w-5 h-5" aria-hidden="true" /> : <Maximize className="w-5 h-5" aria-hidden="true" />}
               </button>
               <button onClick={() => setShowSidePanel(!showSidePanel)}
                 className={`p-2 rounded-lg transition-colors ${showSidePanel ? 'bg-blue-600 text-white' : 'hover:bg-[#153024] text-[#6b9b84] hover:text-white'}`}
-                title="댓글/정보 패널">
-                <MessageSquare className="w-5 h-5" />
+                aria-label="댓글/정보 패널" aria-expanded={showSidePanel}>
+                <MessageSquare className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -682,8 +685,8 @@ export default function ReadPage() {
           ${showSidePanel ? 'translate-x-0' : 'translate-x-full'} w-full sm:w-[380px]`}>
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#1a3527]">
             <h2 className="text-white font-medium">정보 & 댓글</h2>
-            <button onClick={() => setShowSidePanel(false)} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white transition-colors">
-              <X className="w-5 h-5" />
+            <button onClick={() => setShowSidePanel(false)} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" aria-label="패널 닫기">
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
