@@ -83,37 +83,37 @@
 }
 
 .dark {
-  --background: oklch(0.145 0.03 264);
-  --foreground: oklch(0.95 0.006 264);
-  --card: oklch(0.205 0.035 265);
-  --card-foreground: oklch(0.95 0.006 264);
-  --popover: oklch(0.205 0.035 265);
-  --popover-foreground: oklch(0.95 0.006 264);
-  --primary: oklch(0.55 0.2 264);
-  --primary-foreground: oklch(0.98 0.003 247);
-  --secondary: oklch(0.27 0.035 264);
-  --secondary-foreground: oklch(0.95 0.006 264);
-  --muted: oklch(0.27 0.035 264);
-  --muted-foreground: oklch(0.65 0.03 264);
-  --accent: oklch(0.27 0.035 264);
-  --accent-foreground: oklch(0.95 0.006 264);
+  --background: oklch(0.145 0.03 160);
+  --foreground: oklch(0.95 0.006 160);
+  --card: oklch(0.205 0.035 160);
+  --card-foreground: oklch(0.95 0.006 160);
+  --popover: oklch(0.205 0.035 160);
+  --popover-foreground: oklch(0.95 0.006 160);
+  --primary: oklch(0.65 0.17 160);
+  --primary-foreground: oklch(0.98 0.003 160);
+  --secondary: oklch(0.27 0.035 160);
+  --secondary-foreground: oklch(0.95 0.006 160);
+  --muted: oklch(0.27 0.035 160);
+  --muted-foreground: oklch(0.65 0.03 160);
+  --accent: oklch(0.27 0.035 160);
+  --accent-foreground: oklch(0.95 0.006 160);
   --destructive: oklch(0.65 0.2 25);
-  --border: oklch(0.3 0.025 264);
-  --input: oklch(0.3 0.025 264);
-  --ring: oklch(0.55 0.2 264);
-  --chart-1: oklch(0.488 0.243 264.376);
+  --border: oklch(0.3 0.025 160);
+  --input: oklch(0.3 0.025 160);
+  --ring: oklch(0.65 0.17 160);
+  --chart-1: oklch(0.65 0.17 160);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.17 0.03 264);
-  --sidebar-foreground: oklch(0.95 0.006 264);
-  --sidebar-primary: oklch(0.55 0.2 264);
-  --sidebar-primary-foreground: oklch(0.98 0.003 247);
-  --sidebar-accent: oklch(0.27 0.035 264);
-  --sidebar-accent-foreground: oklch(0.95 0.006 264);
-  --sidebar-border: oklch(0.3 0.025 264);
-  --sidebar-ring: oklch(0.55 0.2 264);
+  --sidebar: oklch(0.17 0.03 160);
+  --sidebar-foreground: oklch(0.95 0.006 160);
+  --sidebar-primary: oklch(0.65 0.17 160);
+  --sidebar-primary-foreground: oklch(0.98 0.003 160);
+  --sidebar-accent: oklch(0.27 0.035 160);
+  --sidebar-accent-foreground: oklch(0.95 0.006 160);
+  --sidebar-border: oklch(0.3 0.025 160);
+  --sidebar-ring: oklch(0.65 0.17 160);
 }
 
 @layer base {
@@ -127,24 +127,24 @@
 
 /* ━━━ 다크모드 글로벌 오버라이드 ━━━ */
 /* 아직 dark: 클래스가 없는 페이지(admin, dashboard, premium 등)에 자동 적용 */
-.dark .bg-gray-50 { background-color: oklch(0.145 0.03 264) !important; }
-.dark .bg-white { background-color: oklch(0.205 0.035 265) !important; }
-.dark .border-gray-200 { border-color: oklch(0.3 0.025 264) !important; }
-.dark .border-gray-100 { border-color: oklch(0.27 0.03 264) !important; }
-.dark .text-gray-900 { color: oklch(0.95 0.006 264) !important; }
-.dark .text-gray-800 { color: oklch(0.9 0.006 264) !important; }
-.dark .text-gray-700 { color: oklch(0.8 0.01 264) !important; }
-.dark .text-gray-600 { color: oklch(0.7 0.015 264) !important; }
-.dark .text-gray-500 { color: oklch(0.6 0.02 264) !important; }
-.dark .bg-gray-100 { background-color: oklch(0.25 0.025 264) !important; }
-.dark .hover\:bg-gray-100:hover { background-color: oklch(0.28 0.025 264) !important; }
-.dark .hover\:bg-gray-50:hover { background-color: oklch(0.22 0.025 264) !important; }
-.dark .border-b { border-bottom-color: oklch(0.3 0.025 264); }
-.dark .border-t { border-top-color: oklch(0.3 0.025 264); }
-.dark .divide-gray-200 > * + * { border-color: oklch(0.3 0.025 264); }
+.dark .bg-gray-50 { background-color: oklch(0.145 0.03 160) !important; }
+.dark .bg-white { background-color: oklch(0.205 0.035 160) !important; }
+.dark .border-gray-200 { border-color: oklch(0.3 0.025 160) !important; }
+.dark .border-gray-100 { border-color: oklch(0.27 0.03 160) !important; }
+.dark .text-gray-900 { color: oklch(0.95 0.006 160) !important; }
+.dark .text-gray-800 { color: oklch(0.9 0.006 160) !important; }
+.dark .text-gray-700 { color: oklch(0.8 0.01 160) !important; }
+.dark .text-gray-600 { color: oklch(0.7 0.015 160) !important; }
+.dark .text-gray-500 { color: oklch(0.6 0.02 160) !important; }
+.dark .bg-gray-100 { background-color: oklch(0.25 0.025 160) !important; }
+.dark .hover\:bg-gray-100:hover { background-color: oklch(0.28 0.025 160) !important; }
+.dark .hover\:bg-gray-50:hover { background-color: oklch(0.22 0.025 160) !important; }
+.dark .border-b { border-bottom-color: oklch(0.3 0.025 160); }
+.dark .border-t { border-top-color: oklch(0.3 0.025 160); }
+.dark .divide-gray-200 > * + * { border-color: oklch(0.3 0.025 160); }
 
 /* 카드 내부 배경 */
-.dark .bg-blue-50 { background-color: oklch(0.25 0.06 264) !important; }
+.dark .bg-blue-50 { background-color: oklch(0.25 0.06 160) !important; }
 .dark .bg-green-50 { background-color: oklch(0.22 0.05 160) !important; }
 .dark .bg-red-50 { background-color: oklch(0.22 0.05 25) !important; }
 .dark .bg-purple-50 { background-color: oklch(0.22 0.05 300) !important; }
@@ -152,11 +152,11 @@
 .dark .bg-orange-50 { background-color: oklch(0.25 0.05 60) !important; }
 
 /* 그래디언트 배경 (카드 썸네일 등) */
-.dark .from-blue-100 { --tw-gradient-from: oklch(0.25 0.04 264) !important; }
+.dark .from-blue-100 { --tw-gradient-from: oklch(0.25 0.04 160) !important; }
 .dark .to-purple-100 { --tw-gradient-to: oklch(0.23 0.04 300) !important; }
 .dark .from-blue-100.to-purple-100,
 .dark .bg-gradient-to-br.from-blue-100 {
-  --tw-gradient-from: oklch(0.22 0.03 264);
+  --tw-gradient-from: oklch(0.22 0.03 160);
   --tw-gradient-to: oklch(0.2 0.03 300);
 }
 
@@ -167,14 +167,14 @@
 .dark .border-amber-300 { border-color: oklch(0.45 0.1 80) !important; }
 
 /* 텍스트 보강 */
-.dark .text-gray-400 { color: oklch(0.55 0.015 264) !important; }
-.dark .text-gray-300 { color: oklch(0.7 0.01 264) !important; }
-.dark .text-gray-200 { color: oklch(0.8 0.008 264) !important; }
+.dark .text-gray-400 { color: oklch(0.55 0.015 160) !important; }
+.dark .text-gray-300 { color: oklch(0.7 0.01 160) !important; }
+.dark .text-gray-200 { color: oklch(0.8 0.008 160) !important; }
 
 /* 배지 / 작은 배경 */
 .dark .bg-green-100 { background-color: oklch(0.25 0.05 160) !important; }
 .dark .bg-red-100 { background-color: oklch(0.25 0.05 25) !important; }
-.dark .bg-blue-100 { background-color: oklch(0.25 0.05 264) !important; }
+.dark .bg-blue-100 { background-color: oklch(0.25 0.05 160) !important; }
 .dark .bg-purple-100 { background-color: oklch(0.25 0.05 300) !important; }
 .dark .bg-amber-100 { background-color: oklch(0.28 0.05 80) !important; }
 .dark .bg-orange-100 { background-color: oklch(0.28 0.05 60) !important; }
@@ -182,13 +182,13 @@
 /* Select / Textarea (Input은 shadcn 컴포넌트가 처리) */
 .dark select,
 .dark textarea {
-  background-color: oklch(0.22 0.025 264) !important;
-  color: oklch(0.95 0.006 264) !important;
-  border-color: oklch(0.3 0.025 264) !important;
+  background-color: oklch(0.22 0.025 160) !important;
+  color: oklch(0.95 0.006 160) !important;
+  border-color: oklch(0.3 0.025 160) !important;
 }
 .dark input[type="text"]::placeholder,
 .dark textarea::placeholder {
-  color: oklch(0.5 0.015 264) !important;
+  color: oklch(0.5 0.015 160) !important;
 }
 
 /* 카드 shadow */
@@ -197,12 +197,39 @@
 /* Dialog / Dropdown */
 .dark [data-radix-popper-content-wrapper] .bg-white,
 .dark [role="dialog"] .bg-white {
-  background-color: oklch(0.22 0.03 264) !important;
+  background-color: oklch(0.22 0.03 160) !important;
 }
 .dark [data-radix-popper-content-wrapper] .border-gray-200,
 .dark [role="dialog"] .border-gray-200 {
-  border-color: oklch(0.3 0.025 264) !important;
+  border-color: oklch(0.3 0.025 160) !important;
 }
+
+/* ━━━ Tailwind dark: 유틸리티 오버라이드 ━━━ */
+/* gray-800 ~ gray-950 배경 → 에메랄드 다크 */
+.dark .dark\:bg-gray-950 { background-color: oklch(0.13 0.025 160) !important; }
+.dark .dark\:bg-gray-900 { background-color: oklch(0.17 0.03 160) !important; }
+.dark .dark\:bg-gray-800 { background-color: oklch(0.22 0.03 160) !important; }
+.dark .dark\:bg-gray-700 { background-color: oklch(0.28 0.03 160) !important; }
+
+/* gray border → 에메랄드 */
+.dark .dark\:border-gray-800 { border-color: oklch(0.25 0.025 160) !important; }
+.dark .dark\:border-gray-700 { border-color: oklch(0.3 0.025 160) !important; }
+.dark .dark\:border-gray-600 { border-color: oklch(0.35 0.025 160) !important; }
+
+/* gray text → 에메랄드 뉘앙스 */
+.dark .dark\:text-gray-100 { color: oklch(0.95 0.006 160) !important; }
+.dark .dark\:text-gray-200 { color: oklch(0.88 0.008 160) !important; }
+.dark .dark\:text-gray-300 { color: oklch(0.78 0.012 160) !important; }
+.dark .dark\:text-gray-400 { color: oklch(0.65 0.018 160) !important; }
+.dark .dark\:text-gray-500 { color: oklch(0.55 0.018 160) !important; }
+
+/* hover bg 오버라이드 */
+.dark .dark\:hover\:bg-gray-800:hover { background-color: oklch(0.25 0.03 160) !important; }
+.dark .dark\:hover\:bg-gray-700:hover { background-color: oklch(0.3 0.03 160) !important; }
+
+/* blue 액센트 → emerald 액센트 (active states) */
+.dark .dark\:bg-blue-900\/30 { background-color: oklch(0.25 0.06 160 / 0.3) !important; }
+.dark .dark\:text-blue-400 { color: oklch(0.75 0.15 160) !important; }
 
 /* React-PDF 스타일 */
 .react-pdf__Page {
