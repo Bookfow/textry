@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import Image from 'next/image'
 import { BookOpen, Eye, ThumbsUp, Clock, Heart } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 
@@ -198,7 +199,7 @@ export default function ContinueReadingPage() {
                 <div className="group cursor-pointer">
                   <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
                     {doc.thumbnail_url ? (
-                      <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
+                      <Image src={doc.thumbnail_url} alt={doc.title} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-5xl opacity-20">📄</div>

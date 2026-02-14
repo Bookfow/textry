@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   DollarSign, Eye, Clock, FileText, Users, Trash2, Play,
   Image as ImageIcon, TrendingUp, Award, ChevronRight,
@@ -402,9 +403,9 @@ export default function DashboardPage() {
                     <Link key={doc.id} href={`/read/${doc.id}`}>
                       <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
                         <span className="text-lg font-bold text-gray-300 dark:text-gray-600 w-6 text-center">{i + 1}</span>
-                        <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
+                        <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative">
                           {doc.thumbnail_url ? (
-                            <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                            <Image src={doc.thumbnail_url} alt="" fill sizes="64px" className="object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-2xl opacity-20">📄</div>
                           )}
@@ -470,9 +471,9 @@ export default function DashboardPage() {
                     <div key={doc.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors items-center">
                       <div className="col-span-5 flex items-center gap-3">
                         <Link href={`/read/${doc.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="w-20 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
+                          <div className="w-20 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative">
                             {doc.thumbnail_url ? (
-                              <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                              <Image src={doc.thumbnail_url} alt="" fill sizes="80px" className="object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-2xl opacity-20">📄</div>
                             )}
@@ -813,9 +814,9 @@ export default function DashboardPage() {
               <>
                 <div>
                   <Label>현재 썸네일</Label>
-                  <div className="mt-2 w-48 aspect-[3/4] rounded-lg overflow-hidden border bg-gray-100 dark:bg-gray-800">
+                  <div className="mt-2 w-48 aspect-[3/4] rounded-lg overflow-hidden border bg-gray-100 dark:bg-gray-800 relative">
                     {editingDoc.thumbnail_url ? (
-                      <img src={editingDoc.thumbnail_url} alt="현재 썸네일" className="w-full h-full object-cover" />
+                      <Image src={editingDoc.thumbnail_url} alt="현재 썸네일" fill sizes="192px" className="object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400"><div className="text-6xl opacity-20">📄</div></div>
                     )}

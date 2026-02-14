@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Camera, ImagePlus, Crown, Sun, Moon, Monitor, Lock, Trash2 } from 'lucide-react'
 import { useTheme } from '@/lib/theme-context'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function SettingsPage() {
   const { user, profile, refreshProfile } = useAuth()
@@ -252,7 +253,7 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div className="relative w-full aspect-[4/1] bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl overflow-hidden">
                   {bannerUrl ? (
-                    <img src={bannerUrl} alt="배너" className="w-full h-full object-cover" />
+                    <Image src={bannerUrl} alt="배너" fill sizes="100vw" className="object-cover" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-white/50">
                       <ImagePlus className="w-10 h-10" />
@@ -284,7 +285,7 @@ export default function SettingsPage() {
             <CardContent>
               <div className="flex items-center gap-6">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt="프로필" className="w-24 h-24 rounded-full object-cover" />
+                  <Image src={avatarUrl} alt="프로필" width={96} height={96} className="rounded-full object-cover" />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-4xl font-bold">
                     {(profile?.username || profile?.email || 'U')[0].toUpperCase()}

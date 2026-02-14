@@ -1,8 +1,9 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
@@ -27,7 +28,6 @@ import { SubscribeButton } from '@/components/subscribe-button'
 import { ShareButton } from '@/components/share-button'
 import { ReadingListButton } from '@/components/reading-list-button'
 import { CommentsSection } from '@/components/comments-section'
-import { ReportButton } from '@/components/report-button'
 
 import type { ViewMode } from '@/components/pdf-viewer'
 
@@ -47,7 +47,7 @@ const PDFViewer = dynamic(() => import('@/components/pdf-viewer'), {
     <div className="h-full flex items-center justify-center">
       <div className="text-center">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-[#6b9b84]">PDF 뷰어 로딩 중...</p>
+        <p className="text-gray-400">PDF 뷰어 로딩 중...</p>
       </div>
     </div>
   ),
@@ -114,9 +114,6 @@ export default function ReadPage() {
   // UI 상태
   const [showSidePanel, setShowSidePanel] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [showControls, setShowControls] = useState(true)
-  const controlsTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
 
   // 시리즈 상태
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null)
@@ -142,57 +139,6 @@ export default function ReadPage() {
 
   const tier = numPages > 0 ? getAdTier(numPages) : 'micro'
   const tierConfig = getTierConfig(tier)
-
-  // ━━━ 모바일 감지 + 자동 페이지 모드 전환 ━━━
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768
-      setIsMobile(mobile)
-      // 모바일에서 책 모드는 너무 작으므로 자동 전환
-      if (mobile && viewMode === 'book') {
-        setViewMode('page')
-      }
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [viewMode])
-
-  // ━━━ 컨트롤바 auto-hide (3초 무활동 시 숨김) ━━━
-  const resetControlsTimer = useCallback(() => {
-    setShowControls(true)
-    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
-    controlsTimerRef.current = setTimeout(() => {
-      // 사이드패널 열려있거나 페이지 입력 중이면 숨기지 않음
-      if (!showSidePanel && !showPageInput) {
-        setShowControls(false)
-      }
-    }, 3000)
-  }, [showSidePanel, showPageInput])
-
-  useEffect(() => {
-    const handleActivity = () => resetControlsTimer()
-    window.addEventListener('mousemove', handleActivity)
-    window.addEventListener('touchstart', handleActivity)
-    window.addEventListener('keydown', handleActivity)
-    resetControlsTimer()
-    return () => {
-      window.removeEventListener('mousemove', handleActivity)
-      window.removeEventListener('touchstart', handleActivity)
-      window.removeEventListener('keydown', handleActivity)
-      if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
-    }
-  }, [resetControlsTimer])
-
-  // 사이드패널이나 페이지입력 열리면 컨트롤 항상 표시
-  useEffect(() => {
-    if (showSidePanel || showPageInput) setShowControls(true)
-  }, [showSidePanel, showPageInput])
-
-  // ━━━ 핀치줌 콜백 (PDFViewer에서 호출) ━━━
-  const handleScaleChange = useCallback((newScale: number) => {
-    setScale(newScale)
-  }, [])
 
   // ─── 시작 광고 (프리미엄은 스킵) ───
   useEffect(() => {
@@ -504,17 +450,17 @@ export default function ReadPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0b1a13]">
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[#6b9b84]">문서를 불러오는 중...</p>
+          <p className="text-gray-400">문서를 불러오는 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div ref={viewerRef} className="h-screen w-screen bg-[#0b1a13] flex flex-col overflow-hidden select-none">
+    <div ref={viewerRef} className="h-screen w-screen bg-gray-950 flex flex-col overflow-hidden select-none">
 
       {/* ━━━ 광고 오버레이 ━━━ */}
       <AdOverlay
@@ -529,67 +475,64 @@ export default function ReadPage() {
         sessionId={sessionId}
       />
 
-      {/* ━━━ 상단 오버레이: 컨트롤바 OR 배너 광고 ━━━ */}
-      {showControls ? (
-        <div className="absolute top-0 left-0 right-0 z-50">
-        <div className="h-1 bg-gray-800 w-full" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label={`읽기 진행률 ${Math.round(progress)}%`}>
+      {/* ━━━ 통합 상단 컨트롤 바 ━━━ */}
+      <div className="flex-shrink-0 z-50">
+        <div className="h-1 bg-gray-800 w-full">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        <div className="bg-[#0f2419] border-b border-[#1a3527] px-2 sm:px-3 py-1.5 overflow-hidden">
+        <div className="bg-gray-900 border-b border-gray-800 px-2 sm:px-3 py-1.5 overflow-hidden">
           <div className="flex items-center gap-1 sm:gap-2">
 
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <button
                 onClick={() => router.push('/')}
-                className="p-1.5 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white transition-colors"
-                aria-label="홈으로"
+                className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+                title="홈으로"
               >
-                <Home className="w-5 h-5" aria-hidden="true" />
+                <Home className="w-5 h-5" />
               </button>
               <div className="hidden lg:block max-w-[180px]">
                 <h1 className="text-sm font-medium text-white truncate">{document?.title}</h1>
                 {seriesInfo && (
-                  <p className="text-[10px] text-[#6b9b84] truncate">📚 {seriesInfo.seriesTitle} ({seriesInfo.currentPosition}/{seriesInfo.totalDocs})</p>
+                  <p className="text-[10px] text-gray-400 truncate">📚 {seriesInfo.seriesTitle} ({seriesInfo.currentPosition}/{seriesInfo.totalDocs})</p>
                 )}
               </div>
             </div>
 
             <div className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5">
-              <div className="flex items-center bg-[#153024] rounded-lg p-0.5">
+              <div className="flex items-center bg-gray-800 rounded-lg p-0.5">
                 <button
                   onClick={() => setViewMode('page')}
-                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-blue-600 text-white' : 'text-[#6b9b84] hover:text-white'}`}
-                  aria-label="페이지 모드" aria-pressed={viewMode === 'page'}
+                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  title="페이지 모드"
                 >
-                  <BookOpen className="w-4 h-4" aria-hidden="true" />
+                  <BookOpen className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('book')}
-                  className={`p-1.5 rounded-md transition-colors hidden md:block ${viewMode === 'book' ? 'bg-blue-600 text-white' : 'text-[#6b9b84] hover:text-white'}`}
-                  aria-label="책 모드 (2페이지)" aria-pressed={viewMode === 'book'}
+                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'book' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  title="책 모드 (2페이지)"
                 >
-                  <BookOpenCheck className="w-4 h-4" aria-hidden="true" />
+                  <BookOpenCheck className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('scroll')}
-                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'scroll' ? 'bg-blue-600 text-white' : 'text-[#6b9b84] hover:text-white'}`}
-                  aria-label="스크롤 모드" aria-pressed={viewMode === 'scroll'}
+                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'scroll' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  title="스크롤 모드"
                 >
-                  <ScrollText className="w-4 h-4" aria-hidden="true" />
+                  <ScrollText className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="w-px h-4 bg-[#1c3d2e]" />
+              <div className="w-px h-4 bg-gray-700" />
 
               <button onClick={goToPrevPage} disabled={pageNumber <= 1}
-                className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
-                aria-label="이전 페이지">
-                <ChevronLeft className="w-5 h-5" aria-hidden="true" />
-
+                className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 transition-colors">
+                <ChevronLeft className="w-5 h-5" />
               </button>
 
               {showPageInput ? (
@@ -597,36 +540,35 @@ export default function ReadPage() {
                   <input ref={pageInputRef} type="number" min={1} max={numPages} value={pageInputValue}
                     onChange={(e) => setPageInputValue(e.target.value)}
                     onBlur={() => { setShowPageInput(false); setPageInputValue('') }}
-                    className="w-12 px-1 py-0.5 bg-[#153024] border border-[#1f4030] rounded text-sm text-white text-center focus:outline-none focus:border-blue-500"
+                    className="w-12 px-1 py-0.5 bg-gray-800 border border-gray-700 rounded text-sm text-white text-center focus:outline-none focus:border-blue-500"
                     placeholder={String(pageNumber)} />
-                  <span className="text-[#4d7a65] text-xs mx-0.5">/</span>
-                  <span className="text-[#6b9b84] text-xs">{numPages}</span>
+                  <span className="text-gray-500 text-xs mx-0.5">/</span>
+                  <span className="text-gray-400 text-xs">{numPages}</span>
                 </form>
               ) : (
-                <button onClick={() => setShowPageInput(true)} className="px-2 py-0.5 rounded-lg hover:bg-gray-800 transition-colors text-sm" aria-label={`현재 ${pageNumber}/${numPages} 페이지, 클릭하여 이동`}>
+                <button onClick={() => setShowPageInput(true)} className="px-2 py-0.5 rounded-lg hover:bg-gray-800 transition-colors text-sm" title="페이지 직접 이동 (G키)">
                   <span className="text-white font-medium">{pageNumber}</span>
-                  <span className="text-[#4d7a65] mx-0.5">/</span>
-                  <span className="text-[#6b9b84]">{numPages}</span>
+                  <span className="text-gray-500 mx-0.5">/</span>
+                  <span className="text-gray-400">{numPages}</span>
                 </button>
               )}
 
-<button onClick={goToNextPage} disabled={pageNumber >= numPages}
-                className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
-                aria-label="다음 페이지">
-                <ChevronRight className="w-5 h-5" aria-hidden="true" />
+              <button onClick={goToNextPage} disabled={pageNumber >= numPages}
+                className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 transition-colors">
+                <ChevronRight className="w-5 h-5" />
               </button>
 
-              <div className="w-px h-4 bg-[#1c3d2e] hidden lg:block" />
+              <div className="w-px h-4 bg-gray-700 hidden lg:block" />
 
-              <div className="flex items-center gap-0.5">
-              <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" aria-label="축소">
-              <ZoomOut className="w-4 h-4" aria-hidden="true" />
+              <div className="hidden lg:flex items-center gap-0.5">
+                <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+                  <ZoomOut className="w-4 h-4" />
                 </button>
-                <button onClick={resetZoom} className="px-1.5 py-0.5 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white transition-colors text-xs font-mono">
+                <button onClick={resetZoom} className="px-1.5 py-0.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors text-xs font-mono">
                   {Math.round(scale * 100)}%
                 </button>
-                <button onClick={zoomIn} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" aria-label="확대">
-                  <ZoomIn className="w-4 h-4" aria-hidden="true" />
+                <button onClick={zoomIn} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+                  <ZoomIn className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -642,59 +584,46 @@ export default function ReadPage() {
             <div className="flex items-center gap-1 flex-shrink-0">
               <ReadingListButton documentId={documentId} compact />
               <ShareButton documentId={documentId} title={document?.title || ''} />
-              <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" aria-label={isFullscreen ? '전체화면 나가기' : '전체화면'}>
-                {isFullscreen ? <Minimize className="w-5 h-5" aria-hidden="true" /> : <Maximize className="w-5 h-5" aria-hidden="true" />}
+              <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" title="전체화면 (F키)">
+                {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
               </button>
               <button onClick={() => setShowSidePanel(!showSidePanel)}
-                className={`p-2 rounded-lg transition-colors ${showSidePanel ? 'bg-blue-600 text-white' : 'hover:bg-[#153024] text-[#6b9b84] hover:text-white'}`}
-                aria-label="댓글/정보 패널" aria-expanded={showSidePanel}>
-                <MessageSquare className="w-5 h-5" aria-hidden="true" />
+                className={`p-2 rounded-lg transition-colors ${showSidePanel ? 'bg-blue-600 text-white' : 'hover:bg-gray-800 text-gray-400 hover:text-white'}`}
+                title="댓글/정보 패널">
+                <MessageSquare className="w-5 h-5" />
               </button>
             </div>
           </div>
         </div>
-        </div>
-      ) : !isPremium ? (
-        <div className="absolute top-0 left-0 right-0 z-50 bg-[#0f2419]/90 backdrop-blur-sm border-b border-[#1a3527] px-2 py-1 flex items-center justify-center cursor-pointer"
-          onClick={() => resetControlsTimer()}>
-          <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
-            <AdBanner position="top" documentId={documentId} authorId={document?.author_id} />
-          </div>
-        </div>
-      ) : null}
+      </div>
 
       {/* ━━━ 메인 컨텐츠 ━━━ */}
-      <div className="flex flex-1 overflow-hidden pt-[54px]">
+      <div className="flex flex-1 overflow-hidden">
         <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidePanel ? 'sm:mr-[380px]' : ''}`}>
           <div className="flex-1 overflow-hidden">
             {pdfUrl && (
               <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
-                showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange} />
+                showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} />
             )}
           </div>
         </div>
 
-        {/* ━━━ 사이드 패널 백드롭 (모바일) ━━━ */}
-        {showSidePanel && (
-          <div className="fixed inset-0 bg-black/60 z-30 sm:hidden" onClick={() => setShowSidePanel(false)} />
-        )}
-
         {/* ━━━ 사이드 패널 ━━━ */}
-        <div className={`fixed right-0 top-0 bottom-0 z-40 bg-[#0f2419] border-l border-[#1a3527]
+        <div className={`fixed right-0 top-0 bottom-0 z-40 bg-gray-900 border-l border-gray-800
           transition-all duration-300 ease-in-out flex flex-col
           ${showSidePanel ? 'translate-x-0' : 'translate-x-full'} w-full sm:w-[380px]`}>
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#1a3527]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
             <h2 className="text-white font-medium">정보 & 댓글</h2>
-            <button onClick={() => setShowSidePanel(false)} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" aria-label="패널 닫기">
-              <X className="w-5 h-5" aria-hidden="true" />
+            <button onClick={() => setShowSidePanel(false)} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            <div className="p-4 border-b border-[#1a3527]">
+            <div className="p-4 border-b border-gray-800">
               <h3 className="text-white font-semibold text-lg mb-1">{document?.title}</h3>
-              {document?.description && <p className="text-[#6b9b84] text-sm mb-3">{document.description}</p>}
-              <div className="flex items-center gap-2 text-xs text-[#4d7a65]">
+              {document?.description && <p className="text-gray-400 text-sm mb-3">{document.description}</p>}
+              <div className="flex items-center gap-2 text-xs text-gray-500">
                 <span>조회수 {document?.view_count.toLocaleString()}회</span>
                 <span>·</span>
                 <span>읽기 시간: {Math.floor(totalTime / 60)}분 {totalTime % 60}초</span>
@@ -703,12 +632,12 @@ export default function ReadPage() {
 
             {/* ━━━ 시리즈 정보 ━━━ */}
             {seriesInfo && (
-              <div className="p-4 border-b border-[#1a3527]">
+              <div className="p-4 border-b border-gray-800">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-base">📚</span>
                   <div>
                     <p className="text-white font-medium text-sm">{seriesInfo.seriesTitle}</p>
-                    <p className="text-[#6b9b84] text-xs">{seriesInfo.currentPosition} / {seriesInfo.totalDocs}편</p>
+                    <p className="text-gray-400 text-xs">{seriesInfo.currentPosition} / {seriesInfo.totalDocs}편</p>
                   </div>
                 </div>
 
@@ -719,7 +648,7 @@ export default function ReadPage() {
                       className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-colors ${
                         doc.documentId === documentId
                           ? 'bg-blue-600/20 text-blue-400 font-medium'
-                          : 'text-[#6b9b84] hover:bg-[#153024] hover:text-[#b5d5c5] cursor-pointer'
+                          : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 cursor-pointer'
                       }`}
                       onClick={() => {
                         if (doc.documentId !== documentId) router.push(`/read/${doc.documentId}`)
@@ -738,7 +667,7 @@ export default function ReadPage() {
                   {seriesInfo.prevDocId && (
                     <button
                       onClick={() => router.push(`/read/${seriesInfo.prevDocId}`)}
-                      className="flex-1 px-3 py-2 bg-[#153024] hover:bg-[#1c3d2e] rounded-lg text-xs text-[#8fbba5] transition-colors text-center"
+                      className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors text-center"
                     >
                       ← 이전편
                     </button>
@@ -756,12 +685,12 @@ export default function ReadPage() {
             )}
 
             {authorProfile && (
-              <div className="p-4 border-b border-[#1a3527]">
+              <div className="p-4 border-b border-gray-800">
                 <div className="flex items-center justify-between">
                   <Link href={`/profile/${authorProfile.id}`}>
                     <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
                       {authorProfile.avatar_url ? (
-                        <img src={authorProfile.avatar_url} alt={authorProfile.username || ''} className="w-10 h-10 rounded-full object-cover" />
+                        <Image src={authorProfile.avatar_url} alt={authorProfile.username || ''} width={40} height={40} className="rounded-full object-cover" />
                       ) : (
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                           {(authorProfile.username || authorProfile.email)[0].toUpperCase()}
@@ -769,7 +698,7 @@ export default function ReadPage() {
                       )}
                       <div>
                         <p className="text-white font-medium text-sm">{authorProfile.username || authorProfile.email}</p>
-                        <p className="text-[#4d7a65] text-xs">구독자 {authorProfile.subscribers_count.toLocaleString()}명</p>
+                        <p className="text-gray-500 text-xs">구독자 {authorProfile.subscribers_count.toLocaleString()}명</p>
                       </div>
                     </div>
                   </Link>
@@ -778,19 +707,15 @@ export default function ReadPage() {
               </div>
             )}
 
-            <div className="p-4 border-b border-[#1a3527]">
+            <div className="p-4 border-b border-gray-800">
               <div className="flex items-center gap-3">
                 <ReactionButtons documentId={documentId} initialLikes={document?.likes_count || 0} initialDislikes={document?.dislikes_count || 0} />
                 <ReadingListButton documentId={documentId} />
               </div>
             </div>
 
-            <div className="p-4 border-b border-[#1a3527]">
+            <div className="p-4 border-b border-gray-800">
               <CommentsSection documentId={documentId} />
-            </div>
-
-            <div className="p-4 border-b border-[#1a3527] flex justify-end">
-              <ReportButton documentId={documentId} compact />
             </div>
 
             {!isPremium && (
