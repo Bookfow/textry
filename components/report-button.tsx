@@ -64,10 +64,11 @@ export function ReportButton({ documentId, compact = false }: ReportButtonProps)
       {compact ? (
         <button
           onClick={() => setOpen(true)}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-red-500 transition-colors"
+          className="flex items-center gap-1.5 p-2 rounded-lg hover:bg-red-500/10 text-gray-400 dark:text-[#6b9b84] hover:text-red-500 transition-colors"
           title="신고"
         >
           <Flag className="w-4 h-4" />
+          <span className="text-xs">신고</span>
         </button>
       ) : (
         <Button variant="ghost" size="sm" onClick={() => setOpen(true)} className="text-gray-500 hover:text-red-500 gap-1">
