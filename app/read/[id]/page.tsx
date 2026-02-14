@@ -615,7 +615,7 @@ export default function ReadPage() {
 
               <div className="w-px h-4 bg-[#1c3d2e] hidden lg:block" />
 
-              <div className="hidden lg:flex items-center gap-0.5">
+              <div className="flex items-center gap-0.5">
                 <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#6b9b84] hover:text-white transition-colors">
                   <ZoomOut className="w-4 h-4" />
                 </button>
