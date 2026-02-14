@@ -651,6 +651,16 @@ export default function ReadPage() {
         </div>
       </div>
 
+      {/* ━━━ 컨트롤바 숨겨질 때 상단 배너 광고 (프리미엄 제외) ━━━ */}
+      {!showControls && !isPremium && (
+        <div className="flex-shrink-0 z-50 bg-[#0f2419]/90 backdrop-blur-sm border-b border-[#1a3527] px-2 py-1 flex items-center justify-center cursor-pointer"
+          onClick={() => resetControlsTimer()}>
+          <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
+            <AdBanner position="top" documentId={documentId} authorId={document?.author_id} />
+          </div>
+        </div>
+      )}
+
       {/* ━━━ 메인 컨텐츠 ━━━ */}
       <div className="flex flex-1 overflow-hidden">
         <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidePanel ? 'sm:mr-[380px]' : ''}`}>
