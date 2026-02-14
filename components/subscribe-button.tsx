@@ -26,7 +26,6 @@ export function SubscribeButton({
   const [subscribersCount, setSubscribersCount] = useState(initialSubscribersCount)
   const [loading, setLoading] = useState(false)
 
-  // 사용자의 구독 상태 확인
   useEffect(() => {
     if (!user || user.id === authorId) return
 
@@ -60,7 +59,6 @@ export function SubscribeButton({
 
     try {
       if (isSubscribed) {
-        // 구독 취소
         await supabase
           .from('subscriptions')
           .delete()
@@ -70,7 +68,6 @@ export function SubscribeButton({
         setIsSubscribed(false)
         setSubscribersCount(subscribersCount - 1)
       } else {
-        // 구독
         await supabase
           .from('subscriptions')
           .insert({
@@ -89,11 +86,10 @@ export function SubscribeButton({
     }
   }
 
-  // 본인 문서면 구독 버튼 안 보임
   if (user?.id === authorId) {
     return (
       <div className="flex items-center gap-2 text-sm text-gray-400">
-        <Bell className="w-4 h-4" />
+        <Bell className="w-4 h-4" aria-hidden="true" />
         <span>구독자 {subscribersCount.toLocaleString()}명</span>
       </div>
     )
@@ -107,20 +103,22 @@ export function SubscribeButton({
         onClick={handleSubscribe}
         disabled={loading}
         className={`gap-2 ${isSubscribed ? 'bg-gray-600 text-white hover:bg-gray-700' : ''}`}
+        aria-label={isSubscribed ? `${authorName} 구독 취소` : `${authorName} 구독`}
+        aria-pressed={isSubscribed}
       >
         {isSubscribed ? (
           <>
-            <BellOff className="w-4 h-4" />
+            <BellOff className="w-4 h-4" aria-hidden="true" />
             <span className="text-white">구독 중</span>
           </>
         ) : (
           <>
-            <Bell className="w-4 h-4" />
+            <Bell className="w-4 h-4" aria-hidden="true" />
             구독
           </>
         )}
       </Button>
-      <span className="text-sm text-gray-300">
+      <span className="text-sm text-gray-300" aria-live="polite">
         구독자 {subscribersCount.toLocaleString()}명
       </span>
     </div>

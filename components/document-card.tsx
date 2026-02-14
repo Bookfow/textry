@@ -140,14 +140,14 @@ export function DocumentCard({
   // ─── 컴팩트 모드 ───
   if (variant === 'compact') {
     return (
-      <Link href={`/read/${doc.id}`} className="flex-shrink-0 w-[160px] sm:w-[180px] md:w-[200px]">
-        <div className="group cursor-pointer">
+      <Link href={`/read/${doc.id}`} className="flex-shrink-0 w-[160px] sm:w-[180px] md:w-[200px]" aria-label={`${doc.title} - ${displayAuthor ? displayAuthor + ', ' : ''}조회수 ${views.toLocaleString()}`}>
+        <article className="group cursor-pointer">
           <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
             {doc.thumbnail_url ? (
-              <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
+              <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
-                <BookOpen className="w-8 h-8 text-gray-300" />
+                <BookOpen className="w-8 h-8 text-gray-300" aria-hidden="true" />
               </div>
             )}
 
@@ -162,13 +162,15 @@ export function DocumentCard({
             <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
               <button onClick={handleToggleList}
                 className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                title={inList ? '찜 해제' : '찜하기'}>
-                <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} />
+                aria-label={inList ? '읽기 목록에서 제거' : '읽기 목록에 추가'}
+                aria-pressed={inList}>
+                <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} aria-hidden="true" />
               </button>
               <button onClick={handleLike}
                 className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                title={liked ? '좋아요 취소' : '좋아요'}>
-                <ThumbsUp className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} />
+                aria-label={liked ? '좋아요 취소' : '좋아요'}
+                aria-pressed={liked}>
+                <ThumbsUp className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} aria-hidden="true" />
               </button>
             </div>
 
@@ -179,7 +181,7 @@ export function DocumentCard({
             </div>
 
             {progress !== null && (
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50">
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`읽기 진행률 ${progress}%`}>
                 <div className="h-full bg-blue-500" style={{ width: `${progress}%` }} />
               </div>
             )}
@@ -193,25 +195,25 @@ export function DocumentCard({
               <p className="text-[11px] text-gray-500 truncate mb-1">{displayAuthor}</p>
             )}
             <div className="flex items-center gap-2 text-[11px] text-gray-400">
-              <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{views.toLocaleString()}</span>
-              <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{likesCount.toLocaleString()}</span>
+              <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" aria-hidden="true" /><span className="sr-only">조회수</span>{views.toLocaleString()}</span>
+              <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" aria-hidden="true" /><span className="sr-only">좋아요</span>{likesCount.toLocaleString()}</span>
             </div>
           </div>
-        </div>
+        </article>
       </Link>
     )
   }
 
-  // ─── 그리드 모드 (browse, reading-list, continue-reading, home) ───
+  // ─── 그리드 모드 ───
   return (
-    <Link href={`/read/${doc.id}`}>
-      <div className="group cursor-pointer">
+    <Link href={`/read/${doc.id}`} aria-label={`${doc.title} - ${displayAuthor ? displayAuthor + ', ' : ''}조회수 ${views.toLocaleString()}`}>
+      <article className="group cursor-pointer">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
           {doc.thumbnail_url ? (
-            <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
+            <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <BookOpen className="w-10 h-10 text-gray-300" />
+              <BookOpen className="w-10 h-10 text-gray-300" aria-hidden="true" />
             </div>
           )}
 
@@ -226,13 +228,15 @@ export function DocumentCard({
           <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button onClick={handleToggleList}
               className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${inList ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-              title={inList ? '찜 해제' : '찜하기'}>
-              <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} />
+              aria-label={inList ? '읽기 목록에서 제거' : '읽기 목록에 추가'}
+              aria-pressed={inList}>
+              <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} aria-hidden="true" />
             </button>
             <button onClick={handleLike}
               className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${liked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-              title={liked ? '좋아요 취소' : '좋아요'}>
-              <ThumbsUp className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} />
+              aria-label={liked ? '좋아요 취소' : '좋아요'}
+              aria-pressed={liked}>
+              <ThumbsUp className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} aria-hidden="true" />
             </button>
           </div>
 
@@ -243,7 +247,7 @@ export function DocumentCard({
           </div>
 
           {progress !== null && (
-            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200/50">
+            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200/50" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`읽기 진행률 ${progress}%`}>
               <div className="h-full bg-blue-500 transition-all" style={{ width: `${progress}%` }} />
             </div>
           )}
@@ -258,20 +262,20 @@ export function DocumentCard({
           )}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-[11px] text-gray-400">
-              <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{views.toLocaleString()}</span>
-              <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{likesCount.toLocaleString()}</span>
+              <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" aria-hidden="true" /><span className="sr-only">조회수</span>{views.toLocaleString()}</span>
+              <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" aria-hidden="true" /><span className="sr-only">좋아요</span>{likesCount.toLocaleString()}</span>
             </div>
             {progress !== null && lastReadAt && (
               <div className="flex items-center gap-1 text-[11px]">
                 <span className="text-blue-600 font-medium">{progress}%</span>
                 <span className="flex items-center gap-0.5 text-gray-400">
-                  <Clock className="w-3 h-3" />{getTimeAgo(lastReadAt)}
+                  <Clock className="w-3 h-3" aria-hidden="true" />{getTimeAgo(lastReadAt)}
                 </span>
               </div>
             )}
           </div>
         </div>
-      </div>
+      </article>
     </Link>
   )
 }
