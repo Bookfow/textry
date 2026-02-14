@@ -34,12 +34,12 @@ if (loading || user) {
               Textry
             </h1>
             <div className="flex gap-4">
-              <Link href="/browse">
-                <Button variant="ghost">둘러보기</Button>
-              </Link>
-              <Link href="/login">
-                <Button variant="ghost">로그인</Button>
-              </Link>
+            <Link href="/browse">
+  <Button variant="ghost" className="text-gray-700 hover:text-gray-900">둘러보기</Button>
+</Link>
+<Link href="/login">
+  <Button variant="ghost" className="text-gray-700 hover:text-gray-900">로그인</Button>
+</Link>
               <Link href="/signup">
                 <Button className="bg-gradient-to-r from-[#a67c52] to-[#c9a96e] hover:from-[#8a6842] hover:to-[#b89860]">
                   시작하기
