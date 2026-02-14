@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Document as PDFDocument, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
@@ -24,7 +24,11 @@ interface PDFViewerProps {
   showSidePanel?: boolean
   onPageChange?: (page: number, total: number) => void
   onDocumentLoad?: (numPages: number) => void
+  onScaleChange?: (scale: number) => void
 }
+
+// ━━━ 스크롤 모드 가상화: 화면 근처 페이지만 렌더 ━━━
+const VIRTUALIZATION_BUFFER = 3 // 현재 보이는 페이지 ± 3페이지만 렌더
 
 export default function PDFViewer({
   pdfUrl,
@@ -34,6 +38,7 @@ export default function PDFViewer({
   showSidePanel = false,
   onPageChange,
   onDocumentLoad,
+  onScaleChange,
 }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pdfLoading, setPdfLoading] = useState(true)
@@ -44,13 +49,20 @@ export default function PDFViewer({
   const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null)
   const [swipeOffset, setSwipeOffset] = useState(0)
 
+  // ━━━ 핀치 투 줌 상태 ━━━
+  const [pinchStartDistance, setPinchStartDistance] = useState<number | null>(null)
+  const [pinchStartScale, setPinchStartScale] = useState<number>(1)
+
+  // ━━━ 스크롤 가상화 상태 ━━━
+  const [scrollCurrentPage, setScrollCurrentPage] = useState(1)
+
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const calculateFitWidth = useCallback(() => {
     const screenWidth = window.innerWidth
     const screenHeight = window.innerHeight
-    const sidePanelWidth = showSidePanel ? 380 : 0
+    const sidePanelWidth = showSidePanel ? (screenWidth < 640 ? 0 : 380) : 0
     const controlBarHeight = 50
     const frameSize = 24
 
@@ -61,8 +73,7 @@ export default function PDFViewer({
     const contentHeight = availableHeight - frameSize - 16
 
     if (viewMode === 'book') {
-      // 책 모드: 2페이지가 나란히 들어가야 하므로 절반 너비 기준
-      const halfWidth = (contentWidth - 4) / 2 // 4px gap
+      const halfWidth = (contentWidth - 4) / 2
       const widthFromHeight = contentHeight / pageAspect
       const optimal = Math.min(halfWidth, widthFromHeight)
       setFitWidth(Math.max(optimal, 150))
@@ -79,6 +90,7 @@ export default function PDFViewer({
     return () => window.removeEventListener('resize', calculateFitWidth)
   }, [calculateFitWidth])
 
+  // ━━━ 스크롤 모드: 현재 페이지 추적 ━━━
   useEffect(() => {
     if (viewMode !== 'scroll' || !scrollContainerRef.current) return
     const container = scrollContainerRef.current
@@ -92,6 +104,7 @@ export default function PDFViewer({
           currentPage = parseInt(el.getAttribute('data-page-number') || '1')
         }
       })
+      setScrollCurrentPage(currentPage)
       if (onPageChange) onPageChange(currentPage, numPages)
     }
     container.addEventListener('scroll', handleScroll)
@@ -115,19 +128,49 @@ export default function PDFViewer({
     }
   }
 
+  // ━━━ 터치: 스와이프 + 핀치줌 통합 ━━━
+  const getTouchDistance = (touches: React.TouchList) => {
+    if (touches.length < 2) return 0
+    const dx = touches[0].clientX - touches[1].clientX
+    const dy = touches[0].clientY - touches[1].clientY
+    return Math.sqrt(dx * dx + dy * dy)
+  }
+
   const minSwipeDistance = 50
   const onTouchStart = (e: React.TouchEvent) => {
+    // 핀치줌 감지 (2손가락)
+    if (e.touches.length === 2) {
+      const dist = getTouchDistance(e.touches)
+      setPinchStartDistance(dist)
+      setPinchStartScale(scale)
+      return
+    }
     if (viewMode === 'scroll') return
     setTouchEnd(null)
     setTouchStart({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY })
   }
+
   const onTouchMove = (e: React.TouchEvent) => {
+    // 핀치줌 처리
+    if (e.touches.length === 2 && pinchStartDistance !== null) {
+      const currentDist = getTouchDistance(e.touches)
+      const ratio = currentDist / pinchStartDistance
+      const newScale = Math.min(Math.max(pinchStartScale * ratio, 0.5), 3.0)
+      if (onScaleChange) onScaleChange(newScale)
+      return
+    }
     if (!touchStart || viewMode === 'scroll') return
     const currentX = e.targetTouches[0].clientX
     setSwipeOffset((currentX - touchStart.x) * 0.3)
     setTouchEnd({ x: currentX, y: e.targetTouches[0].clientY })
   }
+
   const onTouchEnd = () => {
+    // 핀치줌 종료
+    if (pinchStartDistance !== null) {
+      setPinchStartDistance(null)
+      return
+    }
     if (!touchStart || !touchEnd || viewMode === 'scroll') {
       setSwipeOffset(0)
       return
@@ -152,7 +195,6 @@ export default function PDFViewer({
     const step = viewMode === 'book' ? 2 : 1
 
     if (viewMode === 'book') {
-      // 책 모드: 전체 컨테이너 기준
       const container = containerRef.current
       if (!container) return
       const rect = container.getBoundingClientRect()
@@ -160,7 +202,6 @@ export default function PDFViewer({
       if (clickX < rect.width * 0.3) onPageChange(Math.max(pageNumber - step, 1), numPages)
       else if (clickX > rect.width * 0.7) onPageChange(Math.min(pageNumber + step, numPages), numPages)
     } else {
-      // 페이지 모드: PDF 페이지 기준
       const rect = pageEl.getBoundingClientRect()
       const clickX = e.clientX - rect.left
       if (clickX < rect.width * 0.33) onPageChange(Math.max(pageNumber - 1, 1), numPages)
@@ -172,9 +213,7 @@ export default function PDFViewer({
 
   // 책 모드에서 표시할 페이지 계산
   const getBookPages = () => {
-    // 1페이지는 항상 단독 (표지)
     if (pageNumber === 1) return { left: 1, right: null }
-    // 짝수 페이지가 왼쪽, 홀수가 오른쪽
     const leftPage = pageNumber % 2 === 0 ? pageNumber : pageNumber - 1
     const rightPage = leftPage + 1
     return {
@@ -182,6 +221,14 @@ export default function PDFViewer({
       right: rightPage <= numPages ? rightPage : null,
     }
   }
+
+  // ━━━ 스크롤 가상화: 렌더할 페이지 범위 계산 ━━━
+  const visiblePages = useMemo(() => {
+    if (viewMode !== 'scroll') return []
+    const start = Math.max(1, scrollCurrentPage - VIRTUALIZATION_BUFFER)
+    const end = Math.min(numPages, scrollCurrentPage + VIRTUALIZATION_BUFFER)
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+  }, [viewMode, scrollCurrentPage, numPages])
 
   // 원목 프레임 스타일
   const frameStyle: React.CSSProperties = {
@@ -200,7 +247,6 @@ export default function PDFViewer({
     borderRadius: '2px',
   }
 
-  // 책 모드 프레임 (2페이지 묶어서 하나의 프레임)
   const bookFrameStyle: React.CSSProperties = {
     borderWidth: '12px',
     borderStyle: 'solid',
@@ -217,8 +263,11 @@ export default function PDFViewer({
     borderRadius: '2px',
   }
 
+  // 스크롤 모드 페이지 placeholder 높이
+  const pageHeight = renderWidth * pageAspect
+
   return (
-    <div ref={containerRef} className="h-full w-full flex flex-col">
+    <div ref={containerRef} className="h-full w-full flex flex-col touch-none">
       <div
         className="flex-1 relative overflow-hidden"
         onTouchStart={onTouchStart}
@@ -333,7 +382,6 @@ export default function PDFViewer({
                               renderAnnotationLayer={true}
                               loading=""
                             />
-                            {/* 중앙 그림자 (책 접힌 부분) */}
                             <div className="absolute top-0 right-0 bottom-0 w-4 bg-gradient-to-l from-black/10 to-transparent pointer-events-none" />
                           </div>
                           {right && (
@@ -410,53 +458,73 @@ export default function PDFViewer({
           </div>
         )}
 
-        {/* 스크롤 모드 */}
+        {/* ━━━ 스크롤 모드 (가상화 적용) ━━━ */}
         {viewMode === 'scroll' && (
           <div ref={scrollContainerRef} className="h-full overflow-y-auto scroll-smooth">
-            <div className="py-4 flex flex-col items-center gap-4">
+            <div className="py-4 flex flex-col items-center">
               <PDFDocument
                 file={pdfUrl}
                 onLoadSuccess={onDocumentLoadSuccess}
                 loading=""
-                className="flex flex-col items-center gap-4"
+                className="flex flex-col items-center"
                 options={pdfOptions}
               >
-                {Array.from({ length: numPages }, (_, index) => (
-                  <div key={`page_${index + 1}`} data-page-number={index + 1}>
-                    <div className="dark:hidden" style={frameStyle}>
-                      <Page
-                        pageNumber={index + 1}
-                        width={renderWidth}
-                        renderTextLayer={true}
-                        renderAnnotationLayer={true}
-                        loading={
-                          <div
-                            className="flex items-center justify-center bg-gray-900 border border-gray-800"
-                            style={{ width: renderWidth, height: renderWidth * pageAspect }}
-                          >
-                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                {Array.from({ length: numPages }, (_, index) => {
+                  const pNum = index + 1
+                  const isVisible = visiblePages.includes(pNum)
+                  return (
+                    <div
+                      key={`page_${pNum}`}
+                      data-page-number={pNum}
+                      className="mb-4"
+                      style={{ minHeight: isVisible ? undefined : pageHeight + 24 }}
+                    >
+                      {isVisible ? (
+                        <>
+                          <div className="dark:hidden" style={frameStyle}>
+                            <Page
+                              pageNumber={pNum}
+                              width={renderWidth}
+                              renderTextLayer={true}
+                              renderAnnotationLayer={true}
+                              loading={
+                                <div
+                                  className="flex items-center justify-center bg-gray-900 border border-gray-800"
+                                  style={{ width: renderWidth, height: pageHeight }}
+                                >
+                                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                </div>
+                              }
+                            />
                           </div>
-                        }
-                      />
-                    </div>
-                    <div className="hidden dark:block" style={frameStyleDark}>
-                      <Page
-                        pageNumber={index + 1}
-                        width={renderWidth}
-                        renderTextLayer={true}
-                        renderAnnotationLayer={true}
-                        loading={
-                          <div
-                            className="flex items-center justify-center bg-gray-900 border border-gray-800"
-                            style={{ width: renderWidth, height: renderWidth * pageAspect }}
-                          >
-                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                          <div className="hidden dark:block" style={frameStyleDark}>
+                            <Page
+                              pageNumber={pNum}
+                              width={renderWidth}
+                              renderTextLayer={true}
+                              renderAnnotationLayer={true}
+                              loading={
+                                <div
+                                  className="flex items-center justify-center bg-gray-900 border border-gray-800"
+                                  style={{ width: renderWidth, height: pageHeight }}
+                                >
+                                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                </div>
+                              }
+                            />
                           </div>
-                        }
-                      />
+                        </>
+                      ) : (
+                        <div
+                          className="flex items-center justify-center rounded"
+                          style={{ width: renderWidth + 24, height: pageHeight + 24, background: 'rgba(255,255,255,0.03)' }}
+                        >
+                          <span className="text-sm text-white/20">{pNum}</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </PDFDocument>
             </div>
           </div>

@@ -27,6 +27,7 @@ import { SubscribeButton } from '@/components/subscribe-button'
 import { ShareButton } from '@/components/share-button'
 import { ReadingListButton } from '@/components/reading-list-button'
 import { CommentsSection } from '@/components/comments-section'
+import { ReportButton } from '@/components/report-button'
 
 import type { ViewMode } from '@/components/pdf-viewer'
 
@@ -113,6 +114,9 @@ export default function ReadPage() {
   // UI 상태
   const [showSidePanel, setShowSidePanel] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showControls, setShowControls] = useState(true)
+  const controlsTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
   // 시리즈 상태
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null)
@@ -138,6 +142,57 @@ export default function ReadPage() {
 
   const tier = numPages > 0 ? getAdTier(numPages) : 'micro'
   const tierConfig = getTierConfig(tier)
+
+  // ━━━ 모바일 감지 + 자동 페이지 모드 전환 ━━━
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      // 모바일에서 책 모드는 너무 작으므로 자동 전환
+      if (mobile && viewMode === 'book') {
+        setViewMode('page')
+      }
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [viewMode])
+
+  // ━━━ 컨트롤바 auto-hide (3초 무활동 시 숨김) ━━━
+  const resetControlsTimer = useCallback(() => {
+    setShowControls(true)
+    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
+    controlsTimerRef.current = setTimeout(() => {
+      // 사이드패널 열려있거나 페이지 입력 중이면 숨기지 않음
+      if (!showSidePanel && !showPageInput) {
+        setShowControls(false)
+      }
+    }, 3000)
+  }, [showSidePanel, showPageInput])
+
+  useEffect(() => {
+    const handleActivity = () => resetControlsTimer()
+    window.addEventListener('mousemove', handleActivity)
+    window.addEventListener('touchstart', handleActivity)
+    window.addEventListener('keydown', handleActivity)
+    resetControlsTimer()
+    return () => {
+      window.removeEventListener('mousemove', handleActivity)
+      window.removeEventListener('touchstart', handleActivity)
+      window.removeEventListener('keydown', handleActivity)
+      if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
+    }
+  }, [resetControlsTimer])
+
+  // 사이드패널이나 페이지입력 열리면 컨트롤 항상 표시
+  useEffect(() => {
+    if (showSidePanel || showPageInput) setShowControls(true)
+  }, [showSidePanel, showPageInput])
+
+  // ━━━ 핀치줌 콜백 (PDFViewer에서 호출) ━━━
+  const handleScaleChange = useCallback((newScale: number) => {
+    setScale(newScale)
+  }, [])
 
   // ─── 시작 광고 (프리미엄은 스킵) ───
   useEffect(() => {
@@ -474,8 +529,8 @@ export default function ReadPage() {
         sessionId={sessionId}
       />
 
-      {/* ━━━ 통합 상단 컨트롤 바 ━━━ */}
-      <div className="flex-shrink-0 z-50">
+      {/* ━━━ 통합 상단 컨트롤 바 (auto-hide) ━━━ */}
+      <div className={`flex-shrink-0 z-50 transition-all duration-300 ${showControls ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
         <div className="h-1 bg-[#153024] w-full">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
@@ -513,7 +568,7 @@ export default function ReadPage() {
                 </button>
                 <button
                   onClick={() => setViewMode('book')}
-                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'book' ? 'bg-blue-600 text-white' : 'text-[#6b9b84] hover:text-white'}`}
+                  className={`p-1.5 rounded-md transition-colors hidden md:block ${viewMode === 'book' ? 'bg-blue-600 text-white' : 'text-[#6b9b84] hover:text-white'}`}
                   title="책 모드 (2페이지)"
                 >
                   <BookOpenCheck className="w-4 h-4" />
@@ -602,10 +657,15 @@ export default function ReadPage() {
           <div className="flex-1 overflow-hidden">
             {pdfUrl && (
               <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
-                showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} />
+                showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange} />
             )}
           </div>
         </div>
+
+        {/* ━━━ 사이드 패널 백드롭 (모바일) ━━━ */}
+        {showSidePanel && (
+          <div className="fixed inset-0 bg-black/60 z-30 sm:hidden" onClick={() => setShowSidePanel(false)} />
+        )}
 
         {/* ━━━ 사이드 패널 ━━━ */}
         <div className={`fixed right-0 top-0 bottom-0 z-40 bg-[#0f2419] border-l border-[#1a3527]
@@ -715,6 +775,10 @@ export default function ReadPage() {
 
             <div className="p-4 border-b border-[#1a3527]">
               <CommentsSection documentId={documentId} />
+            </div>
+
+            <div className="p-4 border-b border-[#1a3527] flex justify-end">
+              <ReportButton documentId={documentId} compact />
             </div>
 
             {!isPremium && (
