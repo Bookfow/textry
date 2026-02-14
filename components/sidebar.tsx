@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase, Profile } from '@/lib/supabase'
@@ -191,8 +192,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   <Link key={author.id} href={`/author/${author.id}`} onClick={handleLinkClick} aria-label={`${author.username || author.email} 작가 페이지`}>
                     <div className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 text-sm group relative ${!isOpen ? 'justify-center' : ''}`}>
                       {author.avatar_url ? (
-                        <img src={author.avatar_url} alt={`${author.username || author.email} 프로필`}
-                          className={`rounded-full object-cover flex-shrink-0 ${isOpen ? 'w-6 h-6' : 'w-5 h-5'}`} />
+                        <Image src={author.avatar_url} alt={`${author.username || author.email} 프로필`}
+                          width={isOpen ? 24 : 20} height={isOpen ? 24 : 20}
+                          className={`rounded-full object-cover flex-shrink-0`} />
                       ) : (
                         <div className={`rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center font-bold flex-shrink-0 ${isOpen ? 'w-6 h-6 text-xs' : 'w-5 h-5 text-[10px]'}`} aria-hidden="true">
                           {(author.username || author.email)[0].toUpperCase()}

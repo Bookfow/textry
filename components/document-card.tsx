@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
@@ -144,7 +145,7 @@ export function DocumentCard({
         <article className="group cursor-pointer">
           <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
             {doc.thumbnail_url ? (
-              <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
+              <Image src={doc.thumbnail_url} alt="" fill sizes="200px" className="object-cover" />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <BookOpen className="w-8 h-8 text-gray-300" aria-hidden="true" />
@@ -210,7 +211,7 @@ export function DocumentCard({
       <article className="group cursor-pointer">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
           {doc.thumbnail_url ? (
-            <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
+            <Image src={doc.thumbnail_url} alt="" fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
               <BookOpen className="w-10 h-10 text-gray-300" aria-hidden="true" />

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -170,9 +171,9 @@ export function MainHeader({
               {suggestions.filter(s => s.type === 'document').map(result => (
                 <button key={result.id} onClick={() => handleResultClick(result)}
                   className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-blue-50 text-left transition-colors" role="option">
-                  <div className="w-8 h-10 rounded bg-gray-100 overflow-hidden flex-shrink-0">
+                  <div className="w-8 h-10 rounded bg-gray-100 overflow-hidden flex-shrink-0 relative">
                     {result.thumbnail ? (
-                      <img src={result.thumbnail} alt="" className="w-full h-full object-cover" />
+                      <Image src={result.thumbnail} alt="" fill sizes="32px" className="object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center"><FileText className="w-4 h-4 text-gray-300" aria-hidden="true" /></div>
                     )}
@@ -189,9 +190,9 @@ export function MainHeader({
               {suggestions.filter(s => s.type === 'author').map(result => (
                 <button key={result.id} onClick={() => handleResultClick(result)}
                   className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-blue-50 text-left transition-colors" role="option">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 overflow-hidden flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 overflow-hidden flex-shrink-0 flex items-center justify-center text-white text-xs font-bold relative">
                     {result.thumbnail ? (
-                      <img src={result.thumbnail} alt="" className="w-full h-full object-cover" />
+                      <Image src={result.thumbnail} alt="" fill sizes="32px" className="object-cover" />
                     ) : result.title[0].toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
