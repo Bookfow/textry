@@ -458,73 +458,53 @@ export default function PDFViewer({
           </div>
         )}
 
-        {/* ━━━ 스크롤 모드 (가상화 적용) ━━━ */}
+        {/* 스크롤 모드 */}
         {viewMode === 'scroll' && (
           <div ref={scrollContainerRef} className="h-full overflow-y-auto scroll-smooth">
-            <div className="py-4 flex flex-col items-center">
+            <div className="py-4 flex flex-col items-center gap-4">
               <PDFDocument
                 file={pdfUrl}
                 onLoadSuccess={onDocumentLoadSuccess}
                 loading=""
-                className="flex flex-col items-center"
+                className="flex flex-col items-center gap-4"
                 options={pdfOptions}
               >
-                {Array.from({ length: numPages }, (_, index) => {
-                  const pNum = index + 1
-                  const isVisible = visiblePages.includes(pNum)
-                  return (
-                    <div
-                      key={`page_${pNum}`}
-                      data-page-number={pNum}
-                      className="mb-4"
-                      style={{ minHeight: isVisible ? undefined : pageHeight + 24 }}
-                    >
-                      {isVisible ? (
-                        <>
-                          <div className="dark:hidden" style={frameStyle}>
-                            <Page
-                              pageNumber={pNum}
-                              width={renderWidth}
-                              renderTextLayer={true}
-                              renderAnnotationLayer={true}
-                              loading={
-                                <div
-                                  className="flex items-center justify-center bg-gray-900 border border-gray-800"
-                                  style={{ width: renderWidth, height: pageHeight }}
-                                >
-                                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                </div>
-                              }
-                            />
+                {Array.from({ length: numPages }, (_, index) => (
+                  <div key={`page_${index + 1}`} data-page-number={index + 1}>
+                    <div className="dark:hidden" style={frameStyle}>
+                      <Page
+                        pageNumber={index + 1}
+                        width={renderWidth}
+                        renderTextLayer={true}
+                        renderAnnotationLayer={true}
+                        loading={
+                          <div
+                            className="flex items-center justify-center bg-gray-900 border border-gray-800"
+                            style={{ width: renderWidth, height: renderWidth * pageAspect }}
+                          >
+                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                           </div>
-                          <div className="hidden dark:block" style={frameStyleDark}>
-                            <Page
-                              pageNumber={pNum}
-                              width={renderWidth}
-                              renderTextLayer={true}
-                              renderAnnotationLayer={true}
-                              loading={
-                                <div
-                                  className="flex items-center justify-center bg-gray-900 border border-gray-800"
-                                  style={{ width: renderWidth, height: pageHeight }}
-                                >
-                                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                </div>
-                              }
-                            />
-                          </div>
-                        </>
-                      ) : (
-                        <div
-                          className="flex items-center justify-center rounded"
-                          style={{ width: renderWidth + 24, height: pageHeight + 24, background: 'rgba(255,255,255,0.03)' }}
-                        >
-                          <span className="text-sm text-white/20">{pNum}</span>
-                        </div>
-                      )}
+                        }
+                      />
                     </div>
-                  )
-                })}
+                    <div className="hidden dark:block" style={frameStyleDark}>
+                      <Page
+                        pageNumber={index + 1}
+                        width={renderWidth}
+                        renderTextLayer={true}
+                        renderAnnotationLayer={true}
+                        loading={
+                          <div
+                            className="flex items-center justify-center bg-gray-900 border border-gray-800"
+                            style={{ width: renderWidth, height: renderWidth * pageAspect }}
+                          >
+                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        }
+                      />
+                    </div>
+                  </div>
+                ))}
               </PDFDocument>
             </div>
           </div>
