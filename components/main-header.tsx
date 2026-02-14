@@ -210,8 +210,8 @@ export function MainHeader({
   return (
     <header className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b dark:border-gray-800">
       <div className="px-4 md:px-6 py-3">
-        <div className="flex items-center gap-4">
-          {/* 왼쪽: 햄버거 + 로고 */}
+      <div className="flex items-center justify-between gap-4">
+      {/* 왼쪽: 햄버거 + 로고 */}
           <div className="flex items-center gap-4">
             <button onClick={onMenuClick} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
               <Menu className="w-6 h-6" />
