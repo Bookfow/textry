@@ -529,8 +529,10 @@ export default function ReadPage() {
         sessionId={sessionId}
       />
 
-      {/* ━━━ 통합 상단 컨트롤 바 (auto-hide) ━━━ */}
-      <div className={`flex-shrink-0 z-50 transition-all duration-300 ${showControls ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+      {/* ━━━ 상단 오버레이: 컨트롤바 / 배너 광고 전환 ━━━ */}
+      <div className="absolute top-0 left-0 right-0 z-50">
+        {/* 컨트롤바 */}
+        <div className={`transition-all duration-300 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}`}>
         <div className="h-1 bg-[#153024] w-full">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
@@ -649,17 +651,18 @@ export default function ReadPage() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
 
-      {/* ━━━ 컨트롤바 숨겨질 때 상단 배너 광고 (프리미엄 제외) ━━━ */}
-      {!showControls && !isPremium && (
-        <div className="flex-shrink-0 z-50 bg-[#0f2419]/90 backdrop-blur-sm border-b border-[#1a3527] px-2 py-1 flex items-center justify-center cursor-pointer"
-          onClick={() => resetControlsTimer()}>
-          <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
-            <AdBanner position="top" documentId={documentId} authorId={document?.author_id} />
+        {/* 컨트롤바 숨겨질 때 배너 광고 (프리미엄 제외) */}
+        <div className={`transition-all duration-300 ${!showControls && !isPremium ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none absolute top-0 left-0 right-0'}`}>
+          <div className="bg-[#0f2419]/90 backdrop-blur-sm border-b border-[#1a3527] px-2 py-1 flex items-center justify-center cursor-pointer"
+            onClick={() => resetControlsTimer()}>
+            <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
+              <AdBanner position="top" documentId={documentId} authorId={document?.author_id} />
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* ━━━ 메인 컨텐츠 ━━━ */}
       <div className="flex flex-1 overflow-hidden">
