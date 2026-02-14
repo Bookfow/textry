@@ -93,34 +93,34 @@ export function NotificationsBell() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative rounded-full">
-          <Bell className="w-5 h-5" />
+        <Button variant="ghost" size="icon" className="relative rounded-full" aria-label={unreadCount > 0 ? `알림 ${unreadCount}개 읽지 않음` : '알림'}>
+          <Bell className="w-5 h-5" aria-hidden="true" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+            <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1" aria-hidden="true">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96 p-0">
+      <DropdownMenuContent align="end" className="w-96 p-0" aria-label="알림 목록">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <span className="font-bold text-base">알림</span>
           {unreadCount > 0 && (
-            <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-              <CheckCheck className="w-3 h-3" /> 모두 읽음
+            <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:underline flex items-center gap-1" aria-label="모든 알림 읽음 처리">
+              <CheckCheck className="w-3 h-3" aria-hidden="true" /> 모두 읽음
             </button>
           )}
         </div>
 
         {/* 알림 목록 */}
         {notifications.length === 0 ? (
-          <div className="p-8 text-center">
-            <Bell className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+          <div className="p-8 text-center" role="status">
+            <Bell className="w-8 h-8 text-gray-200 mx-auto mb-2" aria-hidden="true" />
             <p className="text-sm text-gray-400">알림이 없습니다</p>
           </div>
         ) : (
-          <div className="max-h-[420px] overflow-y-auto">
+          <div className="max-h-[420px] overflow-y-auto" role="list" aria-label="알림 목록">
             {notifications.map((notification) => {
               const { icon: Icon, color, bg } = getNotificationIcon(notification.type)
               return (
@@ -130,9 +130,11 @@ export function NotificationsBell() {
                   className={`flex items-start gap-3 px-4 py-3 cursor-pointer rounded-none border-b border-gray-50 ${
                     !notification.is_read ? 'bg-blue-50/50' : ''
                   }`}
+                  role="listitem"
+                  aria-label={`${notification.title} - ${getTimeAgo(notification.created_at)}${!notification.is_read ? ' (읽지 않음)' : ''}`}
                 >
                   {/* 아이콘 */}
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${bg}`}>
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${bg}`} aria-hidden="true">
                     <Icon className={`w-4 h-4 ${color}`} />
                   </div>
 
@@ -147,7 +149,7 @@ export function NotificationsBell() {
 
                   {/* 읽지 않음 표시 */}
                   {!notification.is_read && (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
+                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" aria-hidden="true" />
                   )}
                 </DropdownMenuItem>
               )

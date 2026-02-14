@@ -82,9 +82,10 @@ export function ReadingListButton({ documentId, compact = false }: ReadingListBu
             ? 'text-red-500 hover:bg-gray-800'
             : 'text-gray-400 hover:bg-gray-800 hover:text-white'
         }`}
-        title={inList ? '찜 해제' : '찜하기'}
+        aria-label={inList ? '읽기 목록에서 제거' : '읽기 목록에 추가'}
+        aria-pressed={inList}
       >
-        <Heart className="w-5 h-5" fill={inList ? 'currentColor' : 'none'} />
+        <Heart className="w-5 h-5" fill={inList ? 'currentColor' : 'none'} aria-hidden="true" />
       </button>
     )
   }
@@ -97,8 +98,10 @@ export function ReadingListButton({ documentId, compact = false }: ReadingListBu
       onClick={handleToggle}
       disabled={loading}
       className={`gap-2 ${inList ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
+      aria-label={inList ? '읽기 목록에서 제거' : '읽기 목록에 추가'}
+      aria-pressed={inList}
     >
-      <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} />
+      <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} aria-hidden="true" />
       <span className="font-semibold">{inList ? '찜함' : '찜하기'}</span>
     </Button>
   )

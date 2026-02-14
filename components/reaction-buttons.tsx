@@ -109,15 +109,17 @@ export function ReactionButtons({ documentId, initialLikes, initialDislikes }: R
   }
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4" role="group" aria-label="문서 반응">
       <Button
         variant={userReaction === 'like' ? 'default' : 'outline'}
         size="sm"
         onClick={() => handleReaction('like')}
         disabled={loading}
         className={`gap-2 ${userReaction === 'like' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
+        aria-label={`좋아요 ${likes.toLocaleString()}개${userReaction === 'like' ? ' (선택됨)' : ''}`}
+        aria-pressed={userReaction === 'like'}
       >
-        <ThumbsUp className={`w-4 h-4 ${userReaction === 'like' ? 'fill-current' : ''}`} />
+        <ThumbsUp className={`w-4 h-4 ${userReaction === 'like' ? 'fill-current' : ''}`} aria-hidden="true" />
         <span className="font-semibold">{likes.toLocaleString()}</span>
       </Button>
 
@@ -127,8 +129,10 @@ export function ReactionButtons({ documentId, initialLikes, initialDislikes }: R
         onClick={() => handleReaction('dislike')}
         disabled={loading}
         className={`gap-2 ${userReaction === 'dislike' ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
+        aria-label={`싫어요 ${dislikes.toLocaleString()}개${userReaction === 'dislike' ? ' (선택됨)' : ''}`}
+        aria-pressed={userReaction === 'dislike'}
       >
-        <ThumbsDown className={`w-4 h-4 ${userReaction === 'dislike' ? 'fill-current' : ''}`} />
+        <ThumbsDown className={`w-4 h-4 ${userReaction === 'dislike' ? 'fill-current' : ''}`} aria-hidden="true" />
         <span className="font-semibold">{dislikes.toLocaleString()}</span>
       </Button>
     </div>
