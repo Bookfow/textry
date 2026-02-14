@@ -3,8 +3,10 @@ import "./globals.css"
 import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/lib/theme-context"
 import { CookieConsent } from "@/components/cookie-consent"
+import { WebsiteJsonLd } from "@/components/json-ld"
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://textry-v1.vercel.app"),
   title: {
     default: "Textry — 지식을 스트리밍하다",
     template: "%s | Textry",
@@ -57,6 +59,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body>
+        <WebsiteJsonLd />
         <ThemeProvider>
           <AuthProvider>
             {children}

@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/json-ld'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -81,6 +82,55 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function ReadLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+export default async function ReadLayout({ params, children }: Props) {
+  const { id } = await params
+  const baseUrl = 'https://textry-v1.vercel.app'
+
+  let jsonLdProps = null
+
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const supabase = createClient(supabaseUrl, supabaseKey)
+
+      const { data: doc } = await supabase
+        .from('documents')
+        .select('title, description, thumbnail_url, created_at, updated_at, author_id')
+        .eq('id', id)
+        .single()
+
+      if (doc) {
+        const { data: author } = await supabase
+          .from('profiles')
+          .select('username, email')
+          .eq('id', doc.author_id)
+          .single()
+
+        jsonLdProps = {
+          title: doc.title,
+          description: doc.description || '',
+          authorName: author?.username || author?.email || '작가',
+          datePublished: doc.created_at,
+          dateModified: doc.updated_at,
+          thumbnailUrl: doc.thumbnail_url || undefined,
+          url: `${baseUrl}/read/${id}`,
+        }
+      }
+    } catch {
+      // JSON-LD 실패해도 페이지는 정상 렌더링
+    }
+  }
+
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: '홈', url: baseUrl },
+          { name: '탐색', url: `${baseUrl}/browse` },
+          { name: jsonLdProps?.title || '문서', url: `${baseUrl}/read/${id}` },
+        ]}
+      />
+      {jsonLdProps && <ArticleJsonLd {...jsonLdProps} />}
+      {children}
+    </>
+  )
 }
