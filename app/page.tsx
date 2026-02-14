@@ -35,10 +35,10 @@ if (loading || user) {
             </h1>
             <div className="flex gap-4">
             <Link href="/browse">
-  <Button variant="ghost" className="text-gray-700 hover:text-gray-900">둘러보기</Button>
+            <Button variant="ghost" className="text-gray-900 hover:text-black font-medium">둘러보기</Button>
 </Link>
 <Link href="/login">
-  <Button variant="ghost" className="text-gray-700 hover:text-gray-900">로그인</Button>
+<Button variant="ghost" className="text-gray-900 hover:text-black font-medium">로그인</Button>
 </Link>
               <Link href="/signup">
                 <Button className="bg-gradient-to-r from-[#a67c52] to-[#c9a96e] hover:from-[#8a6842] hover:to-[#b89860]">
@@ -52,10 +52,10 @@ if (loading || user) {
 
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-[#a67c52] via-[#f0d58c] to-[#a67c52] bg-clip-text text-transparent">
+        <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-[#7a5a30] via-[#c9a96e] to-[#7a5a30] bg-clip-text text-transparent">
             지식을 스트리밍하다
           </h2>
-          <p className="text-xl md:text-2xl text-gray-600 mb-8">
+          <p className="text-xl md:text-2xl text-gray-900 mb-8">
             유튜브처럼 자유롭게 문서를 읽고, 공유하고, 소통하세요
           </p>
           <div className="flex gap-4 justify-center">
