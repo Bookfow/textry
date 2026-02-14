@@ -76,8 +76,8 @@ export function ReportButton({ documentId, compact = false }: ReportButtonProps)
         </Button>
       )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+<Dialog open={open} onOpenChange={setOpen}>
+<DialogContent className="z-[60]">
           <DialogHeader>
             <DialogTitle>콘텐츠 신고</DialogTitle>
           </DialogHeader>
