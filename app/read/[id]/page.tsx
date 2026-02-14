@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -29,6 +29,16 @@ import { ReadingListButton } from '@/components/reading-list-button'
 import { CommentsSection } from '@/components/comments-section'
 
 import type { ViewMode } from '@/components/pdf-viewer'
+
+type SeriesInfo = {
+  seriesId: string
+  seriesTitle: string
+  currentPosition: number
+  totalDocs: number
+  docs: { documentId: string; position: number; title: string }[]
+  prevDocId: string | null
+  nextDocId: string | null
+}
 
 const PDFViewer = dynamic(() => import('@/components/pdf-viewer'), {
   ssr: false,
@@ -104,6 +114,9 @@ export default function ReadPage() {
   const [showSidePanel, setShowSidePanel] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
+  // 시리즈 상태
+  const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null)
+
   // 읽기 시간 추적
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [startTime] = useState<number>(Date.now())
@@ -149,7 +162,6 @@ export default function ReadPage() {
     const prevPage = prevPageRef.current
     prevPageRef.current = pageNumber
 
-    // 끝 광고
     if (pageNumber === numPages && !endAdShown && tierConfig.showEndAd) {
       const timeSinceLastAd = (Date.now() - lastAdTime) / 1000
       if (timeSinceLastAd >= tierConfig.minTimeBetweenAds / 2 || adCount === 0) {
@@ -162,7 +174,6 @@ export default function ReadPage() {
       return
     }
 
-    // 중간 광고
     if (tierConfig.pageInterval === 0) return
     if (adCount >= tierConfig.maxAdsPerSession) return
     if (pageNumber <= prevPage) return
@@ -282,7 +293,6 @@ export default function ReadPage() {
         .single()
       if (authorData) setAuthorProfile(authorData)
 
-      // 조회수 중복 방지: 세션당 1회만 카운트
       const viewKey = `viewed_${documentId}`
       if (!sessionStorage.getItem(viewKey)) {
         await supabase
@@ -296,12 +306,67 @@ export default function ReadPage() {
         .from('documents')
         .getPublicUrl(docData.file_path)
       setPdfUrl(urlData.publicUrl)
+
+      // 시리즈 정보 로딩
+      loadSeriesInfo(documentId)
     } catch (err) {
       console.error('Error loading document:', err)
       alert('문서를 불러오는데 실패했습니다.')
       router.push('/browse')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadSeriesInfo = async (docId: string) => {
+    try {
+      const { data: seriesDoc } = await supabase
+        .from('series_documents')
+        .select('series_id, position')
+        .eq('document_id', docId)
+        .maybeSingle()
+      if (!seriesDoc) return
+
+      const { data: series } = await supabase
+        .from('document_series')
+        .select('id, title')
+        .eq('id', seriesDoc.series_id)
+        .single()
+      if (!series) return
+
+      const { data: allDocs } = await supabase
+        .from('series_documents')
+        .select('document_id, position')
+        .eq('series_id', series.id)
+        .order('position', { ascending: true })
+      if (!allDocs) return
+
+      const docIds = allDocs.map(d => d.document_id)
+      const { data: docTitles } = await supabase
+        .from('documents')
+        .select('id, title')
+        .in('id', docIds)
+      const titleMap = new Map((docTitles || []).map(d => [d.id, d.title]))
+
+      const currentIndex = allDocs.findIndex(d => d.document_id === docId)
+      const prevDoc = currentIndex > 0 ? allDocs[currentIndex - 1] : null
+      const nextDoc = currentIndex < allDocs.length - 1 ? allDocs[currentIndex + 1] : null
+
+      setSeriesInfo({
+        seriesId: series.id,
+        seriesTitle: series.title,
+        currentPosition: currentIndex + 1,
+        totalDocs: allDocs.length,
+        docs: allDocs.map(d => ({
+          documentId: d.document_id,
+          position: d.position,
+          title: titleMap.get(d.document_id) || '알 수 없는 문서',
+        })),
+        prevDocId: prevDoc?.document_id || null,
+        nextDocId: nextDoc?.document_id || null,
+      })
+    } catch (err) {
+      console.error('Error loading series info:', err)
     }
   }
 
@@ -431,11 +496,14 @@ export default function ReadPage() {
               </button>
               <div className="hidden lg:block max-w-[180px]">
                 <h1 className="text-sm font-medium text-white truncate">{document?.title}</h1>
+                {seriesInfo && (
+                  <p className="text-[10px] text-gray-400 truncate">📚 {seriesInfo.seriesTitle} ({seriesInfo.currentPosition}/{seriesInfo.totalDocs})</p>
+                )}
               </div>
             </div>
 
             <div className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5">
-            <div className="flex items-center bg-gray-800 rounded-lg p-0.5">
+              <div className="flex items-center bg-gray-800 rounded-lg p-0.5">
                 <button
                   onClick={() => setViewMode('page')}
                   className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
@@ -513,7 +581,7 @@ export default function ReadPage() {
             )}
 
             <div className="flex items-center gap-1 flex-shrink-0">
-            <ReadingListButton documentId={documentId} compact />
+              <ReadingListButton documentId={documentId} compact />
               <ShareButton documentId={documentId} title={document?.title || ''} />
               <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" title="전체화면 (F키)">
                 {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
@@ -560,6 +628,60 @@ export default function ReadPage() {
                 <span>읽기 시간: {Math.floor(totalTime / 60)}분 {totalTime % 60}초</span>
               </div>
             </div>
+
+            {/* ━━━ 시리즈 정보 ━━━ */}
+            {seriesInfo && (
+              <div className="p-4 border-b border-gray-800">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-base">📚</span>
+                  <div>
+                    <p className="text-white font-medium text-sm">{seriesInfo.seriesTitle}</p>
+                    <p className="text-gray-400 text-xs">{seriesInfo.currentPosition} / {seriesInfo.totalDocs}편</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1 mb-3 max-h-[200px] overflow-y-auto">
+                  {seriesInfo.docs.map((doc, i) => (
+                    <div
+                      key={doc.documentId}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-colors ${
+                        doc.documentId === documentId
+                          ? 'bg-blue-600/20 text-blue-400 font-medium'
+                          : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 cursor-pointer'
+                      }`}
+                      onClick={() => {
+                        if (doc.documentId !== documentId) router.push(`/read/${doc.documentId}`)
+                      }}
+                    >
+                      <span className="w-5 text-center flex-shrink-0">{i + 1}</span>
+                      <span className="truncate">{doc.title}</span>
+                      {doc.documentId === documentId && (
+                        <span className="ml-auto text-[10px] bg-blue-600/30 px-1.5 py-0.5 rounded">현재</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-2">
+                  {seriesInfo.prevDocId && (
+                    <button
+                      onClick={() => router.push(`/read/${seriesInfo.prevDocId}`)}
+                      className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors text-center"
+                    >
+                      ← 이전편
+                    </button>
+                  )}
+                  {seriesInfo.nextDocId && (
+                    <button
+                      onClick={() => router.push(`/read/${seriesInfo.nextDocId}`)}
+                      className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs text-white transition-colors text-center"
+                    >
+                      다음편 →
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {authorProfile && (
               <div className="p-4 border-b border-gray-800">
