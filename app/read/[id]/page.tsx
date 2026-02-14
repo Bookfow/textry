@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -529,10 +529,9 @@ export default function ReadPage() {
         sessionId={sessionId}
       />
 
-      {/* ━━━ 상단 오버레이: 컨트롤바 / 배너 광고 전환 ━━━ */}
-      <div className="absolute top-0 left-0 right-0 z-50">
-        {/* 컨트롤바 */}
-        <div className={`transition-all duration-300 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}`}>
+      {/* ━━━ 상단 오버레이: 컨트롤바 OR 배너 광고 ━━━ */}
+      {showControls ? (
+        <div className="absolute top-0 left-0 right-0 z-50">
         <div className="h-1 bg-[#153024] w-full">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
@@ -652,17 +651,14 @@ export default function ReadPage() {
           </div>
         </div>
         </div>
-
-        {/* 컨트롤바 숨겨질 때 배너 광고 (프리미엄 제외) */}
-        <div className={`transition-all duration-300 ${!showControls && !isPremium ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none absolute top-0 left-0 right-0'}`}>
-          <div className="bg-[#0f2419]/90 backdrop-blur-sm border-b border-[#1a3527] px-2 py-1 flex items-center justify-center cursor-pointer"
-            onClick={() => resetControlsTimer()}>
-            <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
-              <AdBanner position="top" documentId={documentId} authorId={document?.author_id} />
-            </div>
+      ) : !isPremium ? (
+        <div className="absolute top-0 left-0 right-0 z-50 bg-[#0f2419]/90 backdrop-blur-sm border-b border-[#1a3527] px-2 py-1 flex items-center justify-center cursor-pointer"
+          onClick={() => resetControlsTimer()}>
+          <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
+            <AdBanner position="top" documentId={documentId} authorId={document?.author_id} />
           </div>
         </div>
-      </div>
+      ) : null}
 
       {/* ━━━ 메인 컨텐츠 ━━━ */}
       <div className="flex flex-1 overflow-hidden">
