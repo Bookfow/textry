@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Eye, ThumbsUp, Heart, HeartOff } from 'lucide-react'
+import { Eye, ThumbsUp, Heart, HeartOff, Compass } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 
@@ -114,11 +114,17 @@ export default function ReadingListPage() {
       </div>
 
       {documents.length === 0 ? (
-        <div className="text-center py-16">
-          <Heart className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 mb-2">찜한 콘텐츠가 없습니다</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500">문서를 읽으면서 ❤️ 버튼을 눌러 찜해보세요</p>
-          <Link href="/browse" className="inline-block mt-4 text-blue-600 hover:underline text-sm">
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 -m-4 bg-gradient-to-br from-red-100 to-pink-100 dark:from-red-900/20 dark:to-pink-900/20 rounded-full blur-xl opacity-60" />
+            <div className="relative w-20 h-20 bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/30 dark:to-pink-900/30 rounded-full flex items-center justify-center">
+              <Heart className="w-10 h-10 text-red-400 dark:text-red-300" />
+            </div>
+          </div>
+          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">아직 찜한 문서가 없어요</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 text-center max-w-xs">문서를 읽으면서 하트 버튼을 눌러<br />나만의 컬렉션을 만들어보세요!</p>
+          <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl transition-colors shadow-lg shadow-red-500/20">
+            <Compass className="w-4 h-4" />
             문서 둘러보기
           </Link>
         </div>

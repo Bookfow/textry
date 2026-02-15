@@ -111,7 +111,7 @@ if (loading || user) {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div>
-              <h3 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">유튜브처럼 쉬운 문서 플랫폼</h3>
+              <h3 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">유튜브처럼 쉬운 문서 스트리밍 플랫폼</h3>
               <p className="text-gray-600 dark:text-[#8fbba5] mb-6">좋아요, 구독, 댓글, 읽기 목록... 익숙한 기능으로 문서를 더 재미있게!</p>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">

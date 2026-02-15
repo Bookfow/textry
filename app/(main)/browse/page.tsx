@@ -6,7 +6,7 @@ import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Eye, ThumbsUp, TrendingUp, Heart } from 'lucide-react'
+import { Eye, ThumbsUp, TrendingUp, Heart, Search } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 
@@ -179,10 +179,19 @@ function BrowseContent() {
       </div>
 
       {documents.length === 0 ? (
-        <div className="text-center py-16">
-          <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 mb-2">인기 있는 콘텐츠가 없습니다</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500">최근 7일 내 등록된 문서가 없습니다</p>
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 -m-4 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full blur-xl opacity-60" />
+            <div className="relative w-20 h-20 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center">
+              <TrendingUp className="w-10 h-10 text-blue-400 dark:text-blue-300" />
+            </div>
+          </div>
+          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">아직 인기 콘텐츠가 없어요</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 text-center max-w-xs">최근 7일 내 등록된 문서가 없습니다.<br />새로운 문서를 검색해보세요!</p>
+          <Link href="/home" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors shadow-lg shadow-blue-600/20">
+            <Search className="w-4 h-4" />
+            문서 검색하기
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
