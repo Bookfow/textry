@@ -585,7 +585,7 @@ export default function ReadPage() {
 
       {/* ━━━ 배경/밝기 팝업 (최상위 레벨) ━━━ */}
       {showThemePopup && (
-        <div ref={themePopupRef} className="fixed top-[62px] left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-[200px] w-56 bg-[#0f2419] border border-[#1c3d2e] rounded-xl shadow-2xl p-4 z-[9999]">
+        <div ref={themePopupRef} className="fixed top-[62px] left-1/2 -translate-x-1/2 w-56 bg-[#0f2419] border border-[#1c3d2e] rounded-xl shadow-2xl p-4 z-[9999]">
           <p className="text-xs text-[#6b9b84] mb-2 font-medium">배경 테마</p>
           <div className="flex gap-2 mb-4">
             {(Object.keys(BG_THEMES) as BgTheme[]).map((key) => (
