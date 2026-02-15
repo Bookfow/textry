@@ -53,6 +53,15 @@ export default function PDFViewer({
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
 
+  // 핀치줌 도중 CSS transform으로 시각적 확대만 (리렌더 방지)
+  const [pinchVisualRatio, _setPinchVisualRatio] = useState(1)
+  const [isPinchActive, setIsPinchActive] = useState(false)
+  const pinchVisualRatioRef = useRef(1)
+  const setPinchVisualRatio = (v: number) => {
+    pinchVisualRatioRef.current = v
+    _setPinchVisualRatio(v)
+  }
+
   // 최신 props를 ref로 유지
   const scaleRef = useRef(scale)
   const viewModeRef = useRef(viewMode)
@@ -168,6 +177,8 @@ export default function PDFViewer({
         pinchStartDistRef.current = dist
         pinchStartScaleRef.current = scaleRef.current
         isPinchingRef.current = true
+        setIsPinchActive(true)
+        setPinchVisualRatio(1)
         return
       }
       // 1손가락 → 스와이프 준비
@@ -177,30 +188,31 @@ export default function PDFViewer({
     }
 
     const handleTouchMove = (e: TouchEvent) => {
-      // 2손가락 → 핀치줌 (순차 감지 포함)
+      // 2손가락 → 핀치줌
       if (e.touches.length === 2) {
         e.preventDefault()
         e.stopPropagation()
 
         if (!isPinchingRef.current) {
-          // 순차적으로 두번째 손가락이 올라온 경우 → 핀치 시작
+          // 순차적으로 두번째 손가락이 올라온 경우
           const dist = getTouchDistance(e.touches)
           pinchStartDistRef.current = dist
           pinchStartScaleRef.current = scaleRef.current
           isPinchingRef.current = true
-          // 스와이프 취소
+          setIsPinchActive(true)
+          setPinchVisualRatio(1)
           setSwipeOffset(0)
           touchStartRef.current = null
           touchEndRef.current = null
           return
         }
 
-        // 핀치 진행
+        // 핀치 진행: CSS transform만 업데이트 (리렌더 없음)
         if (pinchStartDistRef.current !== null) {
           const currentDist = getTouchDistance(e.touches)
           const ratio = currentDist / pinchStartDistRef.current
-          const newScale = Math.min(Math.max(pinchStartScaleRef.current * ratio, 0.5), 3.0)
-          if (onScaleChangeRef.current) onScaleChangeRef.current(newScale)
+          const clampedRatio = Math.min(Math.max(ratio, 0.5 / pinchStartScaleRef.current), 3.0 / pinchStartScaleRef.current)
+          setPinchVisualRatio(clampedRatio)
         }
         return
       }
@@ -214,10 +226,14 @@ export default function PDFViewer({
     }
 
     const handleTouchEnd = () => {
-      // 핀치 종료
+      // 핀치 종료: 최종 scale 한 번만 적용
       if (isPinchingRef.current) {
+        const finalScale = Math.min(Math.max(pinchStartScaleRef.current * (pinchStartDistRef.current !== null ? pinchVisualRatioRef.current : 1), 0.5), 3.0)
+        if (onScaleChangeRef.current) onScaleChangeRef.current(finalScale)
         pinchStartDistRef.current = null
         isPinchingRef.current = false
+        setIsPinchActive(false)
+        setPinchVisualRatio(1)
         return
       }
 
@@ -323,8 +339,8 @@ export default function PDFViewer({
         {viewMode === 'page' && (
           <div className="h-full flex items-center justify-center overflow-auto">
             <div
-              className="transition-transform duration-200 ease-out"
-              style={{ transform: `translateX(${swipeOffset}px)` }}
+              className={isPinchActive ? "" : "transition-transform duration-200 ease-out"}
+              style={{ transform: `translateX(${swipeOffset}px) scale(${isPinchActive ? pinchVisualRatio : 1})`, transformOrigin: 'center center' }}
             >
               {pdfLoading && (
                 <div className="flex items-center justify-center p-12">
@@ -381,8 +397,8 @@ export default function PDFViewer({
         {viewMode === 'book' && (
           <div className="h-full flex items-center justify-center overflow-auto">
             <div
-              className="transition-transform duration-200 ease-out"
-              style={{ transform: `translateX(${swipeOffset}px)` }}
+              className={isPinchActive ? "" : "transition-transform duration-200 ease-out"}
+              style={{ transform: `translateX(${swipeOffset}px) scale(${isPinchActive ? pinchVisualRatio : 1})`, transformOrigin: 'center center' }}
             >
               {pdfLoading && (
                 <div className="flex items-center justify-center p-12">
