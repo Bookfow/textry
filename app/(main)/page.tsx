@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
-import { BookOpen, Users, TrendingUp, Sparkles } from 'lucide-react'
+import { BookOpen, Users, TrendingUp, Sparkles, ThumbsUp, Compass } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
 import { HomeSkeleton } from '@/components/loading-skeleton'
 
@@ -16,6 +16,8 @@ export default function HomePage() {
   const [subscribedDocs, setSubscribedDocs] = useState<DocWithAuthor[]>([])
   const [popularDocs, setPopularDocs] = useState<DocWithAuthor[]>([])
   const [recentDocs, setRecentDocs] = useState<DocWithAuthor[]>([])
+  const [recommendedDocs, setRecommendedDocs] = useState<DocWithAuthor[]>([])
+  const [alsoReadDocs, setAlsoReadDocs] = useState<DocWithAuthor[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -91,6 +93,117 @@ export default function HomePage() {
         .limit(12)
       if (recent) setRecentDocs(recent)
 
+      // ── 개인화 추천 (로그인 사용자만) ──
+      if (user) {
+        // 1. 좋아할 만한 콘텐츠: 좋아요한 문서의 카테고리/작가 기반
+        const { data: likedReactions } = await supabase
+          .from('reactions')
+          .select('document_id')
+          .eq('user_id', user.id)
+          .eq('type', 'like')
+          .limit(20)
+
+        const { data: readProgress } = await supabase
+          .from('reading_progress')
+          .select('document_id')
+          .eq('user_id', user.id)
+          .limit(30)
+
+        const readDocIds = new Set([
+          ...(likedReactions || []).map((r: any) => r.document_id),
+          ...(readProgress || []).map((r: any) => r.document_id),
+        ])
+
+        if (readDocIds.size > 0) {
+          // 읽은 문서들의 카테고리와 작가 파악
+          const { data: readDocsInfo } = await supabase
+            .from('documents')
+            .select('category, author_id')
+            .in('id', [...readDocIds])
+
+          if (readDocsInfo && readDocsInfo.length > 0) {
+            // 카테고리 빈도 계산
+            const catCount: Record<string, number> = {}
+            const authorIds = new Set<string>()
+            readDocsInfo.forEach((d: any) => {
+              if (d.category) catCount[d.category] = (catCount[d.category] || 0) + 1
+              if (d.author_id) authorIds.add(d.author_id)
+            })
+            const topCategories = Object.entries(catCount)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 3)
+              .map(([cat]) => cat)
+
+            // 좋아할 만한 콘텐츠: 같은 카테고리 + 아직 안 읽은 문서
+            if (topCategories.length > 0) {
+              const { data: recommended } = await supabase
+                .from('documents')
+                .select('*, profiles!documents_author_id_fkey(username, email, avatar_url)')
+                .eq('is_published', true)
+                .in('category', topCategories)
+                .order('likes_count', { ascending: false })
+                .limit(30)
+
+              if (recommended) {
+                const filtered = recommended.filter((d: any) => !readDocIds.has(d.id) && d.author_id !== user.id)
+                setRecommendedDocs(filtered.slice(0, 12))
+              }
+            }
+
+            // 2. 이 문서를 읽은 사람들이 본 문서
+            // 내가 읽은 문서를 읽은 다른 사용자들 찾기
+            const readDocArray = [...readDocIds].slice(0, 10)
+            const { data: otherReaders } = await supabase
+              .from('reading_progress')
+              .select('user_id')
+              .in('document_id', readDocArray)
+              .neq('user_id', user.id)
+              .limit(50)
+
+            if (otherReaders && otherReaders.length > 0) {
+              const otherUserIds = [...new Set(otherReaders.map((r: any) => r.user_id))].slice(0, 20)
+
+              // 그 사람들이 읽은 다른 문서
+              const { data: otherReadDocs } = await supabase
+                .from('reading_progress')
+                .select('document_id')
+                .in('user_id', otherUserIds)
+                .limit(100)
+
+              if (otherReadDocs && otherReadDocs.length > 0) {
+                // 빈도 기반 정렬 (많이 겹치는 문서 우선)
+                const docFreq: Record<string, number> = {}
+                otherReadDocs.forEach((r: any) => {
+                  if (!readDocIds.has(r.document_id)) {
+                    docFreq[r.document_id] = (docFreq[r.document_id] || 0) + 1
+                  }
+                })
+                const topDocIds = Object.entries(docFreq)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 12)
+                  .map(([id]) => id)
+
+                if (topDocIds.length > 0) {
+                  const { data: alsoDocs } = await supabase
+                    .from('documents')
+                    .select('*, profiles!documents_author_id_fkey(username, email, avatar_url)')
+                    .in('id', topDocIds)
+                    .eq('is_published', true)
+
+                  if (alsoDocs) {
+                    // 빈도순 정렬 유지
+                    const sorted = topDocIds
+                      .map(id => alsoDocs.find((d: any) => d.id === id))
+                      .filter(Boolean) as DocWithAuthor[]
+                    setAlsoReadDocs(sorted)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
     } catch (err) {
       console.error('Error loading home:', err)
     } finally {
@@ -142,7 +255,7 @@ export default function HomePage() {
     return <HomeSkeleton />
   }
 
-  const hasAnyContent = continueReading.length > 0 || subscribedDocs.length > 0 || popularDocs.length > 0 || recentDocs.length > 0
+  const hasAnyContent = continueReading.length > 0 || subscribedDocs.length > 0 || popularDocs.length > 0 || recentDocs.length > 0 || recommendedDocs.length > 0 || alsoReadDocs.length > 0
 
   return (
     <div className="min-h-screen">
@@ -156,6 +269,8 @@ export default function HomePage() {
           ) : (
             <>
               <ShelfSection title="인기 있는 콘텐츠" icon={TrendingUp} docs={popularDocs} />
+              <ShelfSection title="좋아할 만한 콘텐츠" icon={ThumbsUp} docs={recommendedDocs} />
+              <ShelfSection title="이 문서를 읽은 사람들이 본" icon={Compass} docs={alsoReadDocs} />
               <ShelfSection title="가장 최근 콘텐츠" icon={Sparkles} docs={recentDocs} />
               <ShelfSection title="구독자의 새 콘텐츠" icon={Users} docs={subscribedDocs} />
               <ShelfSection title="읽고 있는 콘텐츠" icon={BookOpen} docs={continueReading} />
