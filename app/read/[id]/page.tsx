@@ -657,7 +657,7 @@ export default function ReadPage() {
       ) : null}
 
       {/* ━━━ 메인 컨텐츠 ━━━ */}
-      <div className="flex flex-1 overflow-hidden pt-[55px]">
+      <div className="flex flex-1 overflow-hidden pt-[60px]">
         <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidePanel ? 'sm:mr-[380px]' : ''}`}>
           <div className="flex-1 overflow-hidden">
             {pdfUrl && (
