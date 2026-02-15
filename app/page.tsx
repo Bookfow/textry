@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { FileText, Zap, Users, TrendingUp, BookOpen, MessageCircle, Heart, Bookmark } from 'lucide-react'
+import { FileText, Zap, Users, TrendingUp, BookOpen, MessageCircle, Heart, Bookmark, ThumbsUp, Eye, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 
 export default function LandingPage() {
   const { user, loading } = useAuth()
@@ -128,15 +128,125 @@ if (loading || user) {
                 </div>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-amber-100 to-orange-100 dark:from-[#153024] dark:to-[#1c3d2e] rounded-2xl p-8 h-64 flex items-center justify-center">
-              <FileText className="w-32 h-32 text-[#a67c52] dark:text-[#f0d58c] opacity-20" />
+
+            {/* ━━━ PDF 리더 목업 ━━━ */}
+            <div className="bg-gradient-to-br from-amber-100 to-orange-100 dark:from-[#153024] dark:to-[#1c3d2e] rounded-2xl p-4 shadow-xl overflow-hidden">
+              <div className="bg-gray-900 dark:bg-[#0b1a13] rounded-xl overflow-hidden shadow-2xl">
+                {/* 상단 컨트롤바 */}
+                <div className="bg-gray-800 dark:bg-[#0f2419] px-3 py-2 flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                  </div>
+                  <div className="flex-1 flex items-center justify-center gap-2">
+                    <ChevronLeft className="w-3.5 h-3.5 text-gray-500" />
+                    <span className="text-[10px] text-gray-400 font-mono">12 / 48</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
+                  </div>
+                  <div className="text-[10px] text-gray-500 font-mono">100%</div>
+                </div>
+                {/* 프로그레스바 */}
+                <div className="h-0.5 bg-gray-800 dark:bg-[#153024]">
+                  <div className="h-full w-1/4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-r" />
+                </div>
+                {/* 페이지 본문 목업 */}
+                <div className="p-5 space-y-2.5 min-h-[180px]">
+                  <div className="h-3.5 bg-gray-700/40 dark:bg-[#1c3d2e]/60 rounded w-3/4" />
+                  <div className="h-2.5 bg-gray-700/25 dark:bg-[#1c3d2e]/40 rounded w-full" />
+                  <div className="h-2.5 bg-gray-700/25 dark:bg-[#1c3d2e]/40 rounded w-full" />
+                  <div className="h-2.5 bg-gray-700/25 dark:bg-[#1c3d2e]/40 rounded w-5/6" />
+                  <div className="h-2.5 bg-gray-700/25 dark:bg-[#1c3d2e]/40 rounded w-full" />
+                  <div className="h-2.5 bg-gray-700/25 dark:bg-[#1c3d2e]/40 rounded w-2/3" />
+                  <div className="mt-3 h-16 bg-gray-700/15 dark:bg-[#1c3d2e]/30 rounded-lg" />
+                </div>
+                {/* 하단 인터랙션 바 */}
+                <div className="px-4 py-2.5 border-t border-gray-800 dark:border-[#1c3d2e] flex items-center gap-4">
+                  <div className="flex items-center gap-1.5">
+                    <ThumbsUp className="w-3.5 h-3.5 text-blue-400" />
+                    <span className="text-[10px] text-gray-400">234</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <MessageCircle className="w-3.5 h-3.5 text-gray-500" />
+                    <span className="text-[10px] text-gray-400">18</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Bookmark className="w-3.5 h-3.5 text-amber-400" />
+                  </div>
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500" />
+                    <span className="text-[10px] text-gray-400">김작가</span>
+                    <span className="text-[9px] px-1.5 py-0.5 bg-blue-600 text-white rounded">구독</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="bg-gradient-to-br from-amber-100 to-yellow-100 dark:from-[#153024] dark:to-[#1c3d2e] rounded-2xl p-8 h-64 flex items-center justify-center order-2 md:order-1">
-              <Users className="w-32 h-32 text-[#a67c52] dark:text-[#f0d58c] opacity-20" />
+
+            {/* ━━━ 대시보드 목업 ━━━ */}
+            <div className="bg-gradient-to-br from-amber-100 to-yellow-100 dark:from-[#153024] dark:to-[#1c3d2e] rounded-2xl p-4 shadow-xl overflow-hidden order-2 md:order-1">
+              <div className="bg-white dark:bg-[#0f2419] rounded-xl overflow-hidden shadow-2xl">
+                {/* 상단 헤더 */}
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-[#1c3d2e]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-[11px] font-semibold text-gray-800 dark:text-white">작가 대시보드</div>
+                      <div className="text-[9px] text-gray-400 dark:text-[#6b9b84]">이번 달 성과</div>
+                    </div>
+                    <div className="text-[9px] px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium">↑ 24%</div>
+                  </div>
+                </div>
+                {/* 통계 카드 */}
+                <div className="p-3 grid grid-cols-3 gap-2">
+                  <div className="bg-gray-50 dark:bg-[#153024] rounded-lg p-2.5 text-center">
+                    <Eye className="w-3.5 h-3.5 text-blue-500 mx-auto mb-1" />
+                    <div className="text-sm font-bold text-gray-900 dark:text-white">12.4K</div>
+                    <div className="text-[9px] text-gray-500 dark:text-[#6b9b84]">조회수</div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-[#153024] rounded-lg p-2.5 text-center">
+                    <Users className="w-3.5 h-3.5 text-purple-500 mx-auto mb-1" />
+                    <div className="text-sm font-bold text-gray-900 dark:text-white">847</div>
+                    <div className="text-[9px] text-gray-500 dark:text-[#6b9b84]">구독자</div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-[#153024] rounded-lg p-2.5 text-center">
+                    <TrendingUp className="w-3.5 h-3.5 text-amber-500 mx-auto mb-1" />
+                    <div className="text-sm font-bold text-gray-900 dark:text-white">₩84K</div>
+                    <div className="text-[9px] text-gray-500 dark:text-[#6b9b84]">수익</div>
+                  </div>
+                </div>
+                {/* 미니 차트 */}
+                <div className="px-4 pb-3">
+                  <div className="flex items-end gap-1 h-12">
+                    {[35, 48, 42, 58, 52, 68, 75, 62, 80, 72, 88, 92].map((h, i) => (
+                      <div key={i} className="flex-1 rounded-t" style={{ height: `${h}%`, background: i >= 10 ? 'linear-gradient(to top, #a67c52, #c9a96e)' : i >= 8 ? 'rgba(166,124,82,0.6)' : 'rgba(166,124,82,0.25)' }} />
+                    ))}
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-[8px] text-gray-400 dark:text-[#6b9b84]">1월</span>
+                    <span className="text-[8px] text-gray-400 dark:text-[#6b9b84]">12월</span>
+                  </div>
+                </div>
+                {/* 인기 문서 리스트 */}
+                <div className="px-3 pb-3 space-y-1.5">
+                  {[
+                    { title: 'Next.js 완벽 가이드', views: '3.2K', trend: '+12%' },
+                    { title: '디자인 시스템 구축', views: '2.8K', trend: '+8%' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 dark:bg-[#153024] rounded-lg">
+                      <div className="w-5 h-7 bg-gradient-to-br from-blue-200 to-purple-200 dark:from-blue-900/40 dark:to-purple-900/40 rounded flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[10px] font-medium text-gray-800 dark:text-white truncate">{item.title}</div>
+                        <div className="text-[9px] text-gray-400 dark:text-[#6b9b84]">{item.views} 조회</div>
+                      </div>
+                      <span className="text-[9px] text-green-600 dark:text-green-400 font-medium">{item.trend}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
+
             <div className="order-1 md:order-2">
               <h3 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">작가와 독자가 함께 성장</h3>
               <p className="text-gray-600 dark:text-[#8fbba5] mb-6">작가는 광고 수익을 얻고, 독자는 무료로 문서를 읽고, 모두가 Win-Win!</p>
