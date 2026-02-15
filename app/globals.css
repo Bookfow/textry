@@ -243,3 +243,9 @@
 .react-pdf__Page__annotations {
   border: 1px solid lightgray;
 }
+/* 모바일 링크 long-press 메뉴 비활성화 */
+a {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
