@@ -8,11 +8,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import Link from 'next/link'
-import Image from 'next/image'
 import {
   Plus, GripVertical, Trash2, Play, Edit2, BookOpen, Eye,
   ChevronUp, ChevronDown, X,
 } from 'lucide-react'
+import { SeriesSkeleton } from '@/components/loading-skeleton'
 
 type Series = {
   id: string
@@ -203,11 +203,7 @@ export default function SeriesPage() {
   const availableDocs = myDocuments.filter(d => !seriesDocs.some(sd => sd.document_id === d.id))
 
   if (!user) return <div className="min-h-screen flex items-center justify-center"><p>로그인이 필요합니다.</p></div>
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-      <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return <SeriesSkeleton />
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -306,9 +302,9 @@ export default function SeriesPage() {
                       </div>
 
                       {/* 썸네일 */}
-                      <div className="w-12 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative">
+                      <div className="w-12 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
                         {sd.document?.thumbnail_url ? (
-                          <Image src={sd.document.thumbnail_url} alt="" fill sizes="48px" className="object-cover" />
+                          <img src={sd.document.thumbnail_url} alt="" className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-xl opacity-20">📄</div>
                         )}
@@ -386,9 +382,9 @@ export default function SeriesPage() {
                   onClick={() => handleAddDocToSeries(doc.id)}
                   className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-left transition-colors"
                 >
-                  <div className="w-10 h-14 rounded bg-gray-100 dark:bg-gray-700 overflow-hidden flex-shrink-0 relative">
+                  <div className="w-10 h-14 rounded bg-gray-100 dark:bg-gray-700 overflow-hidden flex-shrink-0">
                     {doc.thumbnail_url ? (
-                      <Image src={doc.thumbnail_url} alt="" fill sizes="40px" className="object-cover" />
+                      <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-lg opacity-20">📄</div>
                     )}

@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
-import Image from 'next/image'
 import {
   DollarSign, Eye, Clock, FileText, Users, Trash2, Play,
   Image as ImageIcon, TrendingUp, Award, ChevronRight,
@@ -18,6 +17,7 @@ import {
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DashboardSkeleton } from '@/components/loading-skeleton'
 
 type TabType = 'overview' | 'content' | 'analytics' | 'revenue'
 
@@ -253,14 +253,7 @@ export default function DashboardPage() {
   })
 
   if (!user) return <div className="min-h-screen flex items-center justify-center"><p>로그인이 필요합니다.</p></div>
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-      <div className="text-center">
-        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-gray-500 dark:text-gray-400">대시보드 로딩 중...</p>
-      </div>
-    </div>
-  )
+  if (loading) return <DashboardSkeleton />
 
   const tierInfo = getTierLabel(authorTier?.tier || profile?.author_tier || 0)
   const tierProgress = getTierProgress()
@@ -403,9 +396,9 @@ export default function DashboardPage() {
                     <Link key={doc.id} href={`/read/${doc.id}`}>
                       <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
                         <span className="text-lg font-bold text-gray-300 dark:text-gray-600 w-6 text-center">{i + 1}</span>
-                        <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative">
+                        <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
                           {doc.thumbnail_url ? (
-                            <Image src={doc.thumbnail_url} alt="" fill sizes="64px" className="object-cover" />
+                            <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-2xl opacity-20">📄</div>
                           )}
@@ -471,9 +464,9 @@ export default function DashboardPage() {
                     <div key={doc.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors items-center">
                       <div className="col-span-5 flex items-center gap-3">
                         <Link href={`/read/${doc.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="w-20 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative">
+                          <div className="w-20 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
                             {doc.thumbnail_url ? (
-                              <Image src={doc.thumbnail_url} alt="" fill sizes="80px" className="object-cover" />
+                              <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-2xl opacity-20">📄</div>
                             )}
@@ -814,9 +807,9 @@ export default function DashboardPage() {
               <>
                 <div>
                   <Label>현재 썸네일</Label>
-                  <div className="mt-2 w-48 aspect-[3/4] rounded-lg overflow-hidden border bg-gray-100 dark:bg-gray-800 relative">
+                  <div className="mt-2 w-48 aspect-[3/4] rounded-lg overflow-hidden border bg-gray-100 dark:bg-gray-800">
                     {editingDoc.thumbnail_url ? (
-                      <Image src={editingDoc.thumbnail_url} alt="현재 썸네일" fill sizes="192px" className="object-cover" />
+                      <img src={editingDoc.thumbnail_url} alt="현재 썸네일" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400"><div className="text-6xl opacity-20">📄</div></div>
                     )}
