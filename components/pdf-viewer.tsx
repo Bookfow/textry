@@ -27,8 +27,7 @@ interface PDFViewerProps {
   onScaleChange?: (scale: number) => void
 }
 
-// ━━━ 스크롤 모드 가상화: 화면 근처 페이지만 렌더 ━━━
-const VIRTUALIZATION_BUFFER = 3 // 현재 보이는 페이지 ± 3페이지만 렌더
+const VIRTUALIZATION_BUFFER = 3
 
 export default function PDFViewer({
   pdfUrl,
@@ -52,12 +51,38 @@ export default function PDFViewer({
   // ━━━ 핀치 투 줌 상태 ━━━
   const [pinchStartDistance, setPinchStartDistance] = useState<number | null>(null)
   const [pinchStartScale, setPinchStartScale] = useState<number>(1)
+  const [isPinching, setIsPinching] = useState(false)
 
   // ━━━ 스크롤 가상화 상태 ━━━
   const [scrollCurrentPage, setScrollCurrentPage] = useState(1)
 
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // 최신 값을 ref로 유지 (네이티브 이벤트 핸들러에서 사용)
+  const scaleRef = useRef(scale)
+  const pinchStartDistanceRef = useRef(pinchStartDistance)
+  const pinchStartScaleRef = useRef(pinchStartScale)
+  const isPinchingRef = useRef(isPinching)
+  const touchStartRef = useRef(touchStart)
+  const touchEndRef = useRef(touchEnd)
+  const viewModeRef = useRef(viewMode)
+  const pageNumberRef = useRef(pageNumber)
+  const numPagesRef = useRef(numPages)
+  const onPageChangeRef = useRef(onPageChange)
+  const onScaleChangeRef = useRef(onScaleChange)
+
+  useEffect(() => { scaleRef.current = scale }, [scale])
+  useEffect(() => { pinchStartDistanceRef.current = pinchStartDistance }, [pinchStartDistance])
+  useEffect(() => { pinchStartScaleRef.current = pinchStartScale }, [pinchStartScale])
+  useEffect(() => { isPinchingRef.current = isPinching }, [isPinching])
+  useEffect(() => { touchStartRef.current = touchStart }, [touchStart])
+  useEffect(() => { touchEndRef.current = touchEnd }, [touchEnd])
+  useEffect(() => { viewModeRef.current = viewMode }, [viewMode])
+  useEffect(() => { pageNumberRef.current = pageNumber }, [pageNumber])
+  useEffect(() => { numPagesRef.current = numPages }, [numPages])
+  useEffect(() => { onPageChangeRef.current = onPageChange }, [onPageChange])
+  useEffect(() => { onScaleChangeRef.current = onScaleChange }, [onScaleChange])
 
   const calculateFitWidth = useCallback(() => {
     const screenWidth = window.innerWidth
@@ -128,8 +153,8 @@ export default function PDFViewer({
     }
   }
 
-  // ━━━ 터치: 스와이프 + 핀치줌 통합 ━━━
-  const getTouchDistance = (touches: React.TouchList) => {
+  // ━━━ 네이티브 터치 이벤트 (PDF 위에서도 핀치줌 작동) ━━━
+  const getTouchDistance = (touches: TouchList) => {
     if (touches.length < 2) return 0
     const dx = touches[0].clientX - touches[1].clientX
     const dy = touches[0].clientY - touches[1].clientY
@@ -137,55 +162,83 @@ export default function PDFViewer({
   }
 
   const minSwipeDistance = 50
-  const onTouchStart = (e: React.TouchEvent) => {
-    // 핀치줌 감지 (2손가락)
-    if (e.touches.length === 2) {
-      const dist = getTouchDistance(e.touches)
-      setPinchStartDistance(dist)
-      setPinchStartScale(scale)
-      return
-    }
-    if (viewMode === 'scroll') return
-    setTouchEnd(null)
-    setTouchStart({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY })
-  }
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    // 핀치줌 처리
-    if (e.touches.length === 2 && pinchStartDistance !== null) {
-      const currentDist = getTouchDistance(e.touches)
-      const ratio = currentDist / pinchStartDistance
-      const newScale = Math.min(Math.max(pinchStartScale * ratio, 0.5), 3.0)
-      if (onScaleChange) onScaleChange(newScale)
-      return
-    }
-    if (!touchStart || viewMode === 'scroll') return
-    const currentX = e.targetTouches[0].clientX
-    setSwipeOffset((currentX - touchStart.x) * 0.3)
-    setTouchEnd({ x: currentX, y: e.targetTouches[0].clientY })
-  }
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
 
-  const onTouchEnd = () => {
-    // 핀치줌 종료
-    if (pinchStartDistance !== null) {
-      setPinchStartDistance(null)
-      return
+    const handleTouchStart = (e: TouchEvent) => {
+      // 2손가락: 핀치줌
+      if (e.touches.length === 2) {
+        e.preventDefault()
+        const dist = getTouchDistance(e.touches)
+        setPinchStartDistance(dist)
+        setPinchStartScale(scaleRef.current)
+        setIsPinching(true)
+        return
+      }
+      // 1손가락: 스와이프 (스크롤 모드 제외)
+      if (viewModeRef.current === 'scroll') return
+      setTouchEnd(null)
+      setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY })
     }
-    if (!touchStart || !touchEnd || viewMode === 'scroll') {
+
+    const handleTouchMove = (e: TouchEvent) => {
+      // 핀치줌 처리
+      if (e.touches.length === 2 && pinchStartDistanceRef.current !== null) {
+        e.preventDefault()
+        const currentDist = getTouchDistance(e.touches)
+        const ratio = currentDist / pinchStartDistanceRef.current
+        const newScale = Math.min(Math.max(pinchStartScaleRef.current * ratio, 0.5), 3.0)
+        if (onScaleChangeRef.current) onScaleChangeRef.current(newScale)
+        return
+      }
+      // 스와이프 처리
+      const ts = touchStartRef.current
+      if (!ts || viewModeRef.current === 'scroll') return
+      const currentX = e.touches[0].clientX
+      setSwipeOffset((currentX - ts.x) * 0.3)
+      setTouchEnd({ x: currentX, y: e.touches[0].clientY })
+    }
+
+    const handleTouchEnd = () => {
+      // 핀치줌 종료
+      if (isPinchingRef.current) {
+        setPinchStartDistance(null)
+        setIsPinching(false)
+        return
+      }
+      // 스와이프 종료
+      const ts = touchStartRef.current
+      const te = touchEndRef.current
+      if (!ts || !te || viewModeRef.current === 'scroll') {
+        setSwipeOffset(0)
+        return
+      }
+      const distanceX = ts.x - te.x
+      const distanceY = Math.abs(ts.y - te.y)
+      const step = viewModeRef.current === 'book' ? 2 : 1
+      const pn = pageNumberRef.current
+      const np = numPagesRef.current
+      if (Math.abs(distanceX) > minSwipeDistance && distanceY < Math.abs(distanceX)) {
+        if (distanceX > 0 && onPageChangeRef.current) onPageChangeRef.current(Math.min(pn + step, np), np)
+        else if (onPageChangeRef.current) onPageChangeRef.current(Math.max(pn - step, 1), np)
+      }
       setSwipeOffset(0)
-      return
+      setTouchStart(null)
+      setTouchEnd(null)
     }
-    const distanceX = touchStart.x - touchEnd.x
-    const distanceY = Math.abs(touchStart.y - touchEnd.y)
-    const step = viewMode === 'book' ? 2 : 1
-    if (Math.abs(distanceX) > minSwipeDistance && distanceY < Math.abs(distanceX)) {
-      if (distanceX > 0 && onPageChange) onPageChange(Math.min(pageNumber + step, numPages), numPages)
-      else if (onPageChange) onPageChange(Math.max(pageNumber - step, 1), numPages)
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: false })
+    container.addEventListener('touchmove', handleTouchMove, { passive: false })
+    container.addEventListener('touchend', handleTouchEnd)
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart)
+      container.removeEventListener('touchmove', handleTouchMove)
+      container.removeEventListener('touchend', handleTouchEnd)
     }
-    setSwipeOffset(0)
-    setTouchStart(null)
-    setTouchEnd(null)
-  }
+  }, []) // 빈 의존성 — ref로 최신 값 참조
 
   const handlePageAreaClick = (e: React.MouseEvent) => {
     if (viewMode === 'scroll' || !onPageChange) return
@@ -211,7 +264,6 @@ export default function PDFViewer({
 
   const renderWidth = fitWidth * scale
 
-  // 책 모드에서 표시할 페이지 계산
   const getBookPages = () => {
     if (pageNumber === 1) return { left: 1, right: null }
     const leftPage = pageNumber % 2 === 0 ? pageNumber : pageNumber - 1
@@ -222,7 +274,6 @@ export default function PDFViewer({
     }
   }
 
-  // ━━━ 스크롤 가상화: 렌더할 페이지 범위 계산 ━━━
   const visiblePages = useMemo(() => {
     if (viewMode !== 'scroll') return []
     const start = Math.max(1, scrollCurrentPage - VIRTUALIZATION_BUFFER)
@@ -263,16 +314,12 @@ export default function PDFViewer({
     borderRadius: '2px',
   }
 
-  // 스크롤 모드 페이지 placeholder 높이
   const pageHeight = renderWidth * pageAspect
 
   return (
-    <div ref={containerRef} className="h-full w-full flex flex-col touch-pan-y">
+    <div ref={containerRef} className="h-full w-full flex flex-col" style={{ touchAction: 'pan-y' }}>
       <div
         className="flex-1 relative overflow-hidden"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
         onClick={handlePageAreaClick}
       >
         {/* 페이지 모드 */}
@@ -345,7 +392,7 @@ export default function PDFViewer({
           </div>
         )}
 
-        {/* 책 모드 (2페이지 펼침) */}
+        {/* 책 모드 */}
         {viewMode === 'book' && (
           <div className="h-full flex items-center justify-center overflow-auto">
             <div
@@ -371,56 +418,30 @@ export default function PDFViewer({
                   const { left, right } = getBookPages()
                   return (
                     <>
-                      {/* 라이트 모드 */}
                       <div className="dark:hidden" style={bookFrameStyle}>
                         <div className="flex">
                           <div className="relative">
-                            <Page
-                              pageNumber={left}
-                              width={renderWidth}
-                              renderTextLayer={true}
-                              renderAnnotationLayer={true}
-                              loading=""
-                            />
+                            <Page pageNumber={left} width={renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
                             <div className="absolute top-0 right-0 bottom-0 w-4 bg-gradient-to-l from-black/10 to-transparent pointer-events-none" />
                           </div>
                           {right && (
                             <div className="relative">
                               <div className="absolute top-0 left-0 bottom-0 w-4 bg-gradient-to-r from-black/10 to-transparent pointer-events-none z-10" />
-                              <Page
-                                pageNumber={right}
-                                width={renderWidth}
-                                renderTextLayer={true}
-                                renderAnnotationLayer={true}
-                                loading=""
-                              />
+                              <Page pageNumber={right} width={renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
                             </div>
                           )}
                         </div>
                       </div>
-                      {/* 다크 모드 */}
                       <div className="hidden dark:block" style={bookFrameStyleDark}>
                         <div className="flex">
                           <div className="relative">
-                            <Page
-                              pageNumber={left}
-                              width={renderWidth}
-                              renderTextLayer={true}
-                              renderAnnotationLayer={true}
-                              loading=""
-                            />
+                            <Page pageNumber={left} width={renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
                             <div className="absolute top-0 right-0 bottom-0 w-4 bg-gradient-to-l from-black/20 to-transparent pointer-events-none" />
                           </div>
                           {right && (
                             <div className="relative">
                               <div className="absolute top-0 left-0 bottom-0 w-4 bg-gradient-to-r from-black/20 to-transparent pointer-events-none z-10" />
-                              <Page
-                                pageNumber={right}
-                                width={renderWidth}
-                                renderTextLayer={true}
-                                renderAnnotationLayer={true}
-                                loading=""
-                              />
+                              <Page pageNumber={right} width={renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
                             </div>
                           )}
                         </div>
