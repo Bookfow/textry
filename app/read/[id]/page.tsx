@@ -663,7 +663,7 @@ export default function ReadPage() {
           <div className="flex-1 overflow-hidden">
             {pdfUrl && (
               <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
-                showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} />
+                showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange} />
             )}
           </div>
         </div>

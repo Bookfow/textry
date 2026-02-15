@@ -267,7 +267,7 @@ export default function PDFViewer({
   const pageHeight = renderWidth * pageAspect
 
   return (
-    <div ref={containerRef} className="h-full w-full flex flex-col touch-none">
+    <div ref={containerRef} className="h-full w-full flex flex-col touch-pan-y">
       <div
         className="flex-1 relative overflow-hidden"
         onTouchStart={onTouchStart}
