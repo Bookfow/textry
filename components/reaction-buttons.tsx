@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { ThumbsUp, ThumbsDown } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/toast'
 
 interface ReactionButtonsProps {
   documentId: string
@@ -15,6 +16,7 @@ interface ReactionButtonsProps {
 
 export function ReactionButtons({ documentId, initialLikes, initialDislikes }: ReactionButtonsProps) {
   const { user } = useAuth()
+  const { toast } = useToast()
   const router = useRouter()
   const [likes, setLikes] = useState(initialLikes)
   const [dislikes, setDislikes] = useState(initialDislikes)
@@ -43,7 +45,7 @@ export function ReactionButtons({ documentId, initialLikes, initialDislikes }: R
 
   const handleReaction = async (type: 'like' | 'dislike') => {
     if (!user) {
-      alert('로그인이 필요합니다.')
+      toast.warning('로그인이 필요합니다.')
       router.push('/login')
       return
     }
@@ -102,24 +104,22 @@ export function ReactionButtons({ documentId, initialLikes, initialDislikes }: R
       }
     } catch (err) {
       console.error('Error updating reaction:', err)
-      alert('반응 저장에 실패했습니다.')
+      toast.error('반응 저장에 실패했습니다.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex items-center gap-4" role="group" aria-label="문서 반응">
+    <div className="flex items-center gap-4">
       <Button
         variant={userReaction === 'like' ? 'default' : 'outline'}
         size="sm"
         onClick={() => handleReaction('like')}
         disabled={loading}
         className={`gap-2 ${userReaction === 'like' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
-        aria-label={`좋아요 ${likes.toLocaleString()}개${userReaction === 'like' ? ' (선택됨)' : ''}`}
-        aria-pressed={userReaction === 'like'}
       >
-        <ThumbsUp className={`w-4 h-4 ${userReaction === 'like' ? 'fill-current' : ''}`} aria-hidden="true" />
+        <ThumbsUp className={`w-4 h-4 ${userReaction === 'like' ? 'fill-current' : ''}`} />
         <span className="font-semibold">{likes.toLocaleString()}</span>
       </Button>
 
@@ -129,10 +129,8 @@ export function ReactionButtons({ documentId, initialLikes, initialDislikes }: R
         onClick={() => handleReaction('dislike')}
         disabled={loading}
         className={`gap-2 ${userReaction === 'dislike' ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
-        aria-label={`싫어요 ${dislikes.toLocaleString()}개${userReaction === 'dislike' ? ' (선택됨)' : ''}`}
-        aria-pressed={userReaction === 'dislike'}
       >
-        <ThumbsDown className={`w-4 h-4 ${userReaction === 'dislike' ? 'fill-current' : ''}`} aria-hidden="true" />
+        <ThumbsDown className={`w-4 h-4 ${userReaction === 'dislike' ? 'fill-current' : ''}`} />
         <span className="font-semibold">{dislikes.toLocaleString()}</span>
       </Button>
     </div>

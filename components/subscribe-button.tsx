@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { Bell, BellOff } from 'lucide-react'
+import { useToast } from '@/components/toast'
 
 interface SubscribeButtonProps {
   authorId: string
@@ -21,11 +22,13 @@ export function SubscribeButton({
   initialSubscribersCount 
 }: SubscribeButtonProps) {
   const { user } = useAuth()
+  const { toast } = useToast()
   const router = useRouter()
   const [isSubscribed, setIsSubscribed] = useState(initialSubscribed)
   const [subscribersCount, setSubscribersCount] = useState(initialSubscribersCount)
   const [loading, setLoading] = useState(false)
 
+  // 사용자의 구독 상태 확인
   useEffect(() => {
     if (!user || user.id === authorId) return
 
@@ -45,13 +48,13 @@ export function SubscribeButton({
 
   const handleSubscribe = async () => {
     if (!user) {
-      alert('로그인이 필요합니다.')
+      toast.warning('로그인이 필요합니다.')
       router.push('/login')
       return
     }
 
     if (user.id === authorId) {
-      alert('자기 자신을 구독할 수 없습니다.')
+      toast.warning('자기 자신을 구독할 수 없습니다.')
       return
     }
 
@@ -59,6 +62,7 @@ export function SubscribeButton({
 
     try {
       if (isSubscribed) {
+        // 구독 취소
         await supabase
           .from('subscriptions')
           .delete()
@@ -68,6 +72,7 @@ export function SubscribeButton({
         setIsSubscribed(false)
         setSubscribersCount(subscribersCount - 1)
       } else {
+        // 구독
         await supabase
           .from('subscriptions')
           .insert({
@@ -80,16 +85,17 @@ export function SubscribeButton({
       }
     } catch (err) {
       console.error('Error updating subscription:', err)
-      alert('구독 처리에 실패했습니다.')
+      toast.error('구독 처리에 실패했습니다.')
     } finally {
       setLoading(false)
     }
   }
 
+  // 본인 문서면 구독 버튼 안 보임
   if (user?.id === authorId) {
     return (
       <div className="flex items-center gap-2 text-sm text-gray-400">
-        <Bell className="w-4 h-4" aria-hidden="true" />
+        <Bell className="w-4 h-4" />
         <span>구독자 {subscribersCount.toLocaleString()}명</span>
       </div>
     )
@@ -103,22 +109,20 @@ export function SubscribeButton({
         onClick={handleSubscribe}
         disabled={loading}
         className={`gap-2 ${isSubscribed ? 'bg-gray-600 text-white hover:bg-gray-700' : ''}`}
-        aria-label={isSubscribed ? `${authorName} 구독 취소` : `${authorName} 구독`}
-        aria-pressed={isSubscribed}
       >
         {isSubscribed ? (
           <>
-            <BellOff className="w-4 h-4" aria-hidden="true" />
+            <BellOff className="w-4 h-4" />
             <span className="text-white">구독 중</span>
           </>
         ) : (
           <>
-            <Bell className="w-4 h-4" aria-hidden="true" />
+            <Bell className="w-4 h-4" />
             구독
           </>
         )}
       </Button>
-      <span className="text-sm text-gray-300" aria-live="polite">
+      <span className="text-sm text-gray-300">
         구독자 {subscribersCount.toLocaleString()}명
       </span>
     </div>

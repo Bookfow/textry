@@ -1,3 +1,4 @@
+import { ToastProvider } from "@/components/toast"
 import type { Metadata } from "next"
 import "./globals.css"
 import { AuthProvider } from "@/lib/auth-context"
@@ -61,11 +62,13 @@ export default function RootLayout({
       <body>
         <WebsiteJsonLd />
         <ThemeProvider>
-          <AuthProvider>
-            {children}
-            <CookieConsent />
-          </AuthProvider>
-        </ThemeProvider>
+  <AuthProvider>
+    <ToastProvider>
+      {children}
+      <CookieConsent />
+    </ToastProvider>
+  </AuthProvider>
+</ThemeProvider>
       </body>
     </html>
   )

@@ -25,11 +25,13 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { User, LogOut, Settings, HelpCircle, MessageSquare, Globe, BarChart3 } from 'lucide-react'
+import { useToast } from '@/components/toast'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export function ProfileMenu() {
   const { user, profile } = useAuth()
+  const { toast } = useToast()
   const router = useRouter()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [feedbackEmail, setFeedbackEmail] = useState('')
@@ -45,12 +47,12 @@ export function ProfileMenu() {
 
   const handleLanguage = (lang: string) => {
     // TODO: 언어 변경 구현
-    alert(`언어 변경: ${lang === 'ko' ? '한국어' : 'English'}\n곧 추가됩니다!`)
+    toast.info('언어 변경 기능이 곧 추가됩니다!')
   }
 
   const handleSendFeedback = async () => {
     if (!feedbackMessage.trim()) {
-      alert('내용을 입력해주세요.')
+      toast.warning('내용을 입력해주세요.')
       return
     }
 
@@ -60,12 +62,12 @@ export function ProfileMenu() {
       // TODO: 실제 이메일 전송 API 연결
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      alert('의견이 전송되었습니다. 감사합니다!')
+      toast.success('의견이 전송되었습니다. 감사합니다!')
       setFeedbackOpen(false)
       setFeedbackEmail('')
       setFeedbackMessage('')
     } catch (err) {
-      alert('전송에 실패했습니다.')
+      toast.error('전송에 실패했습니다.')
     } finally {
       setSending(false)
     }
@@ -78,10 +80,10 @@ export function ProfileMenu() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           {profile.avatar_url ? (
-            <button className="rounded-full w-10 h-10 overflow-hidden border-2 border-gray-200 hover:border-blue-500 transition-colors" aria-label="프로필 메뉴 열기">
+            <button className="rounded-full w-10 h-10 overflow-hidden border-2 border-gray-200 hover:border-blue-500 transition-colors">
               <img
                 src={profile.avatar_url}
-                alt={`${profile.username || profile.email} 프로필 사진`}
+                alt="프로필"
                 className="w-full h-full object-cover"
               />
             </button>
@@ -90,13 +92,12 @@ export function ProfileMenu() {
               variant="ghost"
               size="icon"
               className="rounded-full w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 text-white font-bold hover:opacity-80"
-              aria-label="프로필 메뉴 열기"
             >
               {initial}
             </Button>
           )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64" aria-label="프로필 메뉴">
+        <DropdownMenuContent align="end" className="w-64">
           {/* 프로필 정보 */}
           <div className="px-2 py-2">
             <p className="font-semibold">{profile.username || profile.email}</p>
@@ -108,7 +109,7 @@ export function ProfileMenu() {
           {/* 내 프로필 */}
           <DropdownMenuItem asChild>
             <Link href={`/profile/${user.id}`} className="cursor-pointer">
-              <User className="w-4 h-4 mr-2" aria-hidden="true" />
+              <User className="w-4 h-4 mr-2" />
               내 프로필
             </Link>
           </DropdownMenuItem>
@@ -116,7 +117,7 @@ export function ProfileMenu() {
           {/* 대시보드 */}
           <DropdownMenuItem asChild>
             <Link href="/dashboard" className="cursor-pointer">
-              <BarChart3 className="w-4 h-4 mr-2" aria-hidden="true" />
+              <BarChart3 className="w-4 h-4 mr-2" />
               대시보드
             </Link>
           </DropdownMenuItem>
@@ -126,7 +127,7 @@ export function ProfileMenu() {
           {/* 표시 언어 */}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <Globe className="w-4 h-4 mr-2" aria-hidden="true" />
+              <Globe className="w-4 h-4 mr-2" />
               표시 언어
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
@@ -142,7 +143,7 @@ export function ProfileMenu() {
           {/* 설정 */}
           <DropdownMenuItem asChild>
             <Link href="/settings" className="cursor-pointer">
-              <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
+              <Settings className="w-4 h-4 mr-2" />
               설정
             </Link>
           </DropdownMenuItem>
@@ -152,14 +153,14 @@ export function ProfileMenu() {
           {/* 고객센터 */}
           <DropdownMenuItem asChild>
             <Link href="/help" className="cursor-pointer">
-              <HelpCircle className="w-4 h-4 mr-2" aria-hidden="true" />
+              <HelpCircle className="w-4 h-4 mr-2" />
               고객센터
             </Link>
           </DropdownMenuItem>
 
           {/* 의견 보내기 */}
           <DropdownMenuItem onClick={() => setFeedbackOpen(true)} className="cursor-pointer">
-            <MessageSquare className="w-4 h-4 mr-2" aria-hidden="true" />
+            <MessageSquare className="w-4 h-4 mr-2" />
             의견 보내기
           </DropdownMenuItem>
 
@@ -167,7 +168,7 @@ export function ProfileMenu() {
 
           {/* 로그아웃 */}
           <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
-            <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
+            <LogOut className="w-4 h-4 mr-2" />
             로그아웃
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -175,10 +176,10 @@ export function ProfileMenu() {
 
       {/* 의견 보내기 다이얼로그 */}
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
-        <DialogContent className="sm:max-w-md" aria-describedby="feedback-desc">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>의견 보내기</DialogTitle>
-            <DialogDescription id="feedback-desc">
+            <DialogDescription>
               서비스 개선을 위한 의견을 보내주세요.
             </DialogDescription>
           </DialogHeader>
@@ -208,7 +209,7 @@ export function ProfileMenu() {
             <Button variant="outline" onClick={() => setFeedbackOpen(false)}>
               취소
             </Button>
-            <Button onClick={handleSendFeedback} disabled={sending} aria-busy={sending}>
+            <Button onClick={handleSendFeedback} disabled={sending}>
               {sending ? '전송 중...' : '전송'}
             </Button>
           </div>

@@ -7,6 +7,7 @@ import { supabase, CommentWithProfile, Profile } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ThumbsUp, MessageCircle, Send, Trash2, Flag } from 'lucide-react'
+import { useToast } from '@/components/toast'
 import { useRouter } from 'next/navigation'
 import { ReportButton } from '@/components/report-button'
 import {
@@ -23,6 +24,7 @@ interface CommentsSectionProps {
 
 export function CommentsSection({ documentId }: CommentsSectionProps) {
   const { user } = useAuth()
+  const { toast } = useToast()
   const router = useRouter()
   
   const [comments, setComments] = useState<CommentWithProfile[]>([])
@@ -79,7 +81,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
 
   const handleSubmitComment = async () => {
     if (!user) {
-      alert('로그인이 필요합니다.')
+      toast.warning('로그인이 필요합니다.')
       router.push('/login')
       return
     }
@@ -122,7 +124,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       setNewComment('')
     } catch (err) {
       console.error('Error posting comment:', err)
-      alert('댓글 작성에 실패했습니다.')
+      toast.error('댓글 작성에 실패했습니다.')
     } finally {
       setLoading(false)
     }
@@ -150,13 +152,13 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       }
     } catch (err) {
       console.error('Error deleting comment:', err)
-      alert('삭제에 실패했습니다.')
+      toast.error('삭제에 실패했습니다.')
     }
   }
 
   const openReplyModal = (comment: CommentWithProfile) => {
     if (!user) {
-      alert('로그인이 필요합니다.')
+      toast.warning('로그인이 필요합니다.')
       router.push('/login')
       return
     }
@@ -206,7 +208,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       setReplyingTo(null)
     } catch (err) {
       console.error('Error posting reply:', err)
-      alert('답글 작성에 실패했습니다.')
+      toast.error('답글 작성에 실패했습니다.')
     } finally {
       setReplyLoading(false)
     }
@@ -214,7 +216,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
 
   const handleLikeComment = async (commentId: string) => {
     if (!user) {
-      alert('로그인이 필요합니다.')
+      toast.warning('로그인이 필요합니다.')
       router.push('/login')
       return
     }
@@ -312,9 +314,9 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
   }
 
   const CommentItem = ({ comment, isReply = false, parentId }: { comment: CommentWithProfile; isReply?: boolean; parentId?: string }) => (
-    <article className={`${isReply ? 'ml-8 mt-2' : 'mb-3'} bg-white/5 p-2.5 rounded-lg`} aria-label={`${comment.profile.username || comment.profile.email}의 ${isReply ? '답글' : '댓글'}`}>
+    <div className={`${isReply ? 'ml-8 mt-2' : 'mb-3'} bg-white/5 p-2.5 rounded-lg`}>
       <div className="flex items-start gap-2">
-        <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" aria-hidden="true">
+        <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
           {(comment.profile.username || comment.profile.email)[0].toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
@@ -322,27 +324,25 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
             <Link href={`/profile/${comment.profile.id}`} className="text-xs font-semibold hover:underline text-gray-200">
               {comment.profile.username || comment.profile.email}
             </Link>
-            <time className="text-[11px] text-gray-500" dateTime={comment.created_at}>
+            <span className="text-[11px] text-gray-500">
               {new Date(comment.created_at).toLocaleDateString()}
-            </time>
+            </span>
           </div>
           <p className="text-xs text-gray-300 mb-1.5 whitespace-pre-wrap break-words">{comment.content}</p>
-          <div className="flex items-center gap-2" role="group" aria-label="댓글 액션">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => handleLikeComment(comment.id)}
               className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-blue-400 transition-colors"
-              aria-label={`좋아요 ${comment.likes_count}개`}
             >
-              <ThumbsUp className="w-3 h-3" aria-hidden="true" />
+              <ThumbsUp className="w-3 h-3" />
               <span>{comment.likes_count}</span>
             </button>
             {!isReply && (
               <button
                 onClick={() => openReplyModal(comment)}
                 className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-blue-400 transition-colors"
-                aria-label="답글 작성"
               >
-                <MessageCircle className="w-3 h-3" aria-hidden="true" />
+                <MessageCircle className="w-3 h-3" />
                 답글
               </button>
             )}
@@ -350,9 +350,8 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
               <button
                 onClick={() => openReplyModal({ ...comment, id: parentId || comment.id })}
                 className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-blue-400 transition-colors"
-                aria-label="답글 작성"
               >
-                <MessageCircle className="w-3 h-3" aria-hidden="true" />
+                <MessageCircle className="w-3 h-3" />
                 답글
               </button>
             )}
@@ -360,9 +359,8 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
               <button
                 onClick={() => handleDeleteComment(comment.id, isReply, parentId)}
                 className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-red-400 transition-colors"
-                aria-label="댓글 삭제"
               >
-                <Trash2 className="w-3 h-3" aria-hidden="true" />
+                <Trash2 className="w-3 h-3" />
                 삭제
               </button>
             )}
@@ -371,26 +369,25 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       </div>
 
       {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-2" role="list" aria-label="답글 목록">
+        <div className="mt-2">
           {comment.replies.map((reply) => (
             <CommentItem key={reply.id} comment={reply} isReply parentId={comment.id} />
           ))}
         </div>
       )}
-    </article>
+    </div>
   )
 
   return (
-    <section aria-label="댓글">
+    <div>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-white" aria-live="polite">댓글 {comments.length}개</h3>
-        <div className="flex gap-1" role="group" aria-label="댓글 정렬">
+        <h3 className="text-sm font-semibold text-white">댓글 {comments.length}개</h3>
+        <div className="flex gap-1">
           <button
             onClick={() => handleSortChange('recent')}
             className={`px-2 py-0.5 rounded text-[11px] transition-colors ${
               sortBy === 'recent' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
-            aria-pressed={sortBy === 'recent'}
           >
             최신순
           </button>
@@ -399,7 +396,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
             className={`px-2 py-0.5 rounded text-[11px] transition-colors ${
               sortBy === 'popular' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
-            aria-pressed={sortBy === 'popular'}
           >
             인기순
           </button>
@@ -409,7 +405,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       {user ? (
         <div className="mb-3">
           <div className="flex items-start gap-2">
-            <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" aria-hidden="true">
+            <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
               {user.email ? user.email[0].toUpperCase() : 'U'}
             </div>
             <div className="flex-1 flex gap-1.5">
@@ -419,16 +415,13 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
                 onChange={(e) => setNewComment(e.target.value)}
                 className="flex-1 text-xs bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 min-h-[60px] resize-none"
                 rows={2}
-                aria-label="댓글 입력"
               />
               <button
                 onClick={handleSubmitComment}
                 disabled={loading || !newComment.trim()}
                 className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors self-end"
-                aria-label="댓글 작성"
-                aria-busy={loading}
               >
-                <Send className="w-3.5 h-3.5" aria-hidden="true" />
+                <Send className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -446,11 +439,11 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       )}
 
       {comments.length === 0 ? (
-        <div className="text-center py-6 text-xs text-gray-500" role="status">
+        <div className="text-center py-6 text-xs text-gray-500">
           첫 댓글을 작성해보세요!
         </div>
       ) : (
-        <div role="list" aria-label="댓글 목록">
+        <div>
           {comments.map((comment) => (
             <CommentItem key={comment.id} comment={comment} />
           ))}
@@ -465,10 +458,10 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       )}
 
       <Dialog open={replyModalOpen} onOpenChange={setReplyModalOpen}>
-        <DialogContent aria-describedby="reply-desc">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>답글 작성</DialogTitle>
-            <DialogDescription id="reply-desc">
+            <DialogDescription>
               {replyingTo && `${replyingTo.profile.username || replyingTo.profile.email}님의 댓글에 답글을 작성합니다`}
             </DialogDescription>
           </DialogHeader>
@@ -485,7 +478,6 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
               onChange={(e) => setReplyContent(e.target.value)}
               rows={4}
               autoFocus
-              aria-label="답글 입력"
             />
             <div className="flex gap-2 justify-end">
               <Button
@@ -499,15 +491,14 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
                 size="sm"
                 onClick={handleSubmitReply}
                 disabled={replyLoading || !replyContent.trim()}
-                aria-busy={replyLoading}
               >
-                <Send className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" />
+                <Send className="w-3.5 h-3.5 mr-1.5" />
                 답글 작성
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-    </section>
+    </div>
   )
 }

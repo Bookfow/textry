@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { useToast } from '@/components/toast'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Heart } from 'lucide-react'
@@ -14,6 +15,7 @@ interface ReadingListButtonProps {
 
 export function ReadingListButton({ documentId, compact = false }: ReadingListButtonProps) {
   const { user } = useAuth()
+  const { toast } = useToast()
   const router = useRouter()
   const [inList, setInList] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -40,7 +42,7 @@ export function ReadingListButton({ documentId, compact = false }: ReadingListBu
 
   const handleToggle = async () => {
     if (!user) {
-      alert('로그인이 필요합니다.')
+      toast.warning('로그인이 필요합니다.')
       router.push('/login')
       return
     }
@@ -65,7 +67,7 @@ export function ReadingListButton({ documentId, compact = false }: ReadingListBu
       }
     } catch (err) {
       console.error('Error toggling reading list:', err)
-      alert('처리에 실패했습니다.')
+      toast.error('처리에 실패했습니다.')
     } finally {
       setLoading(false)
     }
@@ -82,10 +84,9 @@ export function ReadingListButton({ documentId, compact = false }: ReadingListBu
             ? 'text-red-500 hover:bg-gray-800'
             : 'text-gray-400 hover:bg-gray-800 hover:text-white'
         }`}
-        aria-label={inList ? '읽기 목록에서 제거' : '읽기 목록에 추가'}
-        aria-pressed={inList}
+        title={inList ? '찜 해제' : '찜하기'}
       >
-        <Heart className="w-5 h-5" fill={inList ? 'currentColor' : 'none'} aria-hidden="true" />
+        <Heart className="w-5 h-5" fill={inList ? 'currentColor' : 'none'} />
       </button>
     )
   }
@@ -98,10 +99,8 @@ export function ReadingListButton({ documentId, compact = false }: ReadingListBu
       onClick={handleToggle}
       disabled={loading}
       className={`gap-2 ${inList ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-white text-gray-900 border-gray-300'}`}
-      aria-label={inList ? '읽기 목록에서 제거' : '읽기 목록에 추가'}
-      aria-pressed={inList}
     >
-      <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} aria-hidden="true" />
+      <Heart className="w-4 h-4" fill={inList ? 'currentColor' : 'none'} />
       <span className="font-semibold">{inList ? '찜함' : '찜하기'}</span>
     </Button>
   )
