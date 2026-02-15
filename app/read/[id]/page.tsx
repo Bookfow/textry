@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -47,7 +47,7 @@ const PDFViewer = dynamic(() => import('@/components/pdf-viewer'), {
     <div className="h-full flex items-center justify-center">
       <div className="text-center">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-400">PDF 뷰어 로딩 중...</p>
+        <p className="text-[#8fbba5]">PDF 뷰어 로딩 중...</p>
       </div>
     </div>
   ),
@@ -501,17 +501,17 @@ export default function ReadPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+      <div className="min-h-screen flex items-center justify-center bg-[#0b1a13]">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">문서를 불러오는 중...</p>
+          <p className="text-[#8fbba5]">문서를 불러오는 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div ref={viewerRef} className="h-screen w-screen bg-gray-950 flex flex-col overflow-hidden select-none">
+    <div ref={viewerRef} className="h-screen w-screen bg-[#0b1a13] flex flex-col overflow-hidden select-none">
 
       {/* ━━━ 광고 오버레이 ━━━ */}
       <AdOverlay
@@ -529,20 +529,20 @@ export default function ReadPage() {
       {/* ━━━ 상단 오버레이: 컨트롤바 OR 배너 광고 ━━━ */}
       {showControls ? (
         <div className="absolute top-0 left-0 right-0 z-50">
-        <div className="h-1 bg-gray-800 w-full">
+        <div className="h-1 bg-[#153024] w-full">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        <div className="bg-gray-900 border-b border-gray-800 px-2 sm:px-3 py-1.5 overflow-hidden">
+        <div className="bg-[#0f2419] border-b border-[#1c3d2e] px-2 sm:px-3 py-1.5 overflow-hidden">
           <div className="flex items-center gap-1 sm:gap-2">
 
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <button
                 onClick={() => router.push('/')}
-                className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors"
                 title="홈으로"
               >
                 <Home className="w-5 h-5" />
@@ -550,40 +550,40 @@ export default function ReadPage() {
               <div className="hidden lg:block max-w-[180px]">
                 <h1 className="text-sm font-medium text-white truncate">{document?.title}</h1>
                 {seriesInfo && (
-                  <p className="text-[10px] text-gray-400 truncate">📚 {seriesInfo.seriesTitle} ({seriesInfo.currentPosition}/{seriesInfo.totalDocs})</p>
+                  <p className="text-[10px] text-[#8fbba5] truncate">📚 {seriesInfo.seriesTitle} ({seriesInfo.currentPosition}/{seriesInfo.totalDocs})</p>
                 )}
               </div>
             </div>
 
             <div className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5">
-              <div className="flex items-center bg-gray-800 rounded-lg p-0.5">
+              <div className="flex items-center bg-[#153024] rounded-lg p-0.5">
                 <button
                   onClick={() => setViewMode('page')}
-                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
                   title="페이지 모드"
                 >
                   <BookOpen className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('book')}
-                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'book' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'book' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
                   title="책 모드 (2페이지)"
                 >
                   <BookOpenCheck className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('scroll')}
-                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'scroll' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'scroll' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
                   title="스크롤 모드"
                 >
                   <ScrollText className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="w-px h-4 bg-gray-700" />
+              <div className="w-px h-4 bg-[#1c3d2e]" />
 
               <button onClick={goToPrevPage} disabled={pageNumber <= 1}
-                className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 transition-colors">
+                className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white disabled:opacity-30 transition-colors">
                 <ChevronLeft className="w-5 h-5" />
               </button>
 
@@ -592,34 +592,34 @@ export default function ReadPage() {
                   <input ref={pageInputRef} type="number" min={1} max={numPages} value={pageInputValue}
                     onChange={(e) => setPageInputValue(e.target.value)}
                     onBlur={() => { setShowPageInput(false); setPageInputValue('') }}
-                    className="w-12 px-1 py-0.5 bg-gray-800 border border-gray-700 rounded text-sm text-white text-center focus:outline-none focus:border-blue-500"
+                    className="w-12 px-1 py-0.5 bg-[#153024] border border-[#1c3d2e] rounded text-sm text-white text-center focus:outline-none focus:border-blue-500"
                     placeholder={String(pageNumber)} />
-                  <span className="text-gray-500 text-xs mx-0.5">/</span>
-                  <span className="text-gray-400 text-xs">{numPages}</span>
+                  <span className="text-[#6b9b84] text-xs mx-0.5">/</span>
+                  <span className="text-[#8fbba5] text-xs">{numPages}</span>
                 </form>
               ) : (
-                <button onClick={() => setShowPageInput(true)} className="px-2 py-0.5 rounded-lg hover:bg-gray-800 transition-colors text-sm" title="페이지 직접 이동 (G키)">
+                <button onClick={() => setShowPageInput(true)} className="px-2 py-0.5 rounded-lg hover:bg-[#153024] transition-colors text-sm" title="페이지 직접 이동 (G키)">
                   <span className="text-white font-medium">{pageNumber}</span>
-                  <span className="text-gray-500 mx-0.5">/</span>
-                  <span className="text-gray-400">{numPages}</span>
+                  <span className="text-[#6b9b84] mx-0.5">/</span>
+                  <span className="text-[#8fbba5]">{numPages}</span>
                 </button>
               )}
 
               <button onClick={goToNextPage} disabled={pageNumber >= numPages}
-                className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 transition-colors">
+                className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white disabled:opacity-30 transition-colors">
                 <ChevronRight className="w-5 h-5" />
               </button>
 
-              <div className="w-px h-4 bg-gray-700" />
+              <div className="w-px h-4 bg-[#1c3d2e]" />
 
               <div className="flex items-center gap-0.5">
-                <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+                <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors">
                   <ZoomOut className="w-4 h-4" />
                 </button>
-                <button onClick={resetZoom} className="px-1.5 py-0.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors text-xs font-mono">
+                <button onClick={resetZoom} className="px-1.5 py-0.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors text-xs font-mono">
                   {Math.round(scale * 100)}%
                 </button>
-                <button onClick={zoomIn} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+                <button onClick={zoomIn} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors">
                   <ZoomIn className="w-4 h-4" />
                 </button>
               </div>
@@ -636,11 +636,11 @@ export default function ReadPage() {
             <div className="flex items-center gap-1 flex-shrink-0">
               <ReadingListButton documentId={documentId} compact />
               <ShareButton documentId={documentId} title={document?.title || ''} />
-              <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" title="전체화면 (F키)">
+              <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors" title="전체화면 (F키)">
                 {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
               </button>
               <button onClick={() => setShowSidePanel(!showSidePanel)}
-                className={`p-2 rounded-lg transition-colors ${showSidePanel ? 'bg-blue-600 text-white' : 'hover:bg-gray-800 text-gray-400 hover:text-white'}`}
+                className={`p-2 rounded-lg transition-colors ${showSidePanel ? 'bg-blue-600 text-white' : 'hover:bg-[#153024] text-[#8fbba5] hover:text-white'}`}
                 title="댓글/정보 패널">
                 <MessageSquare className="w-5 h-5" />
               </button>
@@ -649,7 +649,7 @@ export default function ReadPage() {
         </div>
         </div>
       ) : !isPremium ? (
-        <div className="absolute top-0 left-0 right-0 z-50 bg-gray-900/90 backdrop-blur-sm border-b border-gray-800 px-2 py-1 flex items-center justify-center cursor-pointer"
+        <div className="absolute top-0 left-0 right-0 z-50 bg-[#0f2419]/90 backdrop-blur-sm border-b border-[#1c3d2e] px-2 py-1 flex items-center justify-center cursor-pointer"
           onClick={() => resetControlsTimer()}>
           <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
             <AdBanner position="top" documentId={documentId} authorId={document?.author_id} />
@@ -669,21 +669,21 @@ export default function ReadPage() {
         </div>
 
         {/* ━━━ 사이드 패널 ━━━ */}
-        <div className={`fixed right-0 top-0 bottom-0 z-40 bg-gray-900 border-l border-gray-800
+        <div className={`fixed right-0 top-0 bottom-0 z-40 bg-[#0f2419] border-l border-[#1c3d2e]
           transition-all duration-300 ease-in-out flex flex-col
           ${showSidePanel ? 'translate-x-0' : 'translate-x-full'} w-full sm:w-[380px]`}>
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#1c3d2e]">
             <h2 className="text-white font-medium">정보 & 댓글</h2>
-            <button onClick={() => setShowSidePanel(false)} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+            <button onClick={() => setShowSidePanel(false)} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            <div className="p-4 border-b border-gray-800">
+            <div className="p-4 border-b border-[#1c3d2e]">
               <h3 className="text-white font-semibold text-lg mb-1">{document?.title}</h3>
-              {document?.description && <p className="text-gray-400 text-sm mb-3">{document.description}</p>}
-              <div className="flex items-center gap-2 text-xs text-gray-500">
+              {document?.description && <p className="text-[#8fbba5] text-sm mb-3">{document.description}</p>}
+              <div className="flex items-center gap-2 text-xs text-[#6b9b84]">
                 <span>조회수 {document?.view_count.toLocaleString()}회</span>
                 <span>·</span>
                 <span>읽기 시간: {Math.floor(totalTime / 60)}분 {totalTime % 60}초</span>
@@ -692,12 +692,12 @@ export default function ReadPage() {
 
             {/* ━━━ 시리즈 정보 ━━━ */}
             {seriesInfo && (
-              <div className="p-4 border-b border-gray-800">
+              <div className="p-4 border-b border-[#1c3d2e]">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-base">📚</span>
                   <div>
                     <p className="text-white font-medium text-sm">{seriesInfo.seriesTitle}</p>
-                    <p className="text-gray-400 text-xs">{seriesInfo.currentPosition} / {seriesInfo.totalDocs}편</p>
+                    <p className="text-[#8fbba5] text-xs">{seriesInfo.currentPosition} / {seriesInfo.totalDocs}편</p>
                   </div>
                 </div>
 
@@ -708,7 +708,7 @@ export default function ReadPage() {
                       className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-colors ${
                         doc.documentId === documentId
                           ? 'bg-blue-600/20 text-blue-400 font-medium'
-                          : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 cursor-pointer'
+                          : 'text-[#8fbba5] hover:bg-[#153024] hover:text-gray-200 cursor-pointer'
                       }`}
                       onClick={() => {
                         if (doc.documentId !== documentId) router.push(`/read/${doc.documentId}`)
@@ -727,7 +727,7 @@ export default function ReadPage() {
                   {seriesInfo.prevDocId && (
                     <button
                       onClick={() => router.push(`/read/${seriesInfo.prevDocId}`)}
-                      className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-gray-300 transition-colors text-center"
+                      className="flex-1 px-3 py-2 bg-[#153024] hover:bg-[#1c3d2e] rounded-lg text-xs text-gray-300 transition-colors text-center"
                     >
                       ← 이전편
                     </button>
@@ -745,7 +745,7 @@ export default function ReadPage() {
             )}
 
             {authorProfile && (
-              <div className="p-4 border-b border-gray-800">
+              <div className="p-4 border-b border-[#1c3d2e]">
                 <div className="flex items-center justify-between">
                   <Link href={`/profile/${authorProfile.id}`}>
                     <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
@@ -758,7 +758,7 @@ export default function ReadPage() {
                       )}
                       <div>
                         <p className="text-white font-medium text-sm">{authorProfile.username || authorProfile.email}</p>
-                        <p className="text-gray-500 text-xs">구독자 {authorProfile.subscribers_count.toLocaleString()}명</p>
+                        <p className="text-[#6b9b84] text-xs">구독자 {authorProfile.subscribers_count.toLocaleString()}명</p>
                       </div>
                     </div>
                   </Link>
@@ -767,14 +767,14 @@ export default function ReadPage() {
               </div>
             )}
 
-            <div className="p-4 border-b border-gray-800">
+            <div className="p-4 border-b border-[#1c3d2e]">
               <div className="flex items-center gap-3">
                 <ReactionButtons documentId={documentId} initialLikes={document?.likes_count || 0} initialDislikes={document?.dislikes_count || 0} />
                 <ReadingListButton documentId={documentId} />
               </div>
             </div>
 
-            <div className="p-4 border-b border-gray-800">
+            <div className="p-4 border-b border-[#1c3d2e]">
               <CommentsSection documentId={documentId} />
             </div>
 
