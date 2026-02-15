@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Eye, ThumbsUp, BookOpen as ReadIcon, FileText, Users, Clock, Calendar, Crown, Award, Share2 } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
@@ -91,7 +92,7 @@ export default function AuthorPage() {
       <div className="group cursor-pointer">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-3">
           {doc.thumbnail_url ? (
-            <img src={doc.thumbnail_url} alt={doc.title} className="w-full h-full object-cover" />
+            <Image src={doc.thumbnail_url} alt={doc.title} fill className="object-cover" sizes="(max-width: 640px) 50vw, 200px" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center"><div className="text-6xl opacity-20">📄</div></div>
           )}
@@ -147,7 +148,7 @@ export default function AuthorPage() {
         <div className="max-w-[1400px] mx-auto">
           <div className="relative h-28 sm:h-36 md:h-44 rounded-xl overflow-hidden">
             {author.banner_url ? (
-              <img src={author.banner_url} alt="배너" className="w-full h-full object-cover" />
+              <Image src={author.banner_url} alt="배너" fill className="object-cover" sizes="100vw" />
             ) : (
               <>
                 <div className="absolute inset-0 bg-gradient-to-r from-slate-800 via-blue-900 to-indigo-900" />
@@ -167,7 +168,7 @@ export default function AuthorPage() {
             {/* 아바타 */}
             <div className="relative flex-shrink-0">
               {author.avatar_url ? (
-                <img src={author.avatar_url} alt={author.username || ''} className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover" />
+                <Image src={author.avatar_url} alt={author.username || ''} width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover" />
               ) : (
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-2xl md:text-3xl font-bold">
                   {(author.username || author.email)[0].toUpperCase()}

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
@@ -691,7 +692,7 @@ export default function ReadPage() {
                   <Link href={`/profile/${authorProfile.id}`}>
                     <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
                       {authorProfile.avatar_url ? (
-                        <img src={authorProfile.avatar_url} alt={authorProfile.username || ''} className="w-10 h-10 rounded-full object-cover" />
+                        <Image src={authorProfile.avatar_url} alt={authorProfile.username || ''} width={40} height={40} className="rounded-full object-cover" />
                       ) : (
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                           {(authorProfile.username || authorProfile.email)[0].toUpperCase()}
