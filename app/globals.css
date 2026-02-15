@@ -252,3 +252,8 @@ a *,
   -webkit-user-select: none !important;
   user-select: none !important;
 }
+/* PDF 텍스트/어노테이션 레이어 터치 이벤트 통과 */
+.react-pdf__Page__textContent,
+.react-pdf__Page__annotations {
+  pointer-events: none !important;
+}
