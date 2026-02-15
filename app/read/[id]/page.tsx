@@ -609,9 +609,9 @@ export default function ReadPage() {
                 <ChevronRight className="w-5 h-5" />
               </button>
 
-              <div className="w-px h-4 bg-gray-700 hidden lg:block" />
+              <div className="w-px h-4 bg-gray-700" />
 
-              <div className="hidden lg:flex items-center gap-0.5">
+              <div className="flex items-center gap-0.5">
                 <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
                   <ZoomOut className="w-4 h-4" />
                 </button>
