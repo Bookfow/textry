@@ -1,8 +1,9 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
@@ -535,7 +536,7 @@ export default function ReadPage() {
           />
         </div>
 
-        <div className="bg-gray-900 border-b border-gray-800 px-2 sm:px-3 py-1.5 overflow-hidden">
+        <div className="bg-gray-900 border-b border-gray-800 px-2 sm:px-3 py-1 overflow-hidden">
           <div className="flex items-center gap-1 sm:gap-2">
 
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
@@ -650,7 +651,7 @@ export default function ReadPage() {
       ) : !isPremium ? (
         <div className="absolute top-0 left-0 right-0 z-50 bg-gray-900/90 backdrop-blur-sm border-b border-gray-800 px-2 py-1 flex items-center justify-center cursor-pointer"
           onClick={() => resetControlsTimer()}>
-          <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
+          <div className="h-[40px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
             <AdBanner position="top" documentId={documentId} authorId={document?.author_id} />
           </div>
         </div>
@@ -662,7 +663,7 @@ export default function ReadPage() {
           <div className="flex-1 overflow-hidden">
             {pdfUrl && (
               <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
-                showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} />
+                showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange} />
             )}
           </div>
         </div>
@@ -749,7 +750,7 @@ export default function ReadPage() {
                   <Link href={`/profile/${authorProfile.id}`}>
                     <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
                       {authorProfile.avatar_url ? (
-                        <img src={authorProfile.avatar_url} alt={authorProfile.username || ''} className="w-10 h-10 rounded-full object-cover" />
+                        <Image src={authorProfile.avatar_url} alt={authorProfile.username || ''} width={40} height={40} className="rounded-full object-cover" />
                       ) : (
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                           {(authorProfile.username || authorProfile.email)[0].toUpperCase()}
