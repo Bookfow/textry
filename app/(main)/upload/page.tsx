@@ -114,6 +114,20 @@ export default function UploadPage() {
 
       setProgress(70)
 
+      // PDF 페이지 수 읽기
+      let pageCount = 0
+      if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        try {
+          const { pdfjs } = await import('react-pdf')
+          pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+          const arrayBuffer = await file.arrayBuffer()
+          const pdfDoc = await pdfjs.getDocument({ data: arrayBuffer }).promise
+          pageCount = pdfDoc.numPages
+        } catch (e) {
+          console.warn('PDF 페이지 수 읽기 실패:', e)
+        }
+      }
+
       const { error: dbError } = await supabase
         .from('documents')
         .insert({
@@ -126,6 +140,7 @@ export default function UploadPage() {
           author_id: user.id,
           file_size: file.size,
           total_reading_time: Math.floor(file.size / 1000),
+          page_count: pageCount || null,
           is_published: true
         })
 

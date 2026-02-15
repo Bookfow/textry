@@ -489,6 +489,9 @@ export default function ReadPage() {
   const handleDocumentLoad = (total: number) => {
     setNumPages(total)
     setDocumentReady(true)
+    if (total > 0) {
+      supabase.from('documents').update({ page_count: total }).eq('id', documentId).then(() => {})
+    }
   }
 
   const progress = numPages > 0 ? (pageNumber / numPages) * 100 : 0
