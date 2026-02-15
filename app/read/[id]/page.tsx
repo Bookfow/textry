@@ -21,6 +21,8 @@ import {
   ScrollText,
   BookOpenCheck,
   Sun,
+  Bookmark,
+  Trash2,
 } from 'lucide-react'
 import { AdBanner } from '@/components/ad-banner'
 import { AdOverlay } from '@/components/ad-overlay'
@@ -134,6 +136,11 @@ export default function ReadPage() {
   const [showThemePopup, setShowThemePopup] = useState(false)
   const themePopupRef = useRef<HTMLDivElement>(null)
 
+  // ━━━ 북마크 ━━━
+  type BookmarkItem = { id: string; page_number: number; memo: string; created_at: string }
+  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([])
+  const [bookmarkLoading, setBookmarkLoading] = useState(false)
+
   // 시리즈 상태
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null)
 
@@ -236,6 +243,64 @@ export default function ReadPage() {
   const handleScaleChange = useCallback((newScale: number) => {
     setScale(newScale)
   }, [])
+
+  // ━━━ 북마크 로드 ━━━
+  const loadBookmarks = useCallback(async () => {
+    if (!user) return
+    try {
+      const { data, error } = await supabase
+        .from('bookmarks')
+        .select('id, page_number, memo, created_at')
+        .eq('user_id', user.id)
+        .eq('document_id', documentId)
+        .order('page_number', { ascending: true })
+      if (error) throw error
+      setBookmarks(data || [])
+    } catch (err) {
+      console.error('Error loading bookmarks:', err)
+    }
+  }, [user, documentId])
+
+  useEffect(() => {
+    if (user && documentId) loadBookmarks()
+  }, [user, documentId, loadBookmarks])
+
+  const isCurrentPageBookmarked = bookmarks.some(b => b.page_number === pageNumber)
+
+  const toggleBookmark = async () => {
+    if (!user || bookmarkLoading) return
+    setBookmarkLoading(true)
+    try {
+      if (isCurrentPageBookmarked) {
+        const bm = bookmarks.find(b => b.page_number === pageNumber)
+        if (bm) {
+          await supabase.from('bookmarks').delete().eq('id', bm.id)
+          setBookmarks(prev => prev.filter(b => b.id !== bm.id))
+        }
+      } else {
+        const { data, error } = await supabase
+          .from('bookmarks')
+          .insert({ user_id: user.id, document_id: documentId, page_number: pageNumber })
+          .select('id, page_number, memo, created_at')
+          .single()
+        if (error) throw error
+        setBookmarks(prev => [...prev, data].sort((a, b) => a.page_number - b.page_number))
+      }
+    } catch (err) {
+      console.error('Error toggling bookmark:', err)
+    } finally {
+      setBookmarkLoading(false)
+    }
+  }
+
+  const deleteBookmark = async (id: string) => {
+    try {
+      await supabase.from('bookmarks').delete().eq('id', id)
+      setBookmarks(prev => prev.filter(b => b.id !== id))
+    } catch (err) {
+      console.error('Error deleting bookmark:', err)
+    }
+  }
 
   // ─── 시작 광고 (프리미엄은 스킵) ───
   useEffect(() => {
@@ -745,6 +810,12 @@ export default function ReadPage() {
             )}
 
             <div className="flex items-center gap-1 flex-shrink-0">
+              <button onClick={toggleBookmark}
+                className={`p-2 rounded-lg transition-colors ${isCurrentPageBookmarked ? 'text-amber-400 hover:text-amber-300' : 'text-[#8fbba5] hover:text-white'} hover:bg-[#153024]`}
+                title={isCurrentPageBookmarked ? '북마크 제거' : '이 페이지 북마크'}
+              >
+                <Bookmark className="w-5 h-5" fill={isCurrentPageBookmarked ? 'currentColor' : 'none'} />
+              </button>
               <ReadingListButton documentId={documentId} compact />
               <ShareButton documentId={documentId} title={document?.title || ''} />
               <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors" title="전체화면 (F키)">
@@ -887,6 +958,46 @@ export default function ReadPage() {
                 <ReadingListButton documentId={documentId} />
               </div>
             </div>
+
+            {/* ━━━ 북마크 목록 ━━━ */}
+            {bookmarks.length > 0 && (
+              <div className="p-4 border-b border-[#1c3d2e]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-white font-medium text-sm flex items-center gap-1.5">
+                    <Bookmark className="w-4 h-4 text-amber-400" fill="currentColor" />
+                    북마크 ({bookmarks.length})
+                  </h3>
+                </div>
+                <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                  {bookmarks.map((bm) => (
+                    <div
+                      key={bm.id}
+                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                        bm.page_number === pageNumber
+                          ? 'bg-amber-500/15 text-amber-400'
+                          : 'text-[#8fbba5] hover:bg-[#153024] hover:text-white'
+                      }`}
+                      onClick={() => setPageNumber(bm.page_number)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Bookmark className="w-3.5 h-3.5 flex-shrink-0" fill={bm.page_number === pageNumber ? 'currentColor' : 'none'} />
+                        <span>{bm.page_number}페이지</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-[#6b9b84]">{new Date(bm.created_at).toLocaleDateString()}</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteBookmark(bm.id) }}
+                          className="p-1 rounded hover:bg-red-500/20 text-[#6b9b84] hover:text-red-400 transition-colors"
+                          title="삭제"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="p-4 border-b border-[#1c3d2e]">
               <CommentsSection documentId={documentId} />
