@@ -583,6 +583,47 @@ export default function ReadPage() {
         sessionId={sessionId}
       />
 
+      {/* ━━━ 배경/밝기 팝업 (최상위 레벨) ━━━ */}
+      {showThemePopup && (
+        <div ref={themePopupRef} className="fixed top-[62px] left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-[200px] w-56 bg-[#0f2419] border border-[#1c3d2e] rounded-xl shadow-2xl p-4 z-[9999]">
+          <p className="text-xs text-[#6b9b84] mb-2 font-medium">배경 테마</p>
+          <div className="flex gap-2 mb-4">
+            {(Object.keys(BG_THEMES) as BgTheme[]).map((key) => (
+              <button
+                key={key}
+                onClick={() => setBgTheme(key)}
+                className={`flex-1 flex flex-col items-center gap-1.5 p-2 rounded-lg border-2 transition-all ${
+                  bgTheme === key
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-[#1c3d2e] hover:border-[#2a5440]'
+                }`}
+              >
+                <div
+                  className="w-8 h-8 rounded-full border border-[#1c3d2e] shadow-inner"
+                  style={{ backgroundColor: BG_THEMES[key].previewColor }}
+                />
+                <span className="text-[10px] text-[#8fbba5]">{BG_THEMES[key].label}</span>
+              </button>
+            ))}
+          </div>
+
+          <p className="text-xs text-[#6b9b84] mb-2 font-medium">밝기 {brightness}%</p>
+          <input
+            type="range"
+            min={30}
+            max={150}
+            value={brightness}
+            onChange={(e) => setBrightness(Number(e.target.value))}
+            className="w-full h-1.5 bg-[#153024] rounded-full appearance-none cursor-pointer accent-blue-500"
+          />
+          <div className="flex justify-between text-[10px] text-[#6b9b84] mt-1">
+            <span>어둡게</span>
+            <button onClick={() => setBrightness(100)} className="hover:text-white transition-colors">초기화</button>
+            <span>밝게</span>
+          </div>
+        </div>
+      )}
+
       {/* ━━━ 상단 오버레이: 컨트롤바 OR 배너 광고 ━━━ */}
       {showControls ? (
         <div className="absolute top-0 left-0 right-0 z-50">
@@ -683,7 +724,7 @@ export default function ReadPage() {
 
               {/* ━━━ 배경/밝기 버튼 ━━━ */}
               <div className="w-px h-4 bg-[#1c3d2e]" />
-              <div className="relative" ref={themePopupRef}>
+              <div className="relative">
                 <button
                   onClick={() => setShowThemePopup(!showThemePopup)}
                   className={`p-1.5 rounded-lg transition-colors ${showThemePopup ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white hover:bg-[#153024]'}`}
@@ -692,47 +733,6 @@ export default function ReadPage() {
                   <Sun className="w-4 h-4" />
                 </button>
 
-                {showThemePopup && (
-                  <div className="fixed top-[58px] right-4 sm:absolute sm:top-full sm:mt-2 sm:right-0 sm:left-1/2 sm:-translate-x-1/2 w-56 bg-[#0f2419] border border-[#1c3d2e] rounded-xl shadow-2xl p-4 z-[9999]">
-                    {/* 배경 테마 */}
-                    <p className="text-xs text-[#6b9b84] mb-2 font-medium">배경 테마</p>
-                    <div className="flex gap-2 mb-4">
-                      {(Object.keys(BG_THEMES) as BgTheme[]).map((key) => (
-                        <button
-                          key={key}
-                          onClick={() => setBgTheme(key)}
-                          className={`flex-1 flex flex-col items-center gap-1.5 p-2 rounded-lg border-2 transition-all ${
-                            bgTheme === key
-                              ? 'border-blue-500 bg-blue-500/10'
-                              : 'border-[#1c3d2e] hover:border-[#2a5440]'
-                          }`}
-                        >
-                          <div
-                            className="w-8 h-8 rounded-full border border-[#1c3d2e] shadow-inner"
-                            style={{ backgroundColor: BG_THEMES[key].previewColor }}
-                          />
-                          <span className="text-[10px] text-[#8fbba5]">{BG_THEMES[key].label}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* 밝기 슬라이더 */}
-                    <p className="text-xs text-[#6b9b84] mb-2 font-medium">밝기 {brightness}%</p>
-                    <input
-                      type="range"
-                      min={30}
-                      max={150}
-                      value={brightness}
-                      onChange={(e) => setBrightness(Number(e.target.value))}
-                      className="w-full h-1.5 bg-[#153024] rounded-full appearance-none cursor-pointer accent-blue-500"
-                    />
-                    <div className="flex justify-between text-[10px] text-[#6b9b84] mt-1">
-                      <span>어둡게</span>
-                      <button onClick={() => setBrightness(100)} className="hover:text-white transition-colors">초기화</button>
-                      <span>밝게</span>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
