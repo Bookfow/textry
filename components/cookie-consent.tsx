@@ -10,10 +10,16 @@ export function CookieConsent() {
   useEffect(() => {
     const consent = localStorage.getItem('cookie-consent')
     if (!consent) {
-      // 1초 후 표시 (페이지 로드 후 자연스럽게)
       const timer = setTimeout(() => setShow(true), 1000)
       return () => clearTimeout(timer)
     }
+    // 이미 동의한 경우 GA consent 업데이트
+    try {
+      const parsed = JSON.parse(consent)
+      if (parsed.analytics && typeof (window as any).gtag === 'function') {
+        (window as any).gtag('consent', 'update', { analytics_storage: 'granted' })
+      }
+    } catch {}
   }, [])
 
   const handleAcceptAll = () => {
@@ -23,6 +29,9 @@ export function CookieConsent() {
       marketing: true,
       acceptedAt: new Date().toISOString(),
     }))
+    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      (window as any).gtag('consent', 'update', { analytics_storage: 'granted' })
+    }
     setShow(false)
   }
 

@@ -1,8 +1,9 @@
-import { ToastProvider } from "@/components/toast"
 import type { Metadata } from "next"
 import "./globals.css"
+import Script from "next/script"
 import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/lib/theme-context"
+import { ToastProvider } from "@/components/toast"
 import { CookieConsent } from "@/components/cookie-consent"
 import { WebsiteJsonLd } from "@/components/json-ld"
 
@@ -59,16 +60,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=G-J9YDSY8L1R"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('consent', 'default', { analytics_storage: 'denied' });
+          gtag('config', 'G-J9YDSY8L1R');
+        `}
+      </Script>
       <body>
         <WebsiteJsonLd />
         <ThemeProvider>
-  <AuthProvider>
-    <ToastProvider>
-      {children}
-      <CookieConsent />
-    </ToastProvider>
-  </AuthProvider>
-</ThemeProvider>
+          <AuthProvider>
+            <ToastProvider>
+              {children}
+              <CookieConsent />
+            </ToastProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
