@@ -168,7 +168,7 @@ export default function PDFViewer({
     if (!container) return
 
     const handleTouchStart = (e: TouchEvent) => {
-      // 2손가락: 핀치줌
+      // 2손가락이 동시에 닿으면 핀치 준비
       if (e.touches.length === 2) {
         e.preventDefault()
         const dist = getTouchDistance(e.touches)
@@ -184,13 +184,28 @@ export default function PDFViewer({
     }
 
     const handleTouchMove = (e: TouchEvent) => {
-      // 핀치줌 처리
-      if (e.touches.length === 2 && pinchStartDistanceRef.current !== null) {
+      // 2손가락 감지 → 핀치줌 시작 (순차적으로 손가락 올린 경우)
+      if (e.touches.length === 2) {
         e.preventDefault()
-        const currentDist = getTouchDistance(e.touches)
-        const ratio = currentDist / pinchStartDistanceRef.current
-        const newScale = Math.min(Math.max(pinchStartScaleRef.current * ratio, 0.5), 3.0)
-        if (onScaleChangeRef.current) onScaleChangeRef.current(newScale)
+        if (!isPinchingRef.current) {
+          // 핀치 시작
+          const dist = getTouchDistance(e.touches)
+          setPinchStartDistance(dist)
+          setPinchStartScale(scaleRef.current)
+          setIsPinching(true)
+          // 스와이프 취소
+          setSwipeOffset(0)
+          setTouchStart(null)
+          setTouchEnd(null)
+          return
+        }
+        // 핀치 진행중
+        if (pinchStartDistanceRef.current !== null) {
+          const currentDist = getTouchDistance(e.touches)
+          const ratio = currentDist / pinchStartDistanceRef.current
+          const newScale = Math.min(Math.max(pinchStartScaleRef.current * ratio, 0.5), 3.0)
+          if (onScaleChangeRef.current) onScaleChangeRef.current(newScale)
+        }
         return
       }
       // 스와이프 처리
