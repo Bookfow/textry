@@ -258,6 +258,7 @@ export function MainHeader({
               </SelectContent>
             </Select>
 
+            {/* 글로벌 런칭 시 활성화
             <Select value={language} onValueChange={onLanguageChange}>
               <SelectTrigger className="w-36 rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 h-10">
                 <SelectValue />
@@ -269,6 +270,7 @@ export function MainHeader({
                 ))}
               </SelectContent>
             </Select>
+            */}
 
             <Select value={sortBy} onValueChange={onSortChange}>
               <SelectTrigger className="w-36 rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 h-10 text-sm">
@@ -340,7 +342,7 @@ export function MainHeader({
         </div>
 
         {/* 모바일/태블릿 필터 */}
-        <div className="lg:hidden mt-3 grid grid-cols-3 gap-2">
+        <div className="lg:hidden mt-3 grid grid-cols-2 gap-2">
           <Select value={category} onValueChange={onCategoryChange}>
             <SelectTrigger className="rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 text-xs">
               <SelectValue />
@@ -353,6 +355,7 @@ export function MainHeader({
             </SelectContent>
           </Select>
 
+          {/* 글로벌 런칭 시 활성화
           <Select value={language} onValueChange={onLanguageChange}>
             <SelectTrigger className="rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 text-xs">
               <SelectValue />
@@ -364,6 +367,7 @@ export function MainHeader({
               ))}
             </SelectContent>
           </Select>
+          */}
 
           <Select value={sortBy} onValueChange={onSortChange}>
             <SelectTrigger className="rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 text-xs h-9">
