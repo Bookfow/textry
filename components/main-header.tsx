@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
@@ -250,7 +250,7 @@ export function MainHeader({
               <SelectTrigger className="w-40 rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 h-10">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="min-w-[120px]">
+              <SelectContent position="popper" sideOffset={4} className="min-w-[120px] z-[9999]">
                 <SelectItem value="all">전체 카테고리</SelectItem>
                 {CATEGORIES.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value}>{cat.icon} {cat.label}</SelectItem>
@@ -262,7 +262,7 @@ export function MainHeader({
               <SelectTrigger className="w-36 rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 h-10">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="min-w-[120px]">
+              <SelectContent position="popper" sideOffset={4} className="min-w-[120px] z-[9999]">
                 <SelectItem value="all">전체 언어</SelectItem>
                 {LANGUAGES.map((lang) => (
                   <SelectItem key={lang.value} value={lang.value}>{lang.flag} {lang.label}</SelectItem>
@@ -274,7 +274,7 @@ export function MainHeader({
               <SelectTrigger className="w-36 rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 h-10 text-sm">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="min-w-[120px]">
+              <SelectContent position="popper" sideOffset={4} className="min-w-[120px] z-[9999]">
                 <SelectItem value="recent">최신순</SelectItem>
                 <SelectItem value="popular">인기순</SelectItem>
                 <SelectItem value="views">조회수순</SelectItem>
@@ -304,7 +304,7 @@ export function MainHeader({
           </div>
 
           {/* 우측 */}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2">
             {user && (
               <Link href="/upload">
                 <Button variant="ghost" className="rounded-full hover:bg-gray-100 h-10 px-4" title="업로드">
@@ -345,7 +345,7 @@ export function MainHeader({
             <SelectTrigger className="rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="min-w-[120px]">
+            <SelectContent position="popper" sideOffset={4} className="min-w-[120px] z-[9999]">
               <SelectItem value="all">전체 카테고리</SelectItem>
               {CATEGORIES.map((cat) => (
                 <SelectItem key={cat.value} value={cat.value}>{cat.icon} {cat.label}</SelectItem>
@@ -357,7 +357,7 @@ export function MainHeader({
             <SelectTrigger className="rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="min-w-[120px]">
+            <SelectContent position="popper" sideOffset={4} className="min-w-[120px] z-[9999]">
               <SelectItem value="all">전체 언어</SelectItem>
               {LANGUAGES.map((lang) => (
                 <SelectItem key={lang.value} value={lang.value}>{lang.flag} {lang.label}</SelectItem>
@@ -369,7 +369,7 @@ export function MainHeader({
             <SelectTrigger className="rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 text-xs h-9">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="min-w-[120px]">
+            <SelectContent position="popper" sideOffset={4} className="min-w-[120px] z-[9999]">
               <SelectItem value="recent">최신순</SelectItem>
               <SelectItem value="popular">인기순</SelectItem>
               <SelectItem value="views">조회수순</SelectItem>
