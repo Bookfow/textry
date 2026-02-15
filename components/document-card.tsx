@@ -142,8 +142,8 @@ export function DocumentCard({
   if (variant === 'compact') {
     return (
       <Link href={`/read/${doc.id}`} className="flex-shrink-0 w-[160px] sm:w-[180px] md:w-[200px]">
-        <div className="group cursor-pointer">
-          <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
+        <div className="group cursor-pointer transition-all duration-200 hover:-translate-y-1">
+          <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2 shadow-sm ring-1 ring-black/[0.06] dark:ring-white/[0.08] group-hover:shadow-lg group-hover:shadow-black/10 dark:group-hover:shadow-black/30 transition-shadow duration-200">
             {doc.thumbnail_url ? (
               <Image src={doc.thumbnail_url} alt={doc.title} fill className="object-cover" sizes="(max-width: 640px) 160px, (max-width: 768px) 180px, 200px" />
             ) : (
@@ -211,8 +211,8 @@ export function DocumentCard({
   // ─── 그리드 모드 (browse, reading-list, continue-reading, home) ───
   return (
     <Link href={`/read/${doc.id}`}>
-      <div className="group cursor-pointer">
-        <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2">
+      <div className="group cursor-pointer transition-all duration-200 hover:-translate-y-1">
+        <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2 shadow-sm ring-1 ring-black/[0.06] dark:ring-white/[0.08] group-hover:shadow-lg group-hover:shadow-black/10 dark:group-hover:shadow-black/30 transition-shadow duration-200">
           {doc.thumbnail_url ? (
             <Image src={doc.thumbnail_url} alt={doc.title} fill className="object-cover" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px" />
           ) : (
