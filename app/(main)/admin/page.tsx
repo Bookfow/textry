@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button'
 import {
   BarChart3, Users, DollarSign, FileText, Eye, Clock,
   TrendingUp, Crown, Shield, AlertTriangle, ChevronDown,
-  ChevronUp, Search, Download, RefreshCw, Award,
+  ChevronUp, Search, Download, RefreshCw, Award, Flag,
+  CheckCircle, XCircle, Trash2, ExternalLink,
 } from 'lucide-react'
+import { useToast } from '@/components/toast'
 
-type TabType = 'overview' | 'authors' | 'revenue' | 'content' | 'premium'
+type TabType = 'overview' | 'authors' | 'revenue' | 'content' | 'premium' | 'reports'
 
 type AuthorRow = {
   id: string
@@ -56,6 +58,9 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [authorSort, setAuthorSort] = useState<'revenue' | 'subscribers' | 'views' | 'date'>('revenue')
   const [docSort, setDocSort] = useState<'views' | 'time' | 'likes' | 'date'>('views')
+  const [reports, setReports] = useState<any[]>([])
+  const [reportFilter, setReportFilter] = useState<'all' | 'pending' | 'reviewed' | 'resolved' | 'dismissed'>('pending')
+  const { toast } = useToast()
 
   useEffect(() => {
     loadAdminData()
@@ -116,6 +121,32 @@ export default function AdminPage() {
         totalAuthorPayout,
         premiumMonthlyRevenue,
       })
+
+      // 신고 데이터 로딩
+      const { data: reportsData } = await supabase
+        .from('reports')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      // 신고된 문서 + 신고자 정보 매칭
+      if (reportsData && reportsData.length > 0) {
+        const docIds = [...new Set(reportsData.map((r: any) => r.document_id).filter(Boolean))]
+        const reporterIds = [...new Set(reportsData.map((r: any) => r.reporter_id).filter(Boolean))]
+
+        const { data: reportDocs } = await supabase.from('documents').select('id, title, author_id, thumbnail_url').in('id', docIds)
+        const { data: reporters } = await supabase.from('profiles').select('id, username, email').in('id', reporterIds)
+
+        const docMap = Object.fromEntries((reportDocs || []).map((d: any) => [d.id, d]))
+        const reporterMap = Object.fromEntries((reporters || []).map((p: any) => [p.id, p]))
+
+        setReports(reportsData.map((r: any) => ({
+          ...r,
+          documents: docMap[r.document_id] || null,
+          reporter: reporterMap[r.reporter_id] || null,
+        })))
+      } else {
+        setReports([])
+      }
     } catch (err) {
       console.error('Admin data load error:', err)
     } finally {
@@ -205,6 +236,7 @@ export default function AdminPage() {
               { id: 'content', label: '콘텐츠', icon: FileText },
               { id: 'revenue', label: '수익', icon: DollarSign },
               { id: 'premium', label: '프리미엄', icon: Crown },
+              { id: 'reports', label: '신고 관리', icon: Flag },
             ] as const).map(tab => (
               <button
                 key={tab.id}
@@ -231,6 +263,7 @@ export default function AdminPage() {
                   { label: '총 조회수', value: formatNumber(stats.totalViews), icon: Eye, color: 'text-purple-500', sub: `문서당 ${stats.totalDocuments > 0 ? Math.round(stats.totalViews / stats.totalDocuments) : 0}회` },
                   { label: '총 읽기 시간', value: formatTime(stats.totalReadingTimeSec), icon: Clock, color: 'text-teal-500', sub: '' },
                   { label: '플랫폼 수익', value: `$${stats.totalPlatformRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-red-500', sub: `작가 지급: $${stats.totalAuthorPayout.toFixed(2)}` },
+                  { label: '신고 접수', value: formatNumber(reports.length), icon: Flag, color: 'text-orange-500', sub: `대기중 ${reports.filter(r => r.status === 'pending').length}건` },
                 ].map((item, i) => (
                   <div key={i} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
                     <div className="flex items-center justify-between mb-2">
@@ -590,6 +623,120 @@ export default function AdminPage() {
                   )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'reports' && (
+            <div className="space-y-4">
+              {/* 필터 */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {(['all', 'pending', 'reviewed', 'resolved', 'dismissed'] as const).map(f => (
+                  <button key={f} onClick={() => setReportFilter(f)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                      reportFilter === f
+                        ? 'bg-red-600 text-white'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}>
+                    {{ all: '전체', pending: '대기중', reviewed: '검토중', resolved: '처리완료', dismissed: '기각' }[f]}
+                    {f !== 'all' && (
+                      <span className="ml-1 opacity-70">
+                        ({reports.filter(r => r.status === f).length})
+                      </span>
+                    )}
+                    {f === 'all' && <span className="ml-1 opacity-70">({reports.length})</span>}
+                  </button>
+                ))}
+              </div>
+
+              {/* 신고 목록 */}
+              <div className="space-y-3">
+                {reports
+                  .filter(r => reportFilter === 'all' || r.status === reportFilter)
+                  .map((report: any) => (
+                  <div key={report.id} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                            report.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                            report.status === 'reviewed' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                            report.status === 'resolved' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                            'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                          }`}>
+                            {{ pending: '대기중', reviewed: '검토중', resolved: '처리완료', dismissed: '기각' }[report.status as string] || report.status}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400">
+                            {{ copyright: '저작권 침해', inappropriate: '부적절한 콘텐츠', spam: '스팸', misinformation: '허위 정보', other: '기타' }[report.reason as string] || report.reason}
+                          </span>
+                          <span className="text-[10px] text-gray-400">{new Date(report.created_at).toLocaleString('ko-KR')}</span>
+                        </div>
+
+                        <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                          📄 {report.documents?.title || '삭제된 문서'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          신고자: {report.reporter?.username || report.reporter?.email || '알 수 없음'}
+                        </p>
+                        {report.detail && (
+                          <p className="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg p-2 mt-2">
+                            {report.detail}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* 액션 버튼 */}
+                      <div className="flex flex-col gap-1.5 flex-shrink-0">
+                        {report.documents?.id && (
+                          <button onClick={() => window.open(`/read/${report.documents.id}`, '_blank')}
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                            <ExternalLink className="w-3 h-3" /> 문서 보기
+                          </button>
+                        )}
+                        {report.status === 'pending' && (
+                          <>
+                            <button onClick={async () => {
+                              const { error } = await supabase.from('reports').update({ status: 'reviewed' }).eq('id', report.id)
+                              if (!error) { setReports(prev => prev.map(r => r.id === report.id ? { ...r, status: 'reviewed' } : r)); toast.info('검토중으로 변경되었습니다.') }
+                            }} className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
+                              <Eye className="w-3 h-3" /> 검토 시작
+                            </button>
+                          </>
+                        )}
+                        {(report.status === 'pending' || report.status === 'reviewed') && (
+                          <>
+                            <button onClick={async () => {
+                              if (!confirm('해당 문서를 삭제하고 신고를 처리하시겠습니까?')) return
+                              const { error: delErr } = await supabase.from('documents').delete().eq('id', report.documents?.id)
+                              if (delErr) { toast.error('문서 삭제 실패'); return }
+                              const { error } = await supabase.from('reports').update({ status: 'resolved' }).eq('id', report.id)
+                              if (!error) { setReports(prev => prev.map(r => r.id === report.id ? { ...r, status: 'resolved' } : r)); toast.success('문서 삭제 및 신고 처리 완료') }
+                            }} className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
+                              <Trash2 className="w-3 h-3" /> 문서 삭제
+                            </button>
+                            <button onClick={async () => {
+                              const { error } = await supabase.from('reports').update({ status: 'dismissed' }).eq('id', report.id)
+                              if (!error) { setReports(prev => prev.map(r => r.id === report.id ? { ...r, status: 'dismissed' } : r)); toast.info('신고가 기각되었습니다.') }
+                            }} className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                              <XCircle className="w-3 h-3" /> 기각
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {reports.filter(r => reportFilter === 'all' || r.status === reportFilter).length === 0 && (
+                  <div className="text-center py-12">
+                    <Flag className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400 dark:text-gray-500">
+                      {reportFilter === 'all' ? '신고 내역이 없습니다' : `${
+                        { pending: '대기중', reviewed: '검토중', resolved: '처리완료', dismissed: '기각' }[reportFilter]
+                      } 상태의 신고가 없습니다`}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-gray-400">총 {reports.filter(r => reportFilter === 'all' || r.status === reportFilter).length}건</p>
             </div>
           )}
 
