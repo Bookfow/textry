@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
@@ -114,6 +113,9 @@ export default function ReadPage() {
   // UI 상태
   const [showSidePanel, setShowSidePanel] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showControls, setShowControls] = useState(true)
+  const controlsTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
   // 시리즈 상태
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null)
@@ -139,6 +141,54 @@ export default function ReadPage() {
 
   const tier = numPages > 0 ? getAdTier(numPages) : 'micro'
   const tierConfig = getTierConfig(tier)
+
+  // ━━━ 모바일 감지 + 자동 페이지 모드 전환 ━━━
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      if (mobile && viewMode === 'book') {
+        setViewMode('page')
+      }
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [viewMode])
+
+  // ━━━ 컨트롤바 auto-hide (3초 무활동 시 숨김) ━━━
+  const resetControlsTimer = useCallback(() => {
+    setShowControls(true)
+    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
+    controlsTimerRef.current = setTimeout(() => {
+      if (!showSidePanel && !showPageInput) {
+        setShowControls(false)
+      }
+    }, 3000)
+  }, [showSidePanel, showPageInput])
+
+  useEffect(() => {
+    const handleActivity = () => resetControlsTimer()
+    window.addEventListener('mousemove', handleActivity)
+    window.addEventListener('touchstart', handleActivity)
+    window.addEventListener('keydown', handleActivity)
+    resetControlsTimer()
+    return () => {
+      window.removeEventListener('mousemove', handleActivity)
+      window.removeEventListener('touchstart', handleActivity)
+      window.removeEventListener('keydown', handleActivity)
+      if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
+    }
+  }, [resetControlsTimer])
+
+  useEffect(() => {
+    if (showSidePanel || showPageInput) setShowControls(true)
+  }, [showSidePanel, showPageInput])
+
+  // ━━━ 핀치줌 콜백 (PDFViewer에서 호출) ━━━
+  const handleScaleChange = useCallback((newScale: number) => {
+    setScale(newScale)
+  }, [])
 
   // ─── 시작 광고 (프리미엄은 스킵) ───
   useEffect(() => {
@@ -475,8 +525,9 @@ export default function ReadPage() {
         sessionId={sessionId}
       />
 
-      {/* ━━━ 통합 상단 컨트롤 바 ━━━ */}
-      <div className="flex-shrink-0 z-50">
+      {/* ━━━ 상단 오버레이: 컨트롤바 OR 배너 광고 ━━━ */}
+      {showControls ? (
+        <div className="absolute top-0 left-0 right-0 z-50">
         <div className="h-1 bg-gray-800 w-full">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
@@ -595,7 +646,15 @@ export default function ReadPage() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      ) : !isPremium ? (
+        <div className="absolute top-0 left-0 right-0 z-50 bg-gray-900/90 backdrop-blur-sm border-b border-gray-800 px-2 py-1 flex items-center justify-center cursor-pointer"
+          onClick={() => resetControlsTimer()}>
+          <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
+            <AdBanner position="top" documentId={documentId} authorId={document?.author_id} />
+          </div>
+        </div>
+      ) : null}
 
       {/* ━━━ 메인 컨텐츠 ━━━ */}
       <div className="flex flex-1 overflow-hidden">
@@ -690,7 +749,7 @@ export default function ReadPage() {
                   <Link href={`/profile/${authorProfile.id}`}>
                     <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
                       {authorProfile.avatar_url ? (
-                        <Image src={authorProfile.avatar_url} alt={authorProfile.username || ''} width={40} height={40} className="rounded-full object-cover" />
+                        <img src={authorProfile.avatar_url} alt={authorProfile.username || ''} className="w-10 h-10 rounded-full object-cover" />
                       ) : (
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                           {(authorProfile.username || authorProfile.email)[0].toUpperCase()}
