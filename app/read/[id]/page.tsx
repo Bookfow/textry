@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -657,7 +657,7 @@ export default function ReadPage() {
       ) : null}
 
       {/* ━━━ 메인 컨텐츠 ━━━ */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden pt-[52px]">
         <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidePanel ? 'sm:mr-[380px]' : ''}`}>
           <div className="flex-1 overflow-hidden">
             {pdfUrl && (
