@@ -43,24 +43,18 @@ export default function PDFViewer({
   const [pdfLoading, setPdfLoading] = useState(true)
   const [fitWidth, setFitWidth] = useState<number>(0)
   const [pageAspect, setPageAspect] = useState<number>(1.414)
-
   const [swipeOffset, setSwipeOffset] = useState(0)
 
-  // ━━━ 핀치 투 줌 + 스와이프 (ref로 관리) ━━━
+  // ━━━ 핀치줌 + 스와이프 (전부 ref, state 리렌더 없음) ━━━
   const pinchStartDistRef = useRef<number | null>(null)
   const pinchStartScaleRef = useRef<number>(1)
   const isPinchingRef = useRef(false)
+  const pinchRatioRef = useRef(1)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
 
-  // 핀치줌 도중 CSS transform으로 시각적 확대만 (리렌더 방지)
-  const [pinchVisualRatio, _setPinchVisualRatio] = useState(1)
-  const [isPinchActive, setIsPinchActive] = useState(false)
-  const pinchVisualRatioRef = useRef(1)
-  const setPinchVisualRatio = (v: number) => {
-    pinchVisualRatioRef.current = v
-    _setPinchVisualRatio(v)
-  }
+  // PDF 콘텐츠 wrapper ref (DOM 직접 조작용)
+  const pdfContentRef = useRef<HTMLDivElement>(null)
 
   // 최신 props를 ref로 유지
   const scaleRef = useRef(scale)
@@ -163,13 +157,29 @@ export default function PDFViewer({
 
   const minSwipeDistance = 50
 
+  // ━━━ DOM 직접 조작으로 핀치줌 시각 효과 (React 리렌더 제로) ━━━
+  const applyPinchTransform = (ratio: number) => {
+    if (pdfContentRef.current) {
+      pdfContentRef.current.style.transform = `scale(${ratio})`
+      pdfContentRef.current.style.transformOrigin = 'center center'
+      pdfContentRef.current.style.transition = 'none'
+    }
+  }
+
+  const clearPinchTransform = () => {
+    if (pdfContentRef.current) {
+      pdfContentRef.current.style.transform = ''
+      pdfContentRef.current.style.transformOrigin = ''
+      pdfContentRef.current.style.transition = ''
+    }
+  }
+
   // ━━━ 투명 오버레이에 네이티브 터치 이벤트 바인딩 ━━━
   useEffect(() => {
     const overlay = touchOverlayRef.current
     if (!overlay) return
 
     const handleTouchStart = (e: TouchEvent) => {
-      // 2손가락 동시 → 핀치 시작
       if (e.touches.length === 2) {
         e.preventDefault()
         e.stopPropagation()
@@ -177,47 +187,41 @@ export default function PDFViewer({
         pinchStartDistRef.current = dist
         pinchStartScaleRef.current = scaleRef.current
         isPinchingRef.current = true
-        setIsPinchActive(true)
-        setPinchVisualRatio(1)
+        pinchRatioRef.current = 1
         return
       }
-      // 1손가락 → 스와이프 준비
       if (viewModeRef.current === 'scroll') return
       touchEndRef.current = null
       touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
     }
 
     const handleTouchMove = (e: TouchEvent) => {
-      // 2손가락 → 핀치줌
       if (e.touches.length === 2) {
         e.preventDefault()
         e.stopPropagation()
 
         if (!isPinchingRef.current) {
-          // 순차적으로 두번째 손가락이 올라온 경우
           const dist = getTouchDistance(e.touches)
           pinchStartDistRef.current = dist
           pinchStartScaleRef.current = scaleRef.current
           isPinchingRef.current = true
-          setIsPinchActive(true)
-          setPinchVisualRatio(1)
+          pinchRatioRef.current = 1
           setSwipeOffset(0)
           touchStartRef.current = null
           touchEndRef.current = null
           return
         }
 
-        // 핀치 진행: CSS transform만 업데이트 (리렌더 없음)
         if (pinchStartDistRef.current !== null) {
           const currentDist = getTouchDistance(e.touches)
           const ratio = currentDist / pinchStartDistRef.current
-          const clampedRatio = Math.min(Math.max(ratio, 0.5 / pinchStartScaleRef.current), 3.0 / pinchStartScaleRef.current)
-          setPinchVisualRatio(clampedRatio)
+          pinchRatioRef.current = ratio
+          // DOM 직접 조작 — React 리렌더 없음
+          applyPinchTransform(ratio)
         }
         return
       }
 
-      // 1손가락 → 스와이프
       const ts = touchStartRef.current
       if (!ts || viewModeRef.current === 'scroll') return
       const currentX = e.touches[0].clientX
@@ -226,18 +230,18 @@ export default function PDFViewer({
     }
 
     const handleTouchEnd = () => {
-      // 핀치 종료: 최종 scale 한 번만 적용
       if (isPinchingRef.current) {
-        const finalScale = Math.min(Math.max(pinchStartScaleRef.current * (pinchStartDistRef.current !== null ? pinchVisualRatioRef.current : 1), 0.5), 3.0)
+        // DOM transform 초기화
+        clearPinchTransform()
+        // 최종 scale 한 번만 적용
+        const finalScale = Math.min(Math.max(pinchStartScaleRef.current * pinchRatioRef.current, 0.5), 3.0)
         if (onScaleChangeRef.current) onScaleChangeRef.current(finalScale)
         pinchStartDistRef.current = null
         isPinchingRef.current = false
-        setIsPinchActive(false)
-        setPinchVisualRatio(1)
+        pinchRatioRef.current = 1
         return
       }
 
-      // 스와이프 종료
       const ts = touchStartRef.current
       const te = touchEndRef.current
       if (!ts || !te || viewModeRef.current === 'scroll') {
@@ -267,7 +271,7 @@ export default function PDFViewer({
       overlay.removeEventListener('touchmove', handleTouchMove)
       overlay.removeEventListener('touchend', handleTouchEnd)
     }
-  }, []) // ref 기반이므로 의존성 없음
+  }, [])
 
   const handlePageAreaClick = (e: React.MouseEvent) => {
     if (viewMode === 'scroll' || !onPageChange) return
@@ -301,7 +305,6 @@ export default function PDFViewer({
     return Array.from({ length: end - start + 1 }, (_, i) => start + i)
   }, [viewMode, scrollCurrentPage, numPages])
 
-  // 원목 프레임 스타일
   const frameStyle: React.CSSProperties = {
     borderWidth: '12px',
     borderStyle: 'solid',
@@ -327,7 +330,7 @@ export default function PDFViewer({
     <div ref={containerRef} className="h-full w-full flex flex-col">
       <div className="flex-1 relative overflow-hidden">
 
-        {/* ━━━ 투명 터치 오버레이: PDF 위에서 모든 터치를 직접 캡처 ━━━ */}
+        {/* ━━━ 투명 터치 오버레이 ━━━ */}
         <div
           ref={touchOverlayRef}
           className="absolute inset-0 z-20"
@@ -338,9 +341,8 @@ export default function PDFViewer({
         {/* 페이지 모드 */}
         {viewMode === 'page' && (
           <div className="h-full flex items-center justify-center overflow-auto">
-            <div
-              className={isPinchActive ? "" : "transition-transform duration-200 ease-out"}
-              style={{ transform: `translateX(${swipeOffset}px) scale(${isPinchActive ? pinchVisualRatio : 1})`, transformOrigin: 'center center' }}
+            <div ref={pdfContentRef} className="transition-transform duration-200 ease-out"
+              style={{ transform: `translateX(${swipeOffset}px)` }}
             >
               {pdfLoading && (
                 <div className="flex items-center justify-center p-12">
@@ -396,9 +398,8 @@ export default function PDFViewer({
         {/* 책 모드 */}
         {viewMode === 'book' && (
           <div className="h-full flex items-center justify-center overflow-auto">
-            <div
-              className={isPinchActive ? "" : "transition-transform duration-200 ease-out"}
-              style={{ transform: `translateX(${swipeOffset}px) scale(${isPinchActive ? pinchVisualRatio : 1})`, transformOrigin: 'center center' }}
+            <div ref={viewMode === 'book' ? pdfContentRef : undefined} className="transition-transform duration-200 ease-out"
+              style={{ transform: `translateX(${swipeOffset}px)` }}
             >
               {pdfLoading && (
                 <div className="flex items-center justify-center p-12">
@@ -500,10 +501,8 @@ export default function PDFViewer({
                         renderTextLayer={true}
                         renderAnnotationLayer={true}
                         loading={
-                          <div
-                            className="flex items-center justify-center bg-gray-900 border border-gray-800"
-                            style={{ width: renderWidth, height: renderWidth * pageAspect }}
-                          >
+                          <div className="flex items-center justify-center bg-gray-900 border border-gray-800"
+                            style={{ width: renderWidth, height: renderWidth * pageAspect }}>
                             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                           </div>
                         }
@@ -516,10 +515,8 @@ export default function PDFViewer({
                         renderTextLayer={true}
                         renderAnnotationLayer={true}
                         loading={
-                          <div
-                            className="flex items-center justify-center bg-gray-900 border border-gray-800"
-                            style={{ width: renderWidth, height: renderWidth * pageAspect }}
-                          >
+                          <div className="flex items-center justify-center bg-gray-900 border border-gray-800"
+                            style={{ width: renderWidth, height: renderWidth * pageAspect }}>
                             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                           </div>
                         }
