@@ -20,6 +20,7 @@ import {
   BookOpen,
   ScrollText,
   BookOpenCheck,
+  Sun,
 } from 'lucide-react'
 import { AdBanner } from '@/components/ad-banner'
 import { AdOverlay } from '@/components/ad-overlay'
@@ -87,6 +88,15 @@ function getTierConfig(tier: AdTier): TierConfig {
   }
 }
 
+// ─── 배경 테마 ───
+type BgTheme = 'default' | 'sepia' | 'dark'
+
+const BG_THEMES: Record<BgTheme, { label: string; previewColor: string; bgColor: string }> = {
+  default: { label: '기본', previewColor: '#0b1a13', bgColor: '#0b1a13' },
+  sepia: { label: '세피아', previewColor: '#f4ecd8', bgColor: '#f4ecd8' },
+  dark: { label: '다크', previewColor: '#121212', bgColor: '#121212' },
+}
+
 export default function ReadPage() {
   const params = useParams()
   const router = useRouter()
@@ -118,6 +128,12 @@ export default function ReadPage() {
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
+  // ━━━ 배경 테마 & 밝기 ━━━
+  const [bgTheme, setBgTheme] = useState<BgTheme>('default')
+  const [brightness, setBrightness] = useState<number>(100)
+  const [showThemePopup, setShowThemePopup] = useState(false)
+  const themePopupRef = useRef<HTMLDivElement>(null)
+
   // 시리즈 상태
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null)
 
@@ -143,6 +159,36 @@ export default function ReadPage() {
   const tier = numPages > 0 ? getAdTier(numPages) : 'micro'
   const tierConfig = getTierConfig(tier)
 
+  // ━━━ 배경 테마/밝기: localStorage 복원 & 저장 ━━━
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('textry_bg_theme') as BgTheme | null
+      const savedBrightness = localStorage.getItem('textry_brightness')
+      if (savedTheme && BG_THEMES[savedTheme]) setBgTheme(savedTheme)
+      if (savedBrightness) setBrightness(Number(savedBrightness))
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    try { localStorage.setItem('textry_bg_theme', bgTheme) } catch {}
+  }, [bgTheme])
+
+  useEffect(() => {
+    try { localStorage.setItem('textry_brightness', String(brightness)) } catch {}
+  }, [brightness])
+
+  // 테마 팝업 외부 클릭 닫기
+  useEffect(() => {
+    if (!showThemePopup) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (themePopupRef.current && !themePopupRef.current.contains(e.target as Node)) {
+        setShowThemePopup(false)
+      }
+    }
+    window.document.addEventListener('mousedown', handleClickOutside)
+    return () => window.document.removeEventListener('mousedown', handleClickOutside)
+  }, [showThemePopup])
+
   // ━━━ 모바일 감지 + 자동 페이지 모드 전환 ━━━
   useEffect(() => {
     const checkMobile = () => {
@@ -162,11 +208,11 @@ export default function ReadPage() {
     setShowControls(true)
     if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
     controlsTimerRef.current = setTimeout(() => {
-      if (!showSidePanel && !showPageInput) {
+      if (!showSidePanel && !showPageInput && !showThemePopup) {
         setShowControls(false)
       }
     }, 3000)
-  }, [showSidePanel, showPageInput])
+  }, [showSidePanel, showPageInput, showThemePopup])
 
   useEffect(() => {
     const handleActivity = () => resetControlsTimer()
@@ -183,8 +229,8 @@ export default function ReadPage() {
   }, [resetControlsTimer])
 
   useEffect(() => {
-    if (showSidePanel || showPageInput) setShowControls(true)
-  }, [showSidePanel, showPageInput])
+    if (showSidePanel || showPageInput || showThemePopup) setShowControls(true)
+  }, [showSidePanel, showPageInput, showThemePopup])
 
   // ━━━ 핀치줌 콜백 (PDFViewer에서 호출) ━━━
   const handleScaleChange = useCallback((newScale: number) => {
@@ -493,6 +539,17 @@ export default function ReadPage() {
 
   const progress = numPages > 0 ? (pageNumber / numPages) * 100 : 0
 
+  // 밝기 + 테마 CSS 필터
+  const viewerFilterStyle: React.CSSProperties = {
+    filter: [
+      brightness !== 100 ? `brightness(${brightness / 100})` : '',
+      bgTheme === 'sepia' ? 'sepia(0.35) saturate(1.2)' : '',
+      bgTheme === 'dark' ? 'brightness(0.85) contrast(1.1)' : '',
+    ].filter(Boolean).join(' ') || 'none',
+  }
+
+  const viewerBgColor = BG_THEMES[bgTheme].bgColor
+
   // 비로그인 사용자 차단
   if (!user && !loading && !authLoading) {
     router.push('/login')
@@ -623,6 +680,60 @@ export default function ReadPage() {
                   <ZoomIn className="w-4 h-4" />
                 </button>
               </div>
+
+              {/* ━━━ 배경/밝기 버튼 ━━━ */}
+              <div className="w-px h-4 bg-[#1c3d2e]" />
+              <div className="relative" ref={themePopupRef}>
+                <button
+                  onClick={() => setShowThemePopup(!showThemePopup)}
+                  className={`p-1.5 rounded-lg transition-colors ${showThemePopup ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white hover:bg-[#153024]'}`}
+                  title="배경 & 밝기"
+                >
+                  <Sun className="w-4 h-4" />
+                </button>
+
+                {showThemePopup && (
+                  <div className="absolute top-full mt-2 right-0 sm:left-1/2 sm:-translate-x-1/2 w-56 bg-[#0f2419] border border-[#1c3d2e] rounded-xl shadow-2xl p-4 z-[60]">
+                    {/* 배경 테마 */}
+                    <p className="text-xs text-[#6b9b84] mb-2 font-medium">배경 테마</p>
+                    <div className="flex gap-2 mb-4">
+                      {(Object.keys(BG_THEMES) as BgTheme[]).map((key) => (
+                        <button
+                          key={key}
+                          onClick={() => setBgTheme(key)}
+                          className={`flex-1 flex flex-col items-center gap-1.5 p-2 rounded-lg border-2 transition-all ${
+                            bgTheme === key
+                              ? 'border-blue-500 bg-blue-500/10'
+                              : 'border-[#1c3d2e] hover:border-[#2a5440]'
+                          }`}
+                        >
+                          <div
+                            className="w-8 h-8 rounded-full border border-[#1c3d2e] shadow-inner"
+                            style={{ backgroundColor: BG_THEMES[key].previewColor }}
+                          />
+                          <span className="text-[10px] text-[#8fbba5]">{BG_THEMES[key].label}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* 밝기 슬라이더 */}
+                    <p className="text-xs text-[#6b9b84] mb-2 font-medium">밝기 {brightness}%</p>
+                    <input
+                      type="range"
+                      min={30}
+                      max={150}
+                      value={brightness}
+                      onChange={(e) => setBrightness(Number(e.target.value))}
+                      className="w-full h-1.5 bg-[#153024] rounded-full appearance-none cursor-pointer accent-blue-500"
+                    />
+                    <div className="flex justify-between text-[10px] text-[#6b9b84] mt-1">
+                      <span>어둡게</span>
+                      <button onClick={() => setBrightness(100)} className="hover:text-white transition-colors">초기화</button>
+                      <span>밝게</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {!isPremium && (
@@ -660,7 +771,10 @@ export default function ReadPage() {
       {/* ━━━ 메인 컨텐츠 ━━━ */}
       <div className="flex flex-1 overflow-hidden pt-[58px]">
         <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidePanel ? 'sm:mr-[380px]' : ''}`}>
-          <div className="flex-1 overflow-hidden">
+          <div
+            className="flex-1 overflow-hidden transition-[filter,background-color] duration-300"
+            style={{ backgroundColor: viewerBgColor, ...viewerFilterStyle }}
+          >
             {pdfUrl && (
               <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
                 showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange} />
