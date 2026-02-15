@@ -306,7 +306,7 @@ export function MainHeader({
           </div>
 
           {/* 우측 */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto">
             {user && (
               <Link href="/upload">
                 <Button variant="ghost" className="rounded-full hover:bg-gray-100 h-10 px-4" title="업로드">
