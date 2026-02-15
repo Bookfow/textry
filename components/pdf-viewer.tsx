@@ -244,14 +244,14 @@ export default function PDFViewer({
       setTouchEnd(null)
     }
 
-    container.addEventListener('touchstart', handleTouchStart, { passive: false })
-    container.addEventListener('touchmove', handleTouchMove, { passive: false })
-    container.addEventListener('touchend', handleTouchEnd)
+    container.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true })
+    container.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true })
+    container.addEventListener('touchend', handleTouchEnd, { capture: true })
 
     return () => {
-      container.removeEventListener('touchstart', handleTouchStart)
-      container.removeEventListener('touchmove', handleTouchMove)
-      container.removeEventListener('touchend', handleTouchEnd)
+      container.removeEventListener('touchstart', handleTouchStart, { capture: true } as EventListenerOptions)
+      container.removeEventListener('touchmove', handleTouchMove, { capture: true } as EventListenerOptions)
+      container.removeEventListener('touchend', handleTouchEnd, { capture: true } as EventListenerOptions)
     }
   }, []) // 빈 의존성 — ref로 최신 값 참조
 
@@ -332,7 +332,7 @@ export default function PDFViewer({
   const pageHeight = renderWidth * pageAspect
 
   return (
-    <div ref={containerRef} className="h-full w-full flex flex-col" style={{ touchAction: 'pan-y' }}>
+    <div ref={containerRef} className="h-full w-full flex flex-col" style={{ touchAction: 'manipulation' }}>
       <div
         className="flex-1 relative overflow-hidden"
         onClick={handlePageAreaClick}
