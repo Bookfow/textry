@@ -44,28 +44,17 @@ export default function PDFViewer({
   const [fitWidth, setFitWidth] = useState<number>(0)
   const [pageAspect, setPageAspect] = useState<number>(1.414)
 
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null)
-  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null)
   const [swipeOffset, setSwipeOffset] = useState(0)
 
-  // ━━━ 핀치 투 줌 상태 ━━━
-  const [pinchStartDistance, setPinchStartDistance] = useState<number | null>(null)
-  const [pinchStartScale, setPinchStartScale] = useState<number>(1)
-  const [isPinching, setIsPinching] = useState(false)
+  // ━━━ 핀치 투 줌 + 스와이프 (ref로 관리) ━━━
+  const pinchStartDistRef = useRef<number | null>(null)
+  const pinchStartScaleRef = useRef<number>(1)
+  const isPinchingRef = useRef(false)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const touchEndRef = useRef<{ x: number; y: number } | null>(null)
 
-  // ━━━ 스크롤 가상화 상태 ━━━
-  const [scrollCurrentPage, setScrollCurrentPage] = useState(1)
-
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  // 최신 값을 ref로 유지 (네이티브 이벤트 핸들러에서 사용)
+  // 최신 props를 ref로 유지
   const scaleRef = useRef(scale)
-  const pinchStartDistanceRef = useRef(pinchStartDistance)
-  const pinchStartScaleRef = useRef(pinchStartScale)
-  const isPinchingRef = useRef(isPinching)
-  const touchStartRef = useRef(touchStart)
-  const touchEndRef = useRef(touchEnd)
   const viewModeRef = useRef(viewMode)
   const pageNumberRef = useRef(pageNumber)
   const numPagesRef = useRef(numPages)
@@ -73,16 +62,18 @@ export default function PDFViewer({
   const onScaleChangeRef = useRef(onScaleChange)
 
   useEffect(() => { scaleRef.current = scale }, [scale])
-  useEffect(() => { pinchStartDistanceRef.current = pinchStartDistance }, [pinchStartDistance])
-  useEffect(() => { pinchStartScaleRef.current = pinchStartScale }, [pinchStartScale])
-  useEffect(() => { isPinchingRef.current = isPinching }, [isPinching])
-  useEffect(() => { touchStartRef.current = touchStart }, [touchStart])
-  useEffect(() => { touchEndRef.current = touchEnd }, [touchEnd])
   useEffect(() => { viewModeRef.current = viewMode }, [viewMode])
   useEffect(() => { pageNumberRef.current = pageNumber }, [pageNumber])
   useEffect(() => { numPagesRef.current = numPages }, [numPages])
   useEffect(() => { onPageChangeRef.current = onPageChange }, [onPageChange])
   useEffect(() => { onScaleChangeRef.current = onScaleChange }, [onScaleChange])
+
+  // ━━━ 스크롤 가상화 상태 ━━━
+  const [scrollCurrentPage, setScrollCurrentPage] = useState(1)
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const touchOverlayRef = useRef<HTMLDivElement>(null)
 
   const calculateFitWidth = useCallback(() => {
     const screenWidth = window.innerWidth
@@ -153,7 +144,7 @@ export default function PDFViewer({
     }
   }
 
-  // ━━━ 네이티브 터치 이벤트 (PDF 위에서도 핀치줌 작동) ━━━
+  // ━━━ 터치 유틸 ━━━
   const getTouchDistance = (touches: TouchList) => {
     if (touches.length < 2) return 0
     const dx = touches[0].clientX - touches[1].clientX
@@ -163,66 +154,73 @@ export default function PDFViewer({
 
   const minSwipeDistance = 50
 
+  // ━━━ 투명 오버레이에 네이티브 터치 이벤트 바인딩 ━━━
   useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
+    const overlay = touchOverlayRef.current
+    if (!overlay) return
 
     const handleTouchStart = (e: TouchEvent) => {
-      // 2손가락이 동시에 닿으면 핀치 준비
+      // 2손가락 동시 → 핀치 시작
       if (e.touches.length === 2) {
         e.preventDefault()
+        e.stopPropagation()
         const dist = getTouchDistance(e.touches)
-        setPinchStartDistance(dist)
-        setPinchStartScale(scaleRef.current)
-        setIsPinching(true)
+        pinchStartDistRef.current = dist
+        pinchStartScaleRef.current = scaleRef.current
+        isPinchingRef.current = true
         return
       }
-      // 1손가락: 스와이프 (스크롤 모드 제외)
+      // 1손가락 → 스와이프 준비
       if (viewModeRef.current === 'scroll') return
-      setTouchEnd(null)
-      setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY })
+      touchEndRef.current = null
+      touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
     }
 
     const handleTouchMove = (e: TouchEvent) => {
-      // 2손가락 감지 → 핀치줌 시작 (순차적으로 손가락 올린 경우)
+      // 2손가락 → 핀치줌 (순차 감지 포함)
       if (e.touches.length === 2) {
         e.preventDefault()
+        e.stopPropagation()
+
         if (!isPinchingRef.current) {
-          // 핀치 시작
+          // 순차적으로 두번째 손가락이 올라온 경우 → 핀치 시작
           const dist = getTouchDistance(e.touches)
-          setPinchStartDistance(dist)
-          setPinchStartScale(scaleRef.current)
-          setIsPinching(true)
+          pinchStartDistRef.current = dist
+          pinchStartScaleRef.current = scaleRef.current
+          isPinchingRef.current = true
           // 스와이프 취소
           setSwipeOffset(0)
-          setTouchStart(null)
-          setTouchEnd(null)
+          touchStartRef.current = null
+          touchEndRef.current = null
           return
         }
-        // 핀치 진행중
-        if (pinchStartDistanceRef.current !== null) {
+
+        // 핀치 진행
+        if (pinchStartDistRef.current !== null) {
           const currentDist = getTouchDistance(e.touches)
-          const ratio = currentDist / pinchStartDistanceRef.current
+          const ratio = currentDist / pinchStartDistRef.current
           const newScale = Math.min(Math.max(pinchStartScaleRef.current * ratio, 0.5), 3.0)
           if (onScaleChangeRef.current) onScaleChangeRef.current(newScale)
         }
         return
       }
-      // 스와이프 처리
+
+      // 1손가락 → 스와이프
       const ts = touchStartRef.current
       if (!ts || viewModeRef.current === 'scroll') return
       const currentX = e.touches[0].clientX
       setSwipeOffset((currentX - ts.x) * 0.3)
-      setTouchEnd({ x: currentX, y: e.touches[0].clientY })
+      touchEndRef.current = { x: currentX, y: e.touches[0].clientY }
     }
 
     const handleTouchEnd = () => {
-      // 핀치줌 종료
+      // 핀치 종료
       if (isPinchingRef.current) {
-        setPinchStartDistance(null)
-        setIsPinching(false)
+        pinchStartDistRef.current = null
+        isPinchingRef.current = false
         return
       }
+
       // 스와이프 종료
       const ts = touchStartRef.current
       const te = touchEndRef.current
@@ -240,41 +238,32 @@ export default function PDFViewer({
         else if (onPageChangeRef.current) onPageChangeRef.current(Math.max(pn - step, 1), np)
       }
       setSwipeOffset(0)
-      setTouchStart(null)
-      setTouchEnd(null)
+      touchStartRef.current = null
+      touchEndRef.current = null
     }
 
-    container.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true })
-    container.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true })
-    container.addEventListener('touchend', handleTouchEnd, { capture: true })
+    overlay.addEventListener('touchstart', handleTouchStart, { passive: false })
+    overlay.addEventListener('touchmove', handleTouchMove, { passive: false })
+    overlay.addEventListener('touchend', handleTouchEnd)
 
     return () => {
-      container.removeEventListener('touchstart', handleTouchStart, { capture: true } as EventListenerOptions)
-      container.removeEventListener('touchmove', handleTouchMove, { capture: true } as EventListenerOptions)
-      container.removeEventListener('touchend', handleTouchEnd, { capture: true } as EventListenerOptions)
+      overlay.removeEventListener('touchstart', handleTouchStart)
+      overlay.removeEventListener('touchmove', handleTouchMove)
+      overlay.removeEventListener('touchend', handleTouchEnd)
     }
-  }, []) // 빈 의존성 — ref로 최신 값 참조
+  }, []) // ref 기반이므로 의존성 없음
 
   const handlePageAreaClick = (e: React.MouseEvent) => {
     if (viewMode === 'scroll' || !onPageChange) return
-    const pageEl = (e.target as HTMLElement).closest('.react-pdf__Page') as HTMLElement | null
-    if (!pageEl) return
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
 
     const step = viewMode === 'book' ? 2 : 1
+    const clickX = e.clientX - rect.left
+    const threshold = viewMode === 'book' ? 0.3 : 0.33
 
-    if (viewMode === 'book') {
-      const container = containerRef.current
-      if (!container) return
-      const rect = container.getBoundingClientRect()
-      const clickX = e.clientX - rect.left
-      if (clickX < rect.width * 0.3) onPageChange(Math.max(pageNumber - step, 1), numPages)
-      else if (clickX > rect.width * 0.7) onPageChange(Math.min(pageNumber + step, numPages), numPages)
-    } else {
-      const rect = pageEl.getBoundingClientRect()
-      const clickX = e.clientX - rect.left
-      if (clickX < rect.width * 0.33) onPageChange(Math.max(pageNumber - 1, 1), numPages)
-      else if (clickX > rect.width * 0.67) onPageChange(Math.min(pageNumber + 1, numPages), numPages)
-    }
+    if (clickX < rect.width * threshold) onPageChange(Math.max(pageNumber - step, 1), numPages)
+    else if (clickX > rect.width * (1 - threshold)) onPageChange(Math.min(pageNumber + step, numPages), numPages)
   }
 
   const renderWidth = fitWidth * scale
@@ -313,30 +302,23 @@ export default function PDFViewer({
     borderRadius: '2px',
   }
 
-  const bookFrameStyle: React.CSSProperties = {
-    borderWidth: '12px',
-    borderStyle: 'solid',
-    borderImage: 'linear-gradient(135deg, #8b6529 0%, #6b4820 20%, #9a7035 40%, #5c3a18 60%, #7a5525 80%, #6b4820 100%) 1',
-    boxShadow: 'inset 0 0 10px rgba(80,40,5,0.3), 0 6px 24px rgba(0,0,0,0.5)',
-    borderRadius: '2px',
-  }
-
-  const bookFrameStyleDark: React.CSSProperties = {
-    borderWidth: '12px',
-    borderStyle: 'solid',
-    borderImage: 'linear-gradient(135deg, #6b4820 0%, #4a3010 20%, #7a5525 40%, #3d2508 60%, #5c3a18 80%, #4a3010 100%) 1',
-    boxShadow: 'inset 0 0 10px rgba(60,30,5,0.25), 0 6px 24px rgba(0,0,0,0.7)',
-    borderRadius: '2px',
-  }
+  const bookFrameStyle: React.CSSProperties = { ...frameStyle }
+  const bookFrameStyleDark: React.CSSProperties = { ...frameStyleDark }
 
   const pageHeight = renderWidth * pageAspect
 
   return (
-    <div ref={containerRef} className="h-full w-full flex flex-col" style={{ touchAction: 'manipulation' }}>
-      <div
-        className="flex-1 relative overflow-hidden"
-        onClick={handlePageAreaClick}
-      >
+    <div ref={containerRef} className="h-full w-full flex flex-col">
+      <div className="flex-1 relative overflow-hidden">
+
+        {/* ━━━ 투명 터치 오버레이: PDF 위에서 모든 터치를 직접 캡처 ━━━ */}
+        <div
+          ref={touchOverlayRef}
+          className="absolute inset-0 z-20"
+          style={{ touchAction: 'none' }}
+          onClick={handlePageAreaClick}
+        />
+
         {/* 페이지 모드 */}
         {viewMode === 'page' && (
           <div className="h-full flex items-center justify-center overflow-auto">
@@ -360,22 +342,10 @@ export default function PDFViewer({
                 options={pdfOptions}
               >
                 <div className="dark:hidden" style={frameStyle}>
-                  <Page
-                    pageNumber={pageNumber}
-                    width={renderWidth}
-                    renderTextLayer={true}
-                    renderAnnotationLayer={true}
-                    loading=""
-                  />
+                  <Page pageNumber={pageNumber} width={renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
                 </div>
                 <div className="hidden dark:block" style={frameStyleDark}>
-                  <Page
-                    pageNumber={pageNumber}
-                    width={renderWidth}
-                    renderTextLayer={true}
-                    renderAnnotationLayer={true}
-                    loading=""
-                  />
+                  <Page pageNumber={pageNumber} width={renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
                 </div>
               </PDFDocument>
             </div>
@@ -384,7 +354,7 @@ export default function PDFViewer({
               <>
                 <div
                   onClick={() => onPageChange && onPageChange(Math.max(pageNumber - 1, 1), numPages)}
-                  className="hidden lg:flex absolute left-0 top-0 bottom-0 w-[15%] items-center justify-start pl-4 opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-10"
+                  className="hidden lg:flex absolute left-0 top-0 bottom-0 w-[15%] items-center justify-start pl-4 opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-30"
                 >
                   {pageNumber > 1 && (
                     <div className="p-3 rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/70 transition-all">
@@ -394,7 +364,7 @@ export default function PDFViewer({
                 </div>
                 <div
                   onClick={() => onPageChange && onPageChange(Math.min(pageNumber + 1, numPages), numPages)}
-                  className="hidden lg:flex absolute right-0 top-0 bottom-0 w-[15%] items-center justify-end pr-4 opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-10"
+                  className="hidden lg:flex absolute right-0 top-0 bottom-0 w-[15%] items-center justify-end pr-4 opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-30"
                 >
                   {pageNumber < numPages && (
                     <div className="p-3 rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/70 transition-all">
@@ -471,7 +441,7 @@ export default function PDFViewer({
               <>
                 <div
                   onClick={() => onPageChange && onPageChange(Math.max(pageNumber - 2, 1), numPages)}
-                  className="hidden lg:flex absolute left-0 top-0 bottom-0 w-[10%] items-center justify-start pl-4 opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-10"
+                  className="hidden lg:flex absolute left-0 top-0 bottom-0 w-[10%] items-center justify-start pl-4 opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-30"
                 >
                   {pageNumber > 1 && (
                     <div className="p-3 rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/70 transition-all">
@@ -481,7 +451,7 @@ export default function PDFViewer({
                 </div>
                 <div
                   onClick={() => onPageChange && onPageChange(Math.min(pageNumber + 2, numPages), numPages)}
-                  className="hidden lg:flex absolute right-0 top-0 bottom-0 w-[10%] items-center justify-end pr-4 opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-10"
+                  className="hidden lg:flex absolute right-0 top-0 bottom-0 w-[10%] items-center justify-end pr-4 opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-30"
                 >
                   {pageNumber < numPages && (
                     <div className="p-3 rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/70 transition-all">
