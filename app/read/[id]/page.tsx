@@ -693,7 +693,7 @@ export default function ReadPage() {
                 </button>
 
                 {showThemePopup && (
-                  <div className="absolute top-full mt-2 right-0 sm:left-1/2 sm:-translate-x-1/2 w-56 bg-[#0f2419] border border-[#1c3d2e] rounded-xl shadow-2xl p-4 z-[60]">
+                  <div className="fixed top-[58px] right-4 sm:absolute sm:top-full sm:mt-2 sm:right-0 sm:left-1/2 sm:-translate-x-1/2 w-56 bg-[#0f2419] border border-[#1c3d2e] rounded-xl shadow-2xl p-4 z-[9999]">
                     {/* 배경 테마 */}
                     <p className="text-xs text-[#6b9b84] mb-2 font-medium">배경 테마</p>
                     <div className="flex gap-2 mb-4">
