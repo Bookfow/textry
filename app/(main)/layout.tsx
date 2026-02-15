@@ -48,7 +48,7 @@ export default function MainLayout({
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 relative">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[500px] bg-gradient-to-b from-amber-100/40 via-orange-50/20 to-transparent dark:from-amber-900/10 dark:via-amber-950/5 dark:to-transparent z-0" />
           <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[350px] z-0" style={{ background: 'radial-gradient(ellipse at center, rgba(251,191,36,0.15) 0%, transparent 70%)' }} />
-          <div className="relative z-10">
+          <div className="relative z-10 animate-page-enter">
             {children}
           </div>
         </main>
