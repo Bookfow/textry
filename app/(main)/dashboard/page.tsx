@@ -18,6 +18,7 @@ import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DashboardSkeleton } from '@/components/loading-skeleton'
+import { useToast } from '@/components/toast'
 
 type TabType = 'overview' | 'content' | 'analytics' | 'revenue'
 
@@ -40,6 +41,7 @@ type AuthorTier = {
 
 export default function DashboardPage() {
   const { user, profile } = useAuth()
+  const { toast } = useToast()
   const [documents, setDocuments] = useState<Document[]>([])
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [stats, setStats] = useState({
@@ -133,20 +135,20 @@ export default function DashboardPage() {
       }
       const { error } = await supabase.from('documents').delete().eq('id', doc.id)
       if (error) throw error
-      alert('문서가 삭제되었습니다.')
+      toast.success('문서가 삭제되었습니다.')
       setDocuments(documents.filter(d => d.id !== doc.id))
       loadDashboard()
     } catch (err) {
       console.error('Error deleting document:', err)
-      alert('문서 삭제에 실패했습니다.')
+      toast.error('문서 삭제에 실패했습니다.')
     }
   }
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
-      if (selectedFile.size > 5 * 1024 * 1024) { alert('썸네일 크기는 5MB 이하여야 합니다.'); return }
-      if (!selectedFile.type.startsWith('image/')) { alert('이미지 파일만 업로드 가능합니다.'); return }
+      if (selectedFile.size > 5 * 1024 * 1024) { toast.warning('썸네일 크기는 5MB 이하여야 합니다.'); return }
+      if (!selectedFile.type.startsWith('image/')) { toast.warning('이미지 파일만 업로드 가능합니다.'); return }
       setNewThumbnail(selectedFile)
       const reader = new FileReader()
       reader.onloadend = () => setThumbnailPreview(reader.result as string)
@@ -168,12 +170,12 @@ export default function DashboardPage() {
       const { data: thumbUrlData } = supabase.storage.from('thumbnails').getPublicUrl(thumbFileName)
       const { error: updateError } = await supabase.from('documents').update({ thumbnail_url: thumbUrlData.publicUrl }).eq('id', docId)
       if (updateError) throw updateError
-      alert('썸네일이 변경되었습니다.')
+      toast.success('썸네일이 변경되었습니다.')
       setEditingThumbnail(null); setNewThumbnail(null); setThumbnailPreview(null)
       loadDashboard()
     } catch (err) {
       console.error('Error updating thumbnail:', err)
-      alert('썸네일 변경에 실패했습니다.')
+      toast.error('썸네일 변경에 실패했습니다.')
     }
   }
 
@@ -186,14 +188,14 @@ export default function DashboardPage() {
         .update({ title: newTitle.trim(), description: newDescription.trim() || null })
         .eq('id', docId)
       if (error) throw error
-      alert('문서가 수정되었습니다.')
+      toast.success('문서가 수정되었습니다.')
       setEditingDescription(null)
       setNewTitle('')
       setNewDescription('')
       loadDashboard()
     } catch (err) {
       console.error('Error updating document:', err)
-      alert('문서 수정에 실패했습니다.')
+      toast.error('문서 수정에 실패했습니다.')
     } finally {
       setSavingDescription(false)
     }

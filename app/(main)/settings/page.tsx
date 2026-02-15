@@ -8,12 +8,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Camera, ImagePlus, Crown, Sun, Moon, Monitor, Lock, Trash2 } from 'lucide-react'
+import { useToast } from '@/components/toast'
 import { useTheme } from '@/lib/theme-context'
 import Link from 'next/link'
-import Image from 'next/image'
 
 export default function SettingsPage() {
   const { user, profile, refreshProfile } = useAuth()
+  const { toast } = useToast()
   const [username, setUsername] = useState('')
   const [bio, setBio] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
@@ -57,8 +58,8 @@ export default function SettingsPage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) { alert('파일 크기는 5MB 이하여야 합니다.'); return }
-    if (!file.type.startsWith('image/')) { alert('이미지 파일만 업로드 가능합니다.'); return }
+    if (file.size > 5 * 1024 * 1024) { toast.warning('파일 크기는 5MB 이하여야 합니다.'); return }
+    if (!file.type.startsWith('image/')) { toast.warning('이미지 파일만 업로드 가능합니다.'); return }
 
     setUploading(true)
     try {
@@ -79,10 +80,10 @@ export default function SettingsPage() {
 
       setAvatarUrl(urlData.publicUrl)
       await refreshProfile()
-      alert('프로필 이미지가 업로드되었습니다!')
+      toast.success('프로필 이미지가 업로드되었습니다!')
     } catch (err) {
       console.error('Upload error:', err)
-      alert('업로드에 실패했습니다.')
+      toast.error('업로드에 실패했습니다.')
     } finally {
       setUploading(false)
     }
@@ -91,8 +92,8 @@ export default function SettingsPage() {
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 10 * 1024 * 1024) { alert('배너 크기는 10MB 이하여야 합니다.'); return }
-    if (!file.type.startsWith('image/')) { alert('이미지 파일만 업로드 가능합니다.'); return }
+    if (file.size > 10 * 1024 * 1024) { toast.warning('배너 크기는 10MB 이하여야 합니다.'); return }
+    if (!file.type.startsWith('image/')) { toast.warning('이미지 파일만 업로드 가능합니다.'); return }
 
     setUploadingBanner(true)
     try {
@@ -113,10 +114,10 @@ export default function SettingsPage() {
 
       setBannerUrl(urlData.publicUrl)
       await refreshProfile()
-      alert('배너 이미지가 업로드되었습니다!')
+      toast.success('배너 이미지가 업로드되었습니다!')
     } catch (err) {
       console.error('Banner upload error:', err)
-      alert('업로드에 실패했습니다.')
+      toast.error('업로드에 실패했습니다.')
     } finally {
       setUploadingBanner(false)
     }
@@ -132,9 +133,9 @@ export default function SettingsPage() {
         .eq('id', user.id)
       if (error) throw error
       await refreshProfile()
-      alert('저장되었습니다!')
+      toast.success('저장되었습니다!')
     } catch (err) {
-      alert('저장에 실패했습니다.')
+      toast.error('저장에 실패했습니다.')
     } finally {
       setSaving(false)
     }
@@ -152,11 +153,11 @@ export default function SettingsPage() {
   const handleChangePassword = async () => {
     const pwError = validatePassword(newPassword)
     if (pwError) {
-      alert(pwError)
+      toast.warning(pwError)
       return
     }
     if (newPassword !== confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.')
+      toast.warning('비밀번호가 일치하지 않습니다.')
       return
     }
 
@@ -164,12 +165,12 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) throw error
-      alert('비밀번호가 변경되었습니다!')
+      toast.success('비밀번호가 변경되었습니다!')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err: any) {
       console.error('Password change error:', err)
-      alert(err.message || '비밀번호 변경에 실패했습니다.')
+      toast.error(err.message || '비밀번호 변경에 실패했습니다.')
     } finally {
       setChangingPassword(false)
     }
@@ -177,7 +178,7 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirm !== '삭제합니다') {
-      alert('"삭제합니다"를 정확히 입력해주세요.')
+      toast.warning('"삭제합니다"를 정확히 입력해주세요.')
       return
     }
 
@@ -224,11 +225,11 @@ export default function SettingsPage() {
       await supabase.from('profiles').delete().eq('id', user.id)
 
       await supabase.auth.signOut()
-      alert('계정이 삭제되었습니다. 이용해 주셔서 감사합니다.')
+      toast.success('계정이 삭제되었습니다.')
       window.location.href = '/'
     } catch (err: any) {
       console.error('Account deletion error:', err)
-      alert(err.message || '계정 삭제에 실패했습니다.')
+      toast.error(err.message || '계정 삭제에 실패했습니다.')
     } finally {
       setDeletingAccount(false)
     }
@@ -253,7 +254,7 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div className="relative w-full aspect-[4/1] bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl overflow-hidden">
                   {bannerUrl ? (
-                    <Image src={bannerUrl} alt="배너" fill sizes="100vw" className="object-cover" />
+                    <img src={bannerUrl} alt="배너" className="w-full h-full object-cover" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-white/50">
                       <ImagePlus className="w-10 h-10" />
@@ -285,7 +286,7 @@ export default function SettingsPage() {
             <CardContent>
               <div className="flex items-center gap-6">
                 {avatarUrl ? (
-                  <Image src={avatarUrl} alt="프로필" width={96} height={96} className="rounded-full object-cover" />
+                  <img src={avatarUrl} alt="프로필" className="w-24 h-24 rounded-full object-cover" />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-4xl font-bold">
                     {(profile?.username || profile?.email || 'U')[0].toUpperCase()}

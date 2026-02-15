@@ -8,9 +8,11 @@ import {
   Crown, Check, X, Zap, BookOpen, Eye, Shield,
   CreditCard, ArrowRight, Sparkles,
 } from 'lucide-react'
+import { useToast } from '@/components/toast'
 
 export default function PremiumPage() {
   const { user, profile } = useAuth()
+  const { toast } = useToast()
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly')
   const [processing, setProcessing] = useState(false)
 
@@ -20,7 +22,7 @@ export default function PremiumPage() {
 
   const handleSubscribe = async () => {
     if (!user) {
-      alert('로그인이 필요합니다.')
+      toast.warning('로그인이 필요합니다.')
       return
     }
 
@@ -60,11 +62,11 @@ export default function PremiumPage() {
 
       if (profileError) throw profileError
 
-      alert('프리미엄 구독이 시작되었습니다! 🎉')
+      toast.success('프리미엄 구독이 시작되었습니다!')
       window.location.reload()
     } catch (err) {
       console.error('Subscription error:', err)
-      alert('구독 처리 중 오류가 발생했습니다.')
+      toast.error('구독 처리 중 오류가 발생했습니다.')
     } finally {
       setProcessing(false)
     }
@@ -83,11 +85,11 @@ export default function PremiumPage() {
 
       if (subError) throw subError
 
-      alert('구독이 해지되었습니다. 현재 기간 종료 후 일반 계정으로 전환됩니다.')
+      toast.success('구독이 해지되었습니다. 기간 종료 후 일반 계정으로 전환됩니다.')
       window.location.reload()
     } catch (err) {
       console.error('Cancel error:', err)
-      alert('해지 처리 중 오류가 발생했습니다.')
+      toast.error('해지 처리 중 오류가 발생했습니다.')
     } finally {
       setProcessing(false)
     }

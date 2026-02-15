@@ -13,10 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CATEGORIES } from '@/lib/categories'
 import { LANGUAGES } from '@/lib/languages'
 import { FileText, Upload as UploadIcon } from 'lucide-react'
+import { useToast } from '@/components/toast'
 
 export default function UploadPage() {
   const { user } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('technology')
@@ -40,7 +42,7 @@ export default function UploadPage() {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
       if (selectedFile.size > 100 * 1024 * 1024) {
-        alert('파일 크기는 100MB 이하여야 합니다.')
+        toast.warning('파일 크기는 100MB 이하여야 합니다.')
         return
       }
       setFile(selectedFile)
@@ -51,11 +53,11 @@ export default function UploadPage() {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
       if (selectedFile.size > 5 * 1024 * 1024) {
-        alert('썸네일 크기는 5MB 이하여야 합니다.')
+        toast.warning('썸네일 크기는 5MB 이하여야 합니다.')
         return
       }
       if (!selectedFile.type.startsWith('image/')) {
-        alert('이미지 파일만 업로드 가능합니다.')
+        toast.warning('이미지 파일만 업로드 가능합니다.')
         return
       }
       setThumbnail(selectedFile)
@@ -72,7 +74,7 @@ export default function UploadPage() {
     e.preventDefault()
 
     if (!file || !title.trim()) {
-      alert('제목과 파일을 입력해주세요.')
+      toast.warning('제목과 파일을 입력해주세요.')
       return
     }
 
@@ -148,11 +150,11 @@ export default function UploadPage() {
 
       setProgress(100)
 
-      alert('업로드가 완료되었습니다!')
+      toast.success('업로드가 완료되었습니다!')
       router.push('/dashboard')
     } catch (error: any) {
       console.error('Upload error:', error)
-      alert(`업로드 실패: ${error.message}`)
+      toast.error(`업로드 실패: ${error.message}`)
     } finally {
       setUploading(false)
       setProgress(0)

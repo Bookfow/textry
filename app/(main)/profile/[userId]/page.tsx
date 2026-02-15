@@ -11,6 +11,7 @@ import { getLanguageFlag } from '@/lib/languages'
 import { SubscribeButton } from '@/components/subscribe-button'
 import { Button } from '@/components/ui/button'
 import { ProfileSkeleton } from '@/components/loading-skeleton'
+import { useToast } from '@/components/toast'
 
 type TabType = 'documents' | 'about'
 
@@ -18,6 +19,7 @@ export default function AuthorPage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
+  const { toast } = useToast()
   const authorId = params.authorId as string
 
   const [author, setAuthor] = useState<(Profile & { bio?: string; banner_url?: string }) | null>(null)
@@ -76,7 +78,7 @@ export default function AuthorPage() {
       navigator.share({ title: `${author?.username || '작가'} - Textry`, url })
     } else {
       await navigator.clipboard.writeText(url)
-      alert('링크가 복사되었습니다!')
+      toast.success('링크가 복사되었습니다!')
     }
   }
 

@@ -13,6 +13,7 @@ import {
   ChevronUp, ChevronDown, X,
 } from 'lucide-react'
 import { SeriesSkeleton } from '@/components/loading-skeleton'
+import { useToast } from '@/components/toast'
 
 type Series = {
   id: string
@@ -35,6 +36,7 @@ type SeriesDoc = {
 
 export default function SeriesPage() {
   const { user } = useAuth()
+  const { toast } = useToast()
   const [seriesList, setSeriesList] = useState<Series[]>([])
   const [myDocuments, setMyDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
@@ -101,7 +103,7 @@ export default function SeriesPage() {
       loadData()
     } catch (err) {
       console.error('Error:', err)
-      alert('저장에 실패했습니다.')
+      toast.error('저장에 실패했습니다.')
     } finally {
       setSaving(false)
     }
@@ -162,8 +164,8 @@ export default function SeriesPage() {
       loadSeriesDocs(managingSeries)
       loadData()
     } catch (err: any) {
-      if (err?.code === '23505') alert('이미 시리즈에 포함된 문서입니다.')
-      else alert('추가에 실패했습니다.')
+      if (err?.code === '23505') toast.warning('이미 시리즈에 포함된 문서입니다.')
+      else toast.error('추가에 실패했습니다.')
     }
   }
 
