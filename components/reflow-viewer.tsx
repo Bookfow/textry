@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { pdfjs } from 'react-pdf'
-import { ChevronLeft, ChevronRight, Minus, Plus, Play, Square, Volume2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Minus, Plus, Play, Square, Volume2, List, AlignLeft, AlignJustify, Settings2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
@@ -20,6 +20,7 @@ interface ReflowViewerProps {
 // ━━━ 리플로우 설정 ━━━
 type ReflowFont = 'sans' | 'serif' | 'mono'
 type ReflowTheme = 'light' | 'sepia' | 'dark'
+type ReflowAlign = 'left' | 'justify'
 
 const FONTS: Record<ReflowFont, { label: string; family: string }> = {
   sans: { label: '고딕', family: 'system-ui, -apple-system, "Noto Sans KR", sans-serif' },
@@ -226,6 +227,12 @@ export default function ReflowViewer({
   const [theme, setTheme] = useState<ReflowTheme>('dark')
   const [showSettings, setShowSettings] = useState(false)
 
+  // ━━━ 새 설정 ━━━
+  const [marginSize, setMarginSize] = useState(2) // 1=좁게, 2=보통, 3=넓게, 4=아주넓게
+  const [letterSpacing, setLetterSpacing] = useState(0) // -1, 0, 1, 2 (px * 0.5)
+  const [textAlign, setTextAlign] = useState<ReflowAlign>('left')
+  const [showToc, setShowToc] = useState(false)
+
   // ━━━ TTS 상태 ━━━
   const [ttsPlaying, setTtsPlaying] = useState(false)
   const [ttsBlockIndex, setTtsBlockIndex] = useState(-1)
@@ -239,7 +246,6 @@ export default function ReflowViewer({
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-  const settingsRef = useRef<HTMLDivElement>(null)
   const blockRefs = useRef<Map<number, HTMLElement>>(new Map())
 
   // ━━━ TTS 지원 체크 ━━━
@@ -281,26 +287,20 @@ export default function ReflowViewer({
         if (s.font) setFont(s.font)
         if (s.theme) setTheme(s.theme)
         if (s.ttsRate) setTtsRate(s.ttsRate)
+        if (s.marginSize) setMarginSize(s.marginSize)
+        if (s.letterSpacing !== undefined) setLetterSpacing(s.letterSpacing)
+        if (s.textAlign) setTextAlign(s.textAlign)
       }
     } catch {}
   }, [])
 
   useEffect(() => {
     try {
-      localStorage.setItem('textry_reflow_settings', JSON.stringify({ fontSize, lineHeight, font, theme, ttsRate }))
+      localStorage.setItem('textry_reflow_settings', JSON.stringify({ fontSize, lineHeight, font, theme, ttsRate, marginSize, letterSpacing, textAlign }))
     } catch {}
-  }, [fontSize, lineHeight, font, theme, ttsRate])
+  }, [fontSize, lineHeight, font, theme, ttsRate, marginSize, letterSpacing, textAlign])
 
-  useEffect(() => {
-    if (!showSettings) return
-    const handleClick = (e: MouseEvent) => {
-      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
-        setShowSettings(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [showSettings])
+  // showToc 외부 클릭은 오버레이로 처리됨
 
   // ━━━ DB 우선 조회 → 클라이언트 추출 fallback ━━━
   useEffect(() => {
@@ -581,6 +581,11 @@ export default function ReflowViewer({
     if (pageNumber < numPages && onPageChange) onPageChange(pageNumber + 1, numPages)
   }, [pageNumber, numPages, onPageChange])
 
+  const goToPage = useCallback((page: number) => {
+    const p = Math.max(1, Math.min(page, numPages))
+    if (onPageChange) onPageChange(p, numPages)
+  }, [numPages, onPageChange])
+
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
     touchEndRef.current = null
@@ -666,21 +671,21 @@ export default function ReflowViewer({
       case 'heading1':
         return (
           <h2 ref={setRef} key={index} className="font-bold mt-10 mb-4"
-            style={{ fontSize: `${Math.round(fontSize * 1.6)}px`, lineHeight: 1.3, color: themeStyle.headingColor, fontFamily: fontStyle.family, ...highlightStyle }}>
+            style={{ fontSize: `${Math.round(fontSize * 1.6)}px`, lineHeight: 1.3, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px`, ...highlightStyle }}>
             {block.content}
           </h2>
         )
       case 'heading2':
         return (
           <h3 ref={setRef} key={index} className="font-bold mt-8 mb-3"
-            style={{ fontSize: `${Math.round(fontSize * 1.35)}px`, lineHeight: 1.35, color: themeStyle.headingColor, fontFamily: fontStyle.family, ...highlightStyle }}>
+            style={{ fontSize: `${Math.round(fontSize * 1.35)}px`, lineHeight: 1.35, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px`, ...highlightStyle }}>
             {block.content}
           </h3>
         )
       case 'heading3':
         return (
           <h4 ref={setRef} key={index} className="font-semibold mt-6 mb-2"
-            style={{ fontSize: `${Math.round(fontSize * 1.15)}px`, lineHeight: 1.4, color: themeStyle.headingColor, fontFamily: fontStyle.family, ...highlightStyle }}>
+            style={{ fontSize: `${Math.round(fontSize * 1.15)}px`, lineHeight: 1.4, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px`, ...highlightStyle }}>
             {block.content}
           </h4>
         )
@@ -689,66 +694,206 @@ export default function ReflowViewer({
       default:
         return (
           <p ref={setRef} key={index} className="mb-4"
-            style={{ textIndent: '1em', fontFamily: fontStyle.family, fontSize: `${fontSize}px`, lineHeight: lineHeight, color: themeStyle.text, wordBreak: 'keep-all', overflowWrap: 'break-word', ...highlightStyle }}>
+            style={{ textIndent: '1em', fontFamily: fontStyle.family, fontSize: `${fontSize}px`, lineHeight: lineHeight, color: themeStyle.text, wordBreak: 'keep-all', overflowWrap: 'break-word', letterSpacing: `${letterSpacing * 0.5}px`, textAlign: textAlign, ...highlightStyle }}>
             {block.content}
           </p>
         )
     }
   }
 
+  // ━━━ 목차(TOC) 추출 ━━━
+  const tocItems = (() => {
+    const items: { page: number; title: string }[] = []
+    for (const [page, text] of pageTexts) {
+      // 첫 번째 heading을 챕터 제목으로 사용
+      const h1Match = text.match(/<h1>(.*?)<\/h1>/)
+      const h2Match = text.match(/<h2>(.*?)<\/h2>/)
+      const title = h1Match?.[1] || h2Match?.[1]
+      if (title && title.trim().length > 0) {
+        items.push({ page, title: title.trim() })
+      } else {
+        // heading이 없으면 첫 텍스트 일부를 사용
+        const plainText = text.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+        if (plainText.length > 0) {
+          items.push({ page, title: plainText.slice(0, 40) + (plainText.length > 40 ? '...' : '') })
+        }
+      }
+    }
+    return items
+  })()
+
+  // ━━━ 여백 크기 매핑 ━━━
+  const MARGIN_MAP: Record<number, { maxW: string; px: string; label: string }> = {
+    1: { maxW: '56rem', px: 'px-3 sm:px-4', label: '좁게' },
+    2: { maxW: '42rem', px: 'px-6 sm:px-10', label: '보통' },
+    3: { maxW: '36rem', px: 'px-8 sm:px-14', label: '넓게' },
+    4: { maxW: '28rem', px: 'px-10 sm:px-16', label: '아주 넓게' },
+  }
+  const currentMargin = MARGIN_MAP[marginSize] || MARGIN_MAP[2]
+
   const TTS_RATES = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
 
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: themeStyle.pageBg }}>
-      {/* ━━━ 설정 바 ━━━ */}
-      <div className="flex items-center justify-center gap-2 px-3 py-2 border-b flex-wrap" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
-        <button onClick={() => setFontSize(s => Math.max(12, s - 1))}
-          className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ color: themeStyle.muted }}>
-          <Minus className="w-4 h-4" />
-        </button>
-        <span className="text-xs font-mono min-w-[32px] text-center" style={{ color: themeStyle.text }}>{fontSize}</span>
-        <button onClick={() => setFontSize(s => Math.min(32, s + 1))}
-          className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ color: themeStyle.muted }}>
-          <Plus className="w-4 h-4" />
-        </button>
-
-        <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
-
-        {(Object.keys(FONTS) as ReflowFont[]).map((f) => (
-          <button key={f} onClick={() => setFont(f)}
-            className={`px-2 py-1 rounded text-xs transition-all ${font === f ? 'ring-2 ring-blue-500' : 'hover:opacity-70'}`}
-            style={{ backgroundColor: font === f ? 'rgba(59,130,246,0.15)' : 'transparent', color: font === f ? '#3b82f6' : themeStyle.muted, fontFamily: FONTS[f].family }}>
-            {FONTS[f].label}
-          </button>
-        ))}
-
-        <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
-
-        <select value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))}
-          className="text-xs rounded px-1 py-0.5 border"
-          style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
-          <option value={1.4}>촘촘</option>
-          <option value={1.6}>보통</option>
-          <option value={1.8}>넓게</option>
-          <option value={2.0}>아주 넓게</option>
-        </select>
-
-        <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
-
-        <div className="flex gap-1">
-          {(Object.keys(THEMES) as ReflowTheme[]).map((t) => (
-            <button key={t} onClick={() => setTheme(t)}
-              className={`w-6 h-6 rounded-full border-2 transition-all ${theme === t ? 'ring-2 ring-blue-500 ring-offset-1' : ''}`}
-              style={{ backgroundColor: THEMES[t].bg, borderColor: THEMES[t].border }}
-              title={t === 'light' ? '밝은' : t === 'sepia' ? '세피아' : '어두운'} />
-          ))}
+      {/* ━━━ TOC 사이드 패널 ━━━ */}
+      {showToc && (
+        <div className="fixed inset-0 z-[60] flex">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowToc(false)} />
+          <div className="relative w-72 max-w-[80vw] h-full flex flex-col shadow-2xl" style={{ backgroundColor: themeStyle.bg }}>
+            <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: themeStyle.border }}>
+              <h3 className="font-semibold text-sm" style={{ color: themeStyle.headingColor }}>목차</h3>
+              <button onClick={() => setShowToc(false)} className="p-1 rounded hover:opacity-70" style={{ color: themeStyle.muted }}>✕</button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {tocItems.length > 0 ? tocItems.map((item, i) => (
+                <button key={i} onClick={() => { goToPage(item.page); setShowToc(false) }}
+                  className={`w-full text-left px-4 py-3 border-b text-sm transition-colors ${
+                    item.page === pageNumber ? 'font-semibold' : 'hover:opacity-80'
+                  }`}
+                  style={{
+                    borderColor: themeStyle.border,
+                    color: item.page === pageNumber ? '#3b82f6' : themeStyle.text,
+                    backgroundColor: item.page === pageNumber
+                      ? (theme === 'dark' ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)')
+                      : 'transparent',
+                  }}>
+                  <span className="text-xs mr-2" style={{ color: themeStyle.muted }}>{item.page}</span>
+                  {item.title}
+                </button>
+              )) : (
+                <p className="px-4 py-8 text-center text-sm" style={{ color: themeStyle.muted }}>목차 정보가 없습니다</p>
+              )}
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* ━━━ 설정 바 ━━━ */}
+      <div className="border-b" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
+        {/* 메인 행 */}
+        <div className="flex items-center justify-center gap-2 px-3 py-2 flex-wrap">
+          {/* 목차 버튼 */}
+          <button onClick={() => setShowToc(!showToc)}
+            className={`p-1.5 rounded-lg transition-opacity ${showToc ? 'opacity-100' : 'hover:opacity-70'}`}
+            style={{ color: showToc ? '#3b82f6' : themeStyle.muted }} title="목차">
+            <List className="w-4 h-4" />
+          </button>
+
+          <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
+
+          {/* 글자 크기 */}
+          <button onClick={() => setFontSize(s => Math.max(12, s - 1))}
+            className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ color: themeStyle.muted }}>
+            <Minus className="w-4 h-4" />
+          </button>
+          <span className="text-xs font-mono min-w-[32px] text-center" style={{ color: themeStyle.text }}>{fontSize}</span>
+          <button onClick={() => setFontSize(s => Math.min(32, s + 1))}
+            className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ color: themeStyle.muted }}>
+            <Plus className="w-4 h-4" />
+          </button>
+
+          <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
+
+          {/* 글꼴 */}
+          {(Object.keys(FONTS) as ReflowFont[]).map((f) => (
+            <button key={f} onClick={() => setFont(f)}
+              className={`px-2 py-1 rounded text-xs transition-all ${font === f ? 'ring-2 ring-blue-500' : 'hover:opacity-70'}`}
+              style={{ backgroundColor: font === f ? 'rgba(59,130,246,0.15)' : 'transparent', color: font === f ? '#3b82f6' : themeStyle.muted, fontFamily: FONTS[f].family }}>
+              {FONTS[f].label}
+            </button>
+          ))}
+
+          <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
+
+          {/* 테마 */}
+          <div className="flex gap-1">
+            {(Object.keys(THEMES) as ReflowTheme[]).map((t) => (
+              <button key={t} onClick={() => setTheme(t)}
+                className={`w-6 h-6 rounded-full border-2 transition-all ${theme === t ? 'ring-2 ring-blue-500 ring-offset-1' : ''}`}
+                style={{ backgroundColor: THEMES[t].bg, borderColor: THEMES[t].border }}
+                title={t === 'light' ? '밝은' : t === 'sepia' ? '세피아' : '어두운'} />
+            ))}
+          </div>
+
+          <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
+
+          {/* 상세 설정 토글 */}
+          <button onClick={() => setShowSettings(!showSettings)}
+            className={`p-1.5 rounded-lg transition-opacity ${showSettings ? 'opacity-100' : 'hover:opacity-70'}`}
+            style={{ color: showSettings ? '#3b82f6' : themeStyle.muted }} title="상세 설정">
+            <Settings2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* 상세 설정 행 (토글) */}
+        {showSettings && (
+          <div className="flex items-center justify-center gap-3 px-3 py-2 border-t flex-wrap" style={{ borderColor: themeStyle.border }}>
+            {/* 줄 간격 */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px]" style={{ color: themeStyle.muted }}>줄간격</span>
+              <select value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))}
+                className="text-xs rounded px-1 py-0.5 border"
+                style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+                <option value={1.4}>촘촘</option>
+                <option value={1.6}>보통</option>
+                <option value={1.8}>넓게</option>
+                <option value={2.0}>아주 넓게</option>
+              </select>
+            </div>
+
+            <div className="w-px h-4" style={{ backgroundColor: themeStyle.border }} />
+
+            {/* 여백/문단 너비 */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px]" style={{ color: themeStyle.muted }}>여백</span>
+              <select value={marginSize} onChange={(e) => setMarginSize(Number(e.target.value))}
+                className="text-xs rounded px-1 py-0.5 border"
+                style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+                <option value={1}>좁게</option>
+                <option value={2}>보통</option>
+                <option value={3}>넓게</option>
+                <option value={4}>아주 넓게</option>
+              </select>
+            </div>
+
+            <div className="w-px h-4" style={{ backgroundColor: themeStyle.border }} />
+
+            {/* 자간 */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px]" style={{ color: themeStyle.muted }}>자간</span>
+              <select value={letterSpacing} onChange={(e) => setLetterSpacing(Number(e.target.value))}
+                className="text-xs rounded px-1 py-0.5 border"
+                style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+                <option value={-1}>좁게</option>
+                <option value={0}>보통</option>
+                <option value={1}>넓게</option>
+                <option value={2}>아주 넓게</option>
+              </select>
+            </div>
+
+            <div className="w-px h-4" style={{ backgroundColor: themeStyle.border }} />
+
+            {/* 정렬 */}
+            <div className="flex items-center gap-1">
+              <button onClick={() => setTextAlign('left')}
+                className={`p-1.5 rounded transition-all ${textAlign === 'left' ? 'ring-2 ring-blue-500 bg-blue-500/10' : 'hover:opacity-70'}`}
+                style={{ color: textAlign === 'left' ? '#3b82f6' : themeStyle.muted }} title="왼쪽 정렬">
+                <AlignLeft className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => setTextAlign('justify')}
+                className={`p-1.5 rounded transition-all ${textAlign === 'justify' ? 'ring-2 ring-blue-500 bg-blue-500/10' : 'hover:opacity-70'}`}
+                style={{ color: textAlign === 'justify' ? '#3b82f6' : themeStyle.muted }} title="양쪽 정렬">
+                <AlignJustify className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ━━━ 텍스트 본문 ━━━ */}
       <div ref={contentRef} className="flex-1 overflow-y-auto cursor-pointer" style={{ backgroundColor: themeStyle.bg }}
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onClick={handleClick}>
-        <div className="max-w-2xl mx-auto px-6 sm:px-10 py-8">
+        <div style={{ maxWidth: currentMargin.maxW, margin: '0 auto' }} className={`${currentMargin.px} py-8`}>
           <div className="mb-6 pb-3 border-b" style={{ borderColor: themeStyle.border }}>
             <span className="text-xs font-medium" style={{ color: themeStyle.muted }}>
               {pageNumber} / {numPages} {pageLabel}
