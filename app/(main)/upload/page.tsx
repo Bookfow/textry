@@ -174,11 +174,42 @@ export default function UploadPage() {
             try {
               const page = await pdfDoc.getPage(i)
               const textContent = await page.getTextContent()
-              const text = textContent.items
-                .map((item: any) => item.str)
-                .join(' ')
-                .replace(/\s+/g, ' ')
-                .trim()
+
+              // Y좌표 기반 줄 그룹핑 (reflow-viewer와 동일 로직)
+              let lastY: number | null = null
+              let lines: string[] = []
+              let currentLine = ''
+
+              for (const item of textContent.items) {
+                if ('str' in item) {
+                  const y = Math.round((item as any).transform[5])
+                  if (lastY !== null && Math.abs(y - lastY) > 3) {
+                    if (currentLine.trim()) lines.push(currentLine.trim())
+                    currentLine = ''
+                  }
+                  currentLine += (item as any).str
+                  lastY = y
+                }
+              }
+              if (currentLine.trim()) lines.push(currentLine.trim())
+
+              // 단락 분리
+              const paragraphs: string[] = []
+              let currentParagraph = ''
+              for (const line of lines) {
+                if (line === '') {
+                  if (currentParagraph) {
+                    paragraphs.push(currentParagraph)
+                    currentParagraph = ''
+                  }
+                } else {
+                  if (currentParagraph) currentParagraph += ' '
+                  currentParagraph += line
+                }
+              }
+              if (currentParagraph) paragraphs.push(currentParagraph)
+
+              const text = paragraphs.join('\n\n') || ''
 
               rows.push({
                 document_id: docData.id,
