@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   keywords: ["문서", "PDF", "읽기", "스트리밍", "작가", "출판", "Textry"],
   authors: [{ name: "Textry" }],
   creator: "Textry",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     type: "website",
     locale: "ko_KR",
@@ -60,6 +65,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <head>
+        <meta name="theme-color" content="#0d9668" />
+      </head>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-J9YDSY8L1R"
         strategy="afterInteractive"
