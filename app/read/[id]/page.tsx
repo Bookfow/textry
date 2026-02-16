@@ -24,6 +24,7 @@ import {
   Bookmark,
   Trash2,
   AlignLeft,
+  LogIn,
 } from 'lucide-react'
 import { AdBanner } from '@/components/ad-banner'
 import { AdOverlay } from '@/components/ad-overlay'
@@ -126,6 +127,10 @@ export default function ReadPage() {
   // ★ 파일 타입 감지
   const [fileType, setFileType] = useState<'pdf' | 'epub'>('pdf')
 
+  // ★ 로그인 유도 팝업
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [loginPromptMessage, setLoginPromptMessage] = useState('')
+
   // 프리미엄 여부
   const isPremium = profile?.is_premium && profile?.premium_expires_at
     ? new Date(profile.premium_expires_at) > new Date()
@@ -184,6 +189,14 @@ export default function ReadPage() {
 
   // ★ EPUB 여부
   const isEpub = fileType === 'epub'
+
+  // ★ 로그인 필요 기능 가드
+  const requireLogin = (actionName: string): boolean => {
+    if (user) return true
+    setLoginPromptMessage(actionName)
+    setShowLoginPrompt(true)
+    return false
+  }
 
   // ━━━ 배경 테마/밝기: localStorage 복원 & 저장 ━━━
   useEffect(() => {
@@ -285,7 +298,8 @@ export default function ReadPage() {
   const isCurrentPageBookmarked = bookmarks.some(b => b.page_number === pageNumber)
 
   const toggleBookmark = async () => {
-    if (!user || bookmarkLoading) return
+    if (!requireLogin('북마크를 추가하려면 로그인이 필요합니다')) return
+    if (bookmarkLoading) return
     setBookmarkLoading(true)
     try {
       if (isCurrentPageBookmarked) {
@@ -297,7 +311,7 @@ export default function ReadPage() {
       } else {
         const { data, error } = await supabase
           .from('bookmarks')
-          .insert({ user_id: user.id, document_id: documentId, page_number: pageNumber })
+          .insert({ user_id: user!.id, document_id: documentId, page_number: pageNumber })
           .select('id, page_number, memo, created_at')
           .single()
         if (error) throw error
@@ -420,7 +434,8 @@ export default function ReadPage() {
           else if (viewMode === 'book') setPageNumber((prev) => Math.min(prev + 2, numPages))
           break
         case 'Escape':
-          if (isFullscreen) toggleFullscreen()
+          if (showLoginPrompt) setShowLoginPrompt(false)
+          else if (isFullscreen) toggleFullscreen()
           else if (showSidePanel) setShowSidePanel(false)
           break
         case 'f':
@@ -445,7 +460,7 @@ export default function ReadPage() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [viewMode, numPages, pageNumber, isFullscreen, showSidePanel, showPageInput, showAdOverlay, isEpub])
+  }, [viewMode, numPages, pageNumber, isFullscreen, showSidePanel, showPageInput, showAdOverlay, isEpub, showLoginPrompt])
 
   useEffect(() => {
     if (showPageInput && pageInputRef.current) pageInputRef.current.focus()
@@ -635,10 +650,7 @@ export default function ReadPage() {
 
   const viewerBgColor = viewMode === 'reflow' ? 'transparent' : BG_THEMES[bgTheme].bgColor
 
-  if (!user && !loading && !authLoading) {
-    router.push('/login')
-    return null
-  }
+  // ★ 비로그인 차단 제거 — 이제 누구나 읽기 가능
 
   if (loading) {
     return (
@@ -653,6 +665,35 @@ export default function ReadPage() {
 
   return (
     <div ref={viewerRef} className="h-screen w-screen bg-[#0b1a13] flex flex-col overflow-hidden select-none">
+
+      {/* ━━━ 로그인 유도 팝업 ━━━ */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowLoginPrompt(false)}>
+          <div className="bg-[#0f2419] border border-[#1c3d2e] rounded-2xl shadow-2xl p-6 mx-4 max-w-sm w-full text-center"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="w-14 h-14 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <LogIn className="w-7 h-7 text-blue-400" />
+            </div>
+            <h3 className="text-white font-semibold text-lg mb-2">로그인이 필요합니다</h3>
+            <p className="text-[#8fbba5] text-sm mb-6">{loginPromptMessage}</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowLoginPrompt(false)}
+                className="flex-1 px-4 py-2.5 bg-[#153024] hover:bg-[#1c3d2e] rounded-xl text-[#8fbba5] text-sm transition-colors">
+                나중에
+              </button>
+              <button onClick={() => router.push(`/login?redirect=/read/${documentId}`)}
+                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-white text-sm font-medium transition-colors">
+                로그인하기
+              </button>
+            </div>
+            <button onClick={() => router.push(`/signup?redirect=/read/${documentId}`)}
+              className="mt-3 text-xs text-[#6b9b84] hover:text-white transition-colors">
+              아직 계정이 없으신가요? 회원가입
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ━━━ 광고 오버레이 ━━━ */}
       <AdOverlay
@@ -971,6 +1012,27 @@ export default function ReadPage() {
                 <ReadingListButton documentId={documentId} />
               </div>
             </div>
+
+            {/* ★ 비로그인 시 로그인 유도 배너 */}
+            {!user && (
+              <div className="p-4 border-b border-[#1c3d2e]">
+                <div className="bg-blue-600/10 border border-blue-500/20 rounded-xl p-4 text-center">
+                  <LogIn className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+                  <p className="text-white text-sm font-medium mb-1">로그인하고 더 많은 기능을 이용하세요</p>
+                  <p className="text-[#8fbba5] text-xs mb-3">좋아요, 북마크, 댓글, 구독 등</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => router.push(`/login?redirect=/read/${documentId}`)}
+                      className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs text-white font-medium transition-colors">
+                      로그인
+                    </button>
+                    <button onClick={() => router.push(`/signup?redirect=/read/${documentId}`)}
+                      className="flex-1 px-3 py-2 bg-[#153024] hover:bg-[#1c3d2e] rounded-lg text-xs text-[#8fbba5] transition-colors">
+                      회원가입
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {bookmarks.length > 0 && (
               <div className="p-4 border-b border-[#1c3d2e]">
