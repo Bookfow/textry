@@ -155,14 +155,12 @@ export default function UploadPage() {
     const cleanLines = lines.filter(l => !isBrokenText(l.text))
     if (cleanLines.length === 0) return ''
 
-    // 본문 폰트 크기 (최빈값)
     const fsCount = new Map<number, number>()
     for (const l of cleanLines) fsCount.set(l.fontSize, (fsCount.get(l.fontSize) || 0) + l.text.length)
     let bodyFontSize = 12
     let maxWeight = 0
     for (const [fs, weight] of fsCount) { if (weight > maxWeight) { maxWeight = weight; bodyFontSize = fs } }
 
-    // 블록 분류
     const parts: string[] = []
     let currentParagraph = ''
     let lastLineY: number | null = null
@@ -214,7 +212,7 @@ export default function UploadPage() {
     setProgressMessage('파일 업로드 중...')
 
     try {
-      const fileExt = file.name.split('.').pop()
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || ''
       const fileName = `${user.id}/${Date.now()}.${fileExt}`
 
       setProgress(20)
@@ -248,14 +246,16 @@ export default function UploadPage() {
       }
 
       setProgress(50)
-      setProgressMessage('PDF 분석 중...')
 
-      // PDF 페이지 수 읽기 + 텍스트 추출 준비
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+      const isEpub = file.name.toLowerCase().endsWith('.epub') || file.type === 'application/epub+zip'
+
+      // ━━━ PDF 분석 ━━━
       let pageCount = 0
       let pdfDoc: any = null
-      const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf')
 
       if (isPdf) {
+        setProgressMessage('PDF 분석 중...')
         try {
           const { pdfjs } = await import('react-pdf')
           pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
@@ -271,10 +271,34 @@ export default function UploadPage() {
         }
       }
 
+      // ━━━ EPUB 분석 ━━━
+      let epubData: any = null
+
+      if (isEpub) {
+        setProgressMessage('EPUB 분석 중...')
+        try {
+          const { parseEpub } = await import('@/lib/epub-parser')
+          const arrayBuffer = await file.arrayBuffer()
+          epubData = await parseEpub(arrayBuffer)
+          pageCount = epubData.chapters.length
+
+          // EPUB 메타데이터로 제목/설명 자동 채우기 (비어있으면)
+          if (!title.trim() && epubData.title && epubData.title !== '제목 없음') {
+            setTitle(epubData.title)
+          }
+        } catch (e) {
+          console.warn('EPUB 파싱 실패:', e)
+          toast.error('EPUB 파일 파싱에 실패했습니다. 파일이 손상되었을 수 있습니다.')
+          setUploading(false)
+          setProgress(0)
+          setProgressMessage('')
+          return
+        }
+      }
+
       setProgress(60)
       setProgressMessage('문서 정보 저장 중...')
 
-      // ★ .select('id') 추가 → insert 후 document id 반환받기
       const { data: docData, error: dbError } = await supabase
         .from('documents')
         .insert({
@@ -297,12 +321,12 @@ export default function UploadPage() {
 
       setProgress(70)
 
-      // ★ PDF 텍스트 추출 → DB 저장 (리플로우 뷰어용)
+      // ━━━ PDF 텍스트 추출 → DB 저장 ━━━
       if (isPdf && pdfDoc && docData?.id) {
         try {
           setProgressMessage('텍스트 추출 중...')
 
-          // ★ 스캔 PDF 사전 감지: 처음 3페이지 operatorList 체크
+          // 스캔 PDF 사전 감지
           let scanPageCount = 0
           const checkPages = Math.min(3, pageCount)
           for (let i = 1; i <= checkPages; i++) {
@@ -323,7 +347,6 @@ export default function UploadPage() {
           const isScannedPdf = scanPageCount >= checkPages
 
           if (isScannedPdf) {
-            // 스캔 PDF: 빈 텍스트로 저장 (추출 건너뜀)
             const rows: { document_id: string; page_number: number; text_content: string }[] = []
             for (let i = 1; i <= pageCount; i++) {
               rows.push({ document_id: docData.id, page_number: i, text_content: `(${i}페이지: 스캔 이미지)` })
@@ -334,7 +357,6 @@ export default function UploadPage() {
             }
             setProgressMessage('스캔 PDF 감지 (텍스트 추출 불가)')
           } else {
-            // 일반 PDF: 정상 텍스트 추출
             const batchSize = 10
             const rows: { document_id: string; page_number: number; text_content: string }[] = []
 
@@ -369,6 +391,38 @@ export default function UploadPage() {
           }
         } catch (extractErr) {
           console.warn('텍스트 추출 전체 실패:', extractErr)
+        }
+      }
+
+      // ━━━ EPUB 챕터 텍스트 → DB 저장 ━━━
+      if (isEpub && epubData && docData?.id) {
+        try {
+          setProgressMessage('EPUB 챕터 저장 중...')
+          const batchSize = 10
+          const rows: { document_id: string; page_number: number; text_content: string }[] = []
+
+          for (let i = 0; i < epubData.chapters.length; i++) {
+            const chapter = epubData.chapters[i]
+            rows.push({
+              document_id: docData.id,
+              page_number: i + 1, // 1-based
+              text_content: chapter.content,
+            })
+
+            if (rows.length >= batchSize || i === epubData.chapters.length - 1) {
+              const { error: textError } = await supabase
+                .from('document_pages_text')
+                .insert(rows)
+              if (textError) console.warn(`EPUB 챕터 저장 실패 (${i + 1}):`, textError)
+              rows.length = 0
+            }
+
+            const epubProgress = 70 + Math.round(((i + 1) / epubData.chapters.length) * 25)
+            setProgress(epubProgress)
+            setProgressMessage(`EPUB 챕터 저장 중... ${i + 1}/${epubData.chapters.length}`)
+          }
+        } catch (extractErr) {
+          console.warn('EPUB 챕터 저장 실패:', extractErr)
         }
       }
 
@@ -502,11 +556,11 @@ export default function UploadPage() {
                     type="file"
                     onChange={handleFileChange}
                     disabled={uploading}
-                    accept=".txt,.pdf,.docx,.md"
+                    accept=".txt,.pdf,.docx,.md,.epub"
                     required
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    지원 형식: TXT, PDF, DOCX, MD (최대 100MB)
+                    지원 형식: TXT, PDF, DOCX, MD, EPUB (최대 100MB)
                   </p>
                   {file && (
                     <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">

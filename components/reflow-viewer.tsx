@@ -14,6 +14,7 @@ interface ReflowViewerProps {
   onPageChange?: (page: number, total: number) => void
   onDocumentLoad?: (numPages: number) => void
   onSwitchToPdf?: () => void
+  fileType?: 'pdf' | 'epub' // ★ 추가: 파일 타입
 }
 
 // ━━━ 리플로우 설정 ━━━
@@ -208,6 +209,7 @@ export default function ReflowViewer({
   onPageChange,
   onDocumentLoad,
   onSwitchToPdf,
+  fileType = 'pdf',
 }: ReflowViewerProps) {
   const [pageTexts, setPageTexts] = useState<Map<number, string>>(new Map())
   const [numPages, setNumPages] = useState(0)
@@ -215,6 +217,8 @@ export default function ReflowViewer({
   const [extractProgress, setExtractProgress] = useState(0)
   const [loadSource, setLoadSource] = useState<'db' | 'client' | ''>('')
   const [unsupported, setUnsupported] = useState(false)
+
+  const isEpub = fileType === 'epub'
 
   const [fontSize, setFontSize] = useState(18)
   const [lineHeight, setLineHeight] = useState(1.8)
@@ -300,7 +304,9 @@ export default function ReflowViewer({
 
   // ━━━ DB 우선 조회 → 클라이언트 추출 fallback ━━━
   useEffect(() => {
-    if (!pdfUrl) return
+    // EPUB은 pdfUrl이 없어도 documentId만으로 DB 조회 가능
+    if (!isEpub && !pdfUrl) return
+    if (isEpub && !documentId) return
     let cancelled = false
 
     const loadTexts = async () => {
@@ -332,25 +338,37 @@ export default function ReflowViewer({
               setExtractProgress(100)
               if (onDocumentLoad) onDocumentLoad(total)
 
-              let emptyCount = 0
-              for (const [, t] of texts) {
-                const cleaned = t.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
-                if (cleaned.length < 10) { emptyCount++; continue }
-                let mc = 0
-                for (let i = 0; i < cleaned.length; i++) {
-                  const c = cleaned.charCodeAt(i)
-                  if ((c >= 0xAC00 && c <= 0xD7AF) || (c >= 0x3131 && c <= 0x318E) ||
-                      (c >= 0x0041 && c <= 0x005A) || (c >= 0x0061 && c <= 0x007A)) mc++
+              // EPUB은 unsupported 체크 불필요 (원래 텍스트 기반)
+              if (!isEpub) {
+                let emptyCount = 0
+                for (const [, t] of texts) {
+                  const cleaned = t.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
+                  if (cleaned.length < 10) { emptyCount++; continue }
+                  let mc = 0
+                  for (let i = 0; i < cleaned.length; i++) {
+                    const c = cleaned.charCodeAt(i)
+                    if ((c >= 0xAC00 && c <= 0xD7AF) || (c >= 0x3131 && c <= 0x318E) ||
+                        (c >= 0x0041 && c <= 0x005A) || (c >= 0x0061 && c <= 0x007A)) mc++
+                  }
+                  if (cleaned.length < 20 && mc < 5) emptyCount++
                 }
-                if (cleaned.length < 20 && mc < 5) emptyCount++
+                if (total > 0 && emptyCount / total > 0.5) setUnsupported(true)
               }
-              if (total > 0 && emptyCount / total > 0.5) setUnsupported(true)
             }
             return
           }
         } catch (dbErr) {
           console.warn('DB 텍스트 조회 실패, 클라이언트 추출로 전환:', dbErr)
         }
+      }
+
+      // ★ EPUB인데 DB에 데이터 없으면 → 미지원 안내
+      if (isEpub) {
+        if (!cancelled) {
+          setExtracting(false)
+          setUnsupported(true)
+        }
+        return
       }
 
       if (cancelled) return
@@ -378,16 +396,13 @@ export default function ReflowViewer({
           let textOpCount = 0
           for (let j = 0; j < ops.fnArray.length; j++) {
             const fn = ops.fnArray[j]
-            // paintImageXObject = 85, paintJpegXObject = 82
             if (fn === 85 || fn === 82) hasImage = true
-            // showText = 44, showSpacedText = 45
             if (fn === 44 || fn === 45) textOpCount++
           }
           if (hasImage && textOpCount < 5) scanPageCount++
         }
 
         if (scanPageCount >= checkPages) {
-          // 거의 모든 체크 페이지가 이미지만 → 스캔 PDF
           if (!cancelled) {
             const texts = new Map<number, string>()
             for (let i = 1; i <= total; i++) {
@@ -440,16 +455,17 @@ export default function ReflowViewer({
 
     loadTexts()
     return () => { cancelled = true }
-  }, [pdfUrl, documentId])
+  }, [pdfUrl, documentId, isEpub])
 
   const currentBlocks = deserializeBlocks(pageTexts.get(pageNumber) || '')
 
   const isCurrentPageBroken = (() => {
+    // EPUB은 기본적으로 깨진 페이지 없음
+    if (isEpub) return false
+
     const raw = pageTexts.get(pageNumber) || ''
     const cleaned = raw.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
-    // 텍스트가 거의 없으면 깨진 페이지
     if (cleaned.length < 5) return true
-    // 블록이 있어도 전체 의미 있는 텍스트(한글+영문)가 너무 적으면 깨진 페이지
     const allText = currentBlocks
       .filter(b => b.type !== 'separator')
       .map(b => b.content)
@@ -469,11 +485,9 @@ export default function ReflowViewer({
 
   // ━━━ TTS: 블록 순차 읽기 (ref 기반으로 최신 상태 참조) ━━━
   const speakBlockFromIndex = useCallback((blocks: TextBlock[], index: number) => {
-    // 정지 상태면 중단
     if (!ttsPlayingRef.current) return
 
     if (index >= blocks.length) {
-      // 현재 페이지 끝 → 다음 페이지 자동 이동
       if (pageNumber < numPages && onPageChange) {
         ttsAutoNextRef.current = true
         onPageChange(pageNumber + 1, numPages)
@@ -483,7 +497,6 @@ export default function ReflowViewer({
       return
     }
 
-    // separator 건너뛰기
     if (blocks[index].type === 'separator' || !blocks[index].content.trim()) {
       setTtsBlockIndex(index)
       ttsBlockIndexRef.current = index
@@ -547,11 +560,9 @@ export default function ReflowViewer({
     }
   }, [ttsPlaying, startTts, stopTts])
 
-  // 배속 변경 핸들러
   const handleRateChange = useCallback((newRate: number) => {
     ttsRateRef.current = newRate
     setTtsRate(newRate)
-    // 재생 중이면 현재 블록부터 새 배속으로 재시작
     if (ttsPlayingRef.current) {
       window.speechSynthesis.cancel()
       const idx = ttsBlockIndexRef.current >= 0 ? ttsBlockIndexRef.current : 0
@@ -599,7 +610,7 @@ export default function ReflowViewer({
 
   const handleClick = (e: React.MouseEvent) => {
     if (showSettings) return
-    if (ttsPlaying) return // TTS 재생 중엔 클릭 페이지 넘김 비활성
+    if (ttsPlaying) return
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
     const clickX = e.clientX - rect.left
     if (clickX < rect.width / 2) goToPrev()
@@ -609,15 +620,23 @@ export default function ReflowViewer({
   const themeStyle = THEMES[theme]
   const fontStyle = FONTS[font]
 
+  // ★ EPUB용 페이지 라벨 (챕터)
+  const pageLabel = isEpub ? '챕터' : '페이지'
+
   if (extracting) {
     return (
       <div className="h-full flex items-center justify-center" style={{ backgroundColor: themeStyle.pageBg }}>
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p style={{ color: themeStyle.muted }} className="text-sm">
-            {loadSource === 'client' ? `텍스트 추출 중... ${extractProgress}%` : '텍스트 불러오는 중...'}
+            {isEpub
+              ? 'EPUB 불러오는 중...'
+              : loadSource === 'client'
+                ? `텍스트 추출 중... ${extractProgress}%`
+                : '텍스트 불러오는 중...'
+            }
           </p>
-          {loadSource === 'client' && (
+          {loadSource === 'client' && !isEpub && (
             <div className="w-48 h-1.5 bg-gray-700 rounded-full mt-2 mx-auto overflow-hidden">
               <div className="h-full bg-blue-500 rounded-full transition-all duration-300" style={{ width: `${extractProgress}%` }} />
             </div>
@@ -732,12 +751,12 @@ export default function ReflowViewer({
         <div className="max-w-2xl mx-auto px-6 sm:px-10 py-8">
           <div className="mb-6 pb-3 border-b" style={{ borderColor: themeStyle.border }}>
             <span className="text-xs font-medium" style={{ color: themeStyle.muted }}>
-              {pageNumber} / {numPages} 페이지
+              {pageNumber} / {numPages} {pageLabel}
             </span>
           </div>
 
           {/* 전체 문서 미지원 안내 */}
-          {unsupported && (
+          {unsupported && !isEpub && (
             <div className="mb-6 rounded-xl p-5 text-center" style={{
               backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
               border: `1px solid ${theme === 'dark' ? '#2d2d50' : theme === 'sepia' ? '#d4c5a9' : '#d0d8f0'}`,
@@ -761,8 +780,25 @@ export default function ReflowViewer({
             </div>
           )}
 
-          {/* 현재 페이지 텍스트 없음 안내 */}
-          {isCurrentPageBroken && !unsupported && (
+          {/* ★ EPUB DB 데이터 없음 안내 */}
+          {unsupported && isEpub && (
+            <div className="mb-6 rounded-xl p-5 text-center" style={{
+              backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
+              border: `1px solid ${theme === 'dark' ? '#2d2d50' : theme === 'sepia' ? '#d4c5a9' : '#d0d8f0'}`,
+            }}>
+              <div className="text-2xl mb-2">📚</div>
+              <p className="font-semibold mb-1" style={{ color: themeStyle.headingColor, fontSize: `${Math.round(fontSize * 0.9)}px` }}>
+                EPUB 데이터를 불러올 수 없습니다
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: themeStyle.muted }}>
+                이 EPUB 파일의 텍스트 데이터가 아직 처리되지 않았습니다.{'\n'}
+                다시 업로드하거나 잠시 후 시도해 주세요.
+              </p>
+            </div>
+          )}
+
+          {/* 현재 페이지 텍스트 없음 안내 (PDF 전용) */}
+          {isCurrentPageBroken && !unsupported && !isEpub && (
             <div className="mb-6 rounded-lg p-4 text-center" style={{
               backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
               border: `1px solid ${theme === 'dark' ? '#2d2d50' : theme === 'sepia' ? '#d4c5a9' : '#d0d8f0'}`,
@@ -782,9 +818,9 @@ export default function ReflowViewer({
           <div>
             {currentBlocks.length > 0 ? (
               currentBlocks.map((block, i) => renderBlock(block, i))
-            ) : !isCurrentPageBroken ? (
+            ) : !isCurrentPageBroken && !unsupported ? (
               <p className="text-center py-8" style={{ color: themeStyle.muted }}>
-                (이 페이지에 추출 가능한 텍스트가 없습니다)
+                (이 {pageLabel}에 추출 가능한 텍스트가 없습니다)
               </p>
             ) : null}
           </div>
@@ -807,7 +843,6 @@ export default function ReflowViewer({
       {/* ━━━ TTS 플레이어 바 ━━━ */}
       {ttsSupported && !unsupported && !isCurrentPageBroken && currentBlocks.length > 0 && (
         <div className="flex items-center justify-center gap-4 px-4 py-2.5 border-t" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
-          {/* 재생/정지 */}
           <button
             onClick={(e) => { e.stopPropagation(); toggleTts() }}
             className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
@@ -816,7 +851,6 @@ export default function ReflowViewer({
             {ttsPlaying ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
           </button>
 
-          {/* 상태 표시 */}
           <div className="flex items-center gap-1.5">
             {ttsPlaying && (
               <>
@@ -831,7 +865,6 @@ export default function ReflowViewer({
             )}
           </div>
 
-          {/* 배속 */}
           <select
             value={ttsRate}
             onChange={(e) => { e.stopPropagation(); handleRateChange(Number(e.target.value)) }}

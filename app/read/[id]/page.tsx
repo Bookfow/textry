@@ -123,6 +123,9 @@ export default function ReadPage() {
   const [pdfUrl, setPdfUrl] = useState<string>('')
   const [loading, setLoading] = useState(true)
 
+  // ★ 파일 타입 감지
+  const [fileType, setFileType] = useState<'pdf' | 'epub'>('pdf')
+
   // 프리미엄 여부
   const isPremium = profile?.is_premium && profile?.premium_expires_at
     ? new Date(profile.premium_expires_at) > new Date()
@@ -179,6 +182,9 @@ export default function ReadPage() {
   const tier = numPages > 0 ? getAdTier(numPages) : 'micro'
   const tierConfig = getTierConfig(tier)
 
+  // ★ EPUB 여부
+  const isEpub = fileType === 'epub'
+
   // ━━━ 배경 테마/밝기: localStorage 복원 & 저장 ━━━
   useEffect(() => {
     try {
@@ -197,7 +203,6 @@ export default function ReadPage() {
     try { localStorage.setItem('textry_brightness', String(brightness)) } catch {}
   }, [brightness])
 
-  // 테마 팝업 외부 클릭 닫기
   useEffect(() => {
     if (!showThemePopup) return
     const handleClickOutside = (e: MouseEvent) => {
@@ -209,7 +214,7 @@ export default function ReadPage() {
     return () => window.document.removeEventListener('mousedown', handleClickOutside)
   }, [showThemePopup])
 
-  // ━━━ 모바일 감지 + 자동 페이지 모드 전환 ━━━
+  // ━━━ 모바일 감지 ━━━
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768
@@ -223,7 +228,7 @@ export default function ReadPage() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [viewMode])
 
-  // ━━━ 컨트롤바 auto-hide (3초 무활동 시 숨김) ━━━
+  // ━━━ 컨트롤바 auto-hide ━━━
   const resetControlsTimer = useCallback(() => {
     setShowControls(true)
     if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
@@ -252,12 +257,11 @@ export default function ReadPage() {
     if (showSidePanel || showPageInput || showThemePopup) setShowControls(true)
   }, [showSidePanel, showPageInput, showThemePopup])
 
-  // ━━━ 핀치줌 콜백 (PDFViewer에서 호출) ━━━
   const handleScaleChange = useCallback((newScale: number) => {
     setScale(newScale)
   }, [])
 
-  // ━━━ 북마크 로드 ━━━
+  // ━━━ 북마크 ━━━
   const loadBookmarks = useCallback(async () => {
     if (!user) return
     try {
@@ -315,7 +319,7 @@ export default function ReadPage() {
     }
   }
 
-  // ─── 시작 광고 (프리미엄은 스킵) ───
+  // ─── 광고 ───
   useEffect(() => {
     if (isPremium) return
     if (documentReady && numPages > 0 && !startAdShown) {
@@ -330,7 +334,6 @@ export default function ReadPage() {
     }
   }, [documentReady, numPages, startAdShown])
 
-  // ─── 페이지 변경 시 중간/끝 광고 체크 (프리미엄은 스킵) ───
   useEffect(() => {
     if (isPremium) return
     if (numPages === 0 || showAdOverlay || !documentReady) return
@@ -368,11 +371,9 @@ export default function ReadPage() {
     setLastAdPage(pageNumber)
   }, [pageNumber, numPages, showAdOverlay, documentReady, tierConfig, adCount, lastAdTime, lastAdPage, endAdShown])
 
-  const handleAdClose = () => {
-    setShowAdOverlay(false)
-  }
+  const handleAdClose = () => { setShowAdOverlay(false) }
 
-  // ─── 기존 로직들 ───
+  // ─── 문서 로드 ───
   useEffect(() => {
     loadDocument()
     return () => {
@@ -429,27 +430,25 @@ export default function ReadPage() {
         case '+':
         case '=':
           e.preventDefault()
-          zoomIn()
+          if (!isEpub) zoomIn()
           break
         case '-':
           e.preventDefault()
-          zoomOut()
+          if (!isEpub) zoomOut()
           break
         case 'g':
         case 'G':
           e.preventDefault()
-          setShowPageInput(true)
+          if (!isEpub) setShowPageInput(true)
           break
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [viewMode, numPages, pageNumber, isFullscreen, showSidePanel, showPageInput, showAdOverlay])
+  }, [viewMode, numPages, pageNumber, isFullscreen, showSidePanel, showPageInput, showAdOverlay, isEpub])
 
   useEffect(() => {
-    if (showPageInput && pageInputRef.current) {
-      pageInputRef.current.focus()
-    }
+    if (showPageInput && pageInputRef.current) pageInputRef.current.focus()
   }, [showPageInput])
 
   const loadDocument = async () => {
@@ -461,6 +460,16 @@ export default function ReadPage() {
         .single()
       if (docError) throw docError
       setDocument(docData)
+
+      // ★ 파일 타입 감지 (file_path 확장자 기반)
+      const filePath = docData.file_path || ''
+      const detectedFileType = filePath.toLowerCase().endsWith('.epub') ? 'epub' : 'pdf'
+      setFileType(detectedFileType as 'pdf' | 'epub')
+
+      // ★ EPUB이면 리플로우 모드 고정
+      if (detectedFileType === 'epub') {
+        setViewMode('reflow')
+      }
 
       const { data: authorData } = await supabase
         .from('profiles')
@@ -483,7 +492,6 @@ export default function ReadPage() {
         .getPublicUrl(docData.file_path)
       setPdfUrl(urlData.publicUrl)
 
-      // 시리즈 정보 로딩
       loadSeriesInfo(documentId)
     } catch (err) {
       console.error('Error loading document:', err)
@@ -617,7 +625,6 @@ export default function ReadPage() {
 
   const progress = numPages > 0 ? (pageNumber / numPages) * 100 : 0
 
-  // 밝기 + 테마 CSS 필터 (리플로우 모드에서는 적용하지 않음)
   const viewerFilterStyle: React.CSSProperties = viewMode === 'reflow' ? {} : {
     filter: [
       brightness !== 100 ? `brightness(${brightness / 100})` : '',
@@ -628,7 +635,6 @@ export default function ReadPage() {
 
   const viewerBgColor = viewMode === 'reflow' ? 'transparent' : BG_THEMES[bgTheme].bgColor
 
-  // 비로그인 사용자 차단
   if (!user && !loading && !authLoading) {
     router.push('/login')
     return null
@@ -661,8 +667,8 @@ export default function ReadPage() {
         sessionId={sessionId}
       />
 
-      {/* ━━━ 배경/밝기 팝업 (PDF 모드에서만) ━━━ */}
-      {showThemePopup && viewMode !== 'reflow' && (
+      {/* ━━━ 배경/밝기 팝업 (PDF 모드에서만, EPUB 제외) ━━━ */}
+      {showThemePopup && viewMode !== 'reflow' && !isEpub && (
         <div ref={themePopupRef} className="fixed top-[62px] left-1/2 -translate-x-1/2 w-56 bg-[#0f2419] border border-[#1c3d2e] rounded-xl shadow-2xl p-4 z-[9999]">
           <p className="text-xs text-[#6b9b84] mb-2 font-medium">배경 테마</p>
           <div className="flex gap-2 mb-4">
@@ -676,24 +682,14 @@ export default function ReadPage() {
                     : 'border-[#1c3d2e] hover:border-[#2a5440]'
                 }`}
               >
-                <div
-                  className="w-8 h-8 rounded-full border border-[#1c3d2e] shadow-inner"
-                  style={{ backgroundColor: BG_THEMES[key].previewColor }}
-                />
+                <div className="w-8 h-8 rounded-full border border-[#1c3d2e] shadow-inner" style={{ backgroundColor: BG_THEMES[key].previewColor }} />
                 <span className="text-[10px] text-[#8fbba5]">{BG_THEMES[key].label}</span>
               </button>
             ))}
           </div>
-
           <p className="text-xs text-[#6b9b84] mb-2 font-medium">밝기 {brightness}%</p>
-          <input
-            type="range"
-            min={30}
-            max={150}
-            value={brightness}
-            onChange={(e) => setBrightness(Number(e.target.value))}
-            className="w-full h-1.5 bg-[#153024] rounded-full appearance-none cursor-pointer accent-blue-500"
-          />
+          <input type="range" min={30} max={150} value={brightness} onChange={(e) => setBrightness(Number(e.target.value))}
+            className="w-full h-1.5 bg-[#153024] rounded-full appearance-none cursor-pointer accent-blue-500" />
           <div className="flex justify-between text-[10px] text-[#6b9b84] mt-1">
             <span>어둡게</span>
             <button onClick={() => setBrightness(100)} className="hover:text-white transition-colors">초기화</button>
@@ -702,25 +698,18 @@ export default function ReadPage() {
         </div>
       )}
 
-      {/* ━━━ 상단 오버레이: 컨트롤바 OR 배너 광고 ━━━ */}
+      {/* ━━━ 상단 오버레이 ━━━ */}
       {showControls ? (
         <div className="absolute top-0 left-0 right-0 z-50">
         <div className="h-1 bg-[#153024] w-full">
-          <div
-            className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
+          <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
 
         <div className="bg-[#0f2419] border-b border-[#1c3d2e] px-2 sm:px-3 py-1.5 overflow-hidden">
           <div className="flex items-center gap-1 sm:gap-2">
 
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              <button
-                onClick={() => router.push('/')}
-                className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors"
-                title="홈으로"
-              >
+              <button onClick={() => router.push('/')} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors" title="홈으로">
                 <Home className="w-5 h-5" />
               </button>
               <div className="hidden lg:block max-w-[180px]">
@@ -732,40 +721,40 @@ export default function ReadPage() {
             </div>
 
             <div className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5">
-              {/* ━━━ 뷰 모드 버튼 (리플로우 추가) ━━━ */}
-              <div className="flex items-center bg-[#153024] rounded-lg p-0.5">
-                <button
-                  onClick={() => setViewMode('page')}
-                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
-                  title="페이지 모드"
-                >
-                  <BookOpen className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('book')}
-                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'book' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
-                  title="책 모드 (2페이지)"
-                >
-                  <BookOpenCheck className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('scroll')}
-                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'scroll' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
-                  title="스크롤 모드"
-                >
-                  <ScrollText className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('reflow')}
-                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'reflow' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
-                  title="리플로우 모드"
-                >
-                  <AlignLeft className="w-4 h-4" />
-                </button>
-              </div>
+              {/* ━━━ 뷰 모드 버튼 (EPUB에서는 리플로우만 활성) ━━━ */}
+              {isEpub ? (
+                <div className="flex items-center bg-[#153024] rounded-lg p-0.5">
+                  <button className="p-1.5 rounded-md bg-blue-600 text-white" title="리플로우 모드 (EPUB)">
+                    <AlignLeft className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center bg-[#153024] rounded-lg p-0.5">
+                  <button onClick={() => setViewMode('page')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
+                    title="페이지 모드">
+                    <BookOpen className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setViewMode('book')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'book' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
+                    title="책 모드 (2페이지)">
+                    <BookOpenCheck className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setViewMode('scroll')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'scroll' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
+                    title="스크롤 모드">
+                    <ScrollText className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setViewMode('reflow')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'reflow' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
+                    title="리플로우 모드">
+                    <AlignLeft className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
 
-              {/* ━━━ PDF 전용 컨트롤 (리플로우에서 숨김) ━━━ */}
-              {viewMode !== 'reflow' && (
+              {/* ━━━ PDF 전용 컨트롤 (리플로우/EPUB에서 숨김) ━━━ */}
+              {viewMode !== 'reflow' && !isEpub && (
                 <>
                   <div className="w-px h-4 bg-[#1c3d2e]" />
 
@@ -811,14 +800,11 @@ export default function ReadPage() {
                     </button>
                   </div>
 
-                  {/* ━━━ 배경/밝기 버튼 ━━━ */}
                   <div className="w-px h-4 bg-[#1c3d2e]" />
                   <div className="relative">
-                    <button
-                      onClick={() => setShowThemePopup(!showThemePopup)}
+                    <button onClick={() => setShowThemePopup(!showThemePopup)}
                       className={`p-1.5 rounded-lg transition-colors ${showThemePopup ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white hover:bg-[#153024]'}`}
-                      title="배경 & 밝기"
-                    >
+                      title="배경 & 밝기">
                       <Sun className="w-4 h-4" />
                     </button>
                   </div>
@@ -837,8 +823,7 @@ export default function ReadPage() {
             <div className="flex items-center gap-1 flex-shrink-0">
               <button onClick={toggleBookmark}
                 className={`p-2 rounded-lg transition-colors ${isCurrentPageBookmarked ? 'text-amber-400 hover:text-amber-300' : 'text-[#8fbba5] hover:text-white'} hover:bg-[#153024]`}
-                title={isCurrentPageBookmarked ? '북마크 제거' : '이 페이지 북마크'}
-              >
+                title={isCurrentPageBookmarked ? '북마크 제거' : '이 페이지 북마크'}>
                 <Bookmark className="w-5 h-5" fill={isCurrentPageBookmarked ? 'currentColor' : 'none'} />
               </button>
               <ReadingListButton documentId={documentId} compact />
@@ -867,12 +852,18 @@ export default function ReadPage() {
       {/* ━━━ 메인 컨텐츠 ━━━ */}
       <div className="flex flex-1 overflow-hidden pt-[58px]">
         <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidePanel ? 'sm:mr-[380px]' : ''}`}>
-          <div
-            className="flex-1 overflow-hidden transition-[filter,background-color] duration-300"
-            style={{ backgroundColor: viewerBgColor, ...viewerFilterStyle }}
-          >
+          <div className="flex-1 overflow-hidden transition-[filter,background-color] duration-300"
+            style={{ backgroundColor: viewerBgColor, ...viewerFilterStyle }}>
             {viewMode === 'reflow' ? (
-              pdfUrl && <ReflowViewer pdfUrl={pdfUrl} documentId={documentId} pageNumber={pageNumber} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onSwitchToPdf={() => setViewMode('page')} />
+              <ReflowViewer
+                pdfUrl={pdfUrl}
+                documentId={documentId}
+                pageNumber={pageNumber}
+                onPageChange={handlePageChange}
+                onDocumentLoad={handleDocumentLoad}
+                onSwitchToPdf={isEpub ? undefined : () => setViewMode('page')}
+                fileType={fileType}
+              />
             ) : (
               pdfUrl && (
                 <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
@@ -901,6 +892,7 @@ export default function ReadPage() {
                 <span>조회수 {document?.view_count.toLocaleString()}회</span>
                 <span>·</span>
                 <span>읽기 시간: {Math.floor(totalTime / 60)}분 {totalTime % 60}초</span>
+                {isEpub && <span>· 📚 EPUB</span>}
               </div>
             </div>
 
@@ -917,17 +909,13 @@ export default function ReadPage() {
 
                 <div className="space-y-1 mb-3 max-h-[200px] overflow-y-auto">
                   {seriesInfo.docs.map((doc, i) => (
-                    <div
-                      key={doc.documentId}
+                    <div key={doc.documentId}
                       className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-colors ${
                         doc.documentId === documentId
                           ? 'bg-blue-600/20 text-blue-400 font-medium'
                           : 'text-[#8fbba5] hover:bg-[#153024] hover:text-gray-200 cursor-pointer'
                       }`}
-                      onClick={() => {
-                        if (doc.documentId !== documentId) router.push(`/read/${doc.documentId}`)
-                      }}
-                    >
+                      onClick={() => { if (doc.documentId !== documentId) router.push(`/read/${doc.documentId}`) }}>
                       <span className="w-5 text-center flex-shrink-0">{i + 1}</span>
                       <span className="truncate">{doc.title}</span>
                       {doc.documentId === documentId && (
@@ -939,18 +927,14 @@ export default function ReadPage() {
 
                 <div className="flex gap-2">
                   {seriesInfo.prevDocId && (
-                    <button
-                      onClick={() => router.push(`/read/${seriesInfo.prevDocId}`)}
-                      className="flex-1 px-3 py-2 bg-[#153024] hover:bg-[#1c3d2e] rounded-lg text-xs text-gray-300 transition-colors text-center"
-                    >
+                    <button onClick={() => router.push(`/read/${seriesInfo.prevDocId}`)}
+                      className="flex-1 px-3 py-2 bg-[#153024] hover:bg-[#1c3d2e] rounded-lg text-xs text-gray-300 transition-colors text-center">
                       ← 이전편
                     </button>
                   )}
                   {seriesInfo.nextDocId && (
-                    <button
-                      onClick={() => router.push(`/read/${seriesInfo.nextDocId}`)}
-                      className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs text-white transition-colors text-center"
-                    >
+                    <button onClick={() => router.push(`/read/${seriesInfo.nextDocId}`)}
+                      className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs text-white transition-colors text-center">
                       다음편 →
                     </button>
                   )}
@@ -988,7 +972,6 @@ export default function ReadPage() {
               </div>
             </div>
 
-            {/* ━━━ 북마크 목록 ━━━ */}
             {bookmarks.length > 0 && (
               <div className="p-4 border-b border-[#1c3d2e]">
                 <div className="flex items-center justify-between mb-3">
@@ -999,26 +982,21 @@ export default function ReadPage() {
                 </div>
                 <div className="space-y-1 max-h-[200px] overflow-y-auto">
                   {bookmarks.map((bm) => (
-                    <div
-                      key={bm.id}
+                    <div key={bm.id}
                       className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
                         bm.page_number === pageNumber
                           ? 'bg-amber-500/15 text-amber-400'
                           : 'text-[#8fbba5] hover:bg-[#153024] hover:text-white'
                       }`}
-                      onClick={() => setPageNumber(bm.page_number)}
-                    >
+                      onClick={() => setPageNumber(bm.page_number)}>
                       <div className="flex items-center gap-2">
                         <Bookmark className="w-3.5 h-3.5 flex-shrink-0" fill={bm.page_number === pageNumber ? 'currentColor' : 'none'} />
-                        <span>{bm.page_number}페이지</span>
+                        <span>{bm.page_number}{isEpub ? '챕터' : '페이지'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-[#6b9b84]">{new Date(bm.created_at).toLocaleDateString()}</span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); deleteBookmark(bm.id) }}
-                          className="p-1 rounded hover:bg-red-500/20 text-[#6b9b84] hover:text-red-400 transition-colors"
-                          title="삭제"
-                        >
+                        <button onClick={(e) => { e.stopPropagation(); deleteBookmark(bm.id) }}
+                          className="p-1 rounded hover:bg-red-500/20 text-[#6b9b84] hover:text-red-400 transition-colors" title="삭제">
                           <Trash2 className="w-3 h-3" />
                         </button>
                       </div>
