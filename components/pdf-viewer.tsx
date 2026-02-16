@@ -190,6 +190,8 @@ export default function PDFViewer({
         pinchRatioRef.current = 1
         return
       }
+      // scale > 1이면 패닝 모드: 터치 이벤트를 통과시켜 overflow-auto 스크롤 허용
+      if (scaleRef.current > 1.05) return
       if (viewModeRef.current === 'scroll') return
       touchEndRef.current = null
       touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
@@ -216,11 +218,13 @@ export default function PDFViewer({
           const currentDist = getTouchDistance(e.touches)
           const ratio = currentDist / pinchStartDistRef.current
           pinchRatioRef.current = ratio
-          // DOM 직접 조작 — React 리렌더 없음
           applyPinchTransform(ratio)
         }
         return
       }
+
+      // scale > 1이면 패닝 모드
+      if (scaleRef.current > 1.05) return
 
       const ts = touchStartRef.current
       if (!ts || viewModeRef.current === 'scroll') return
@@ -231,9 +235,7 @@ export default function PDFViewer({
 
     const handleTouchEnd = () => {
       if (isPinchingRef.current) {
-        // DOM transform 초기화
         clearPinchTransform()
-        // 최종 scale 한 번만 적용
         const finalScale = Math.min(Math.max(pinchStartScaleRef.current * pinchRatioRef.current, 0.5), 3.0)
         if (onScaleChangeRef.current) onScaleChangeRef.current(finalScale)
         pinchStartDistRef.current = null
@@ -241,6 +243,9 @@ export default function PDFViewer({
         pinchRatioRef.current = 1
         return
       }
+
+      // scale > 1이면 스와이프 처리 안함
+      if (scaleRef.current > 1.05) return
 
       const ts = touchStartRef.current
       const te = touchEndRef.current
@@ -334,7 +339,7 @@ export default function PDFViewer({
         <div
           ref={touchOverlayRef}
           className="absolute inset-0 z-20"
-          style={{ touchAction: 'none' }}
+          style={{ touchAction: scale > 1.05 ? 'auto' : 'none' }}
           onClick={handlePageAreaClick}
         />
 
