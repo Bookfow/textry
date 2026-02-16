@@ -13,6 +13,7 @@ interface ReflowViewerProps {
   pageNumber: number
   onPageChange?: (page: number, total: number) => void
   onDocumentLoad?: (numPages: number) => void
+  onSwitchToPdf?: () => void  // ★ 리플로우 불가 시 PDF 모드 전환
 }
 
 // ━━━ 리플로우 설정 ━━━
@@ -217,12 +218,14 @@ export default function ReflowViewer({
   pageNumber,
   onPageChange,
   onDocumentLoad,
+  onSwitchToPdf,
 }: ReflowViewerProps) {
   const [pageTexts, setPageTexts] = useState<Map<number, string>>(new Map())
   const [numPages, setNumPages] = useState(0)
   const [extracting, setExtracting] = useState(true)
   const [extractProgress, setExtractProgress] = useState(0)
   const [loadSource, setLoadSource] = useState<'db' | 'client' | ''>('')
+  const [unsupported, setUnsupported] = useState(false)
 
   const [fontSize, setFontSize] = useState(18)
   const [lineHeight, setLineHeight] = useState(1.8)
@@ -298,6 +301,14 @@ export default function ReflowViewer({
               setExtracting(false)
               setExtractProgress(100)
               if (onDocumentLoad) onDocumentLoad(total)
+
+              // ★ 품질 체크: 빈/깨진 페이지 비율
+              let emptyCount = 0
+              for (const [, t] of texts) {
+                const cleaned = t.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
+                if (cleaned.length < 10) emptyCount++
+              }
+              if (total > 0 && emptyCount / total > 0.5) setUnsupported(true)
             }
             return
           }
@@ -337,6 +348,14 @@ export default function ReflowViewer({
         if (!cancelled) {
           setPageTexts(texts)
           setExtracting(false)
+
+          // ★ 품질 체크
+          let emptyCount = 0
+          for (const [, t] of texts) {
+            const cleaned = t.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
+            if (cleaned.length < 10) emptyCount++
+          }
+          if (total > 0 && emptyCount / total > 0.5) setUnsupported(true)
         }
       } catch (err) {
         console.error('Text extraction error:', err)
@@ -508,6 +527,36 @@ export default function ReflowViewer({
               {pageNumber} / {numPages} 페이지
             </span>
           </div>
+
+          {/* ━━━ 리플로우 미지원 안내 ━━━ */}
+          {unsupported && (
+            <div className="mb-6 rounded-xl p-5 text-center" style={{
+              backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
+              border: `1px solid ${theme === 'dark' ? '#2d2d50' : theme === 'sepia' ? '#d4c5a9' : '#d0d8f0'}`,
+            }}>
+              <div className="text-2xl mb-2">📄</div>
+              <p className="font-semibold mb-1" style={{
+                color: themeStyle.headingColor,
+                fontSize: `${Math.round(fontSize * 0.9)}px`,
+              }}>
+                이 문서는 리플로우 모드를 지원하지 않습니다
+              </p>
+              <p className="text-xs mb-4 leading-relaxed" style={{ color: themeStyle.muted }}>
+                스캔 이미지, 장식 폰트, 벡터 변환 등으로 인해{'\n'}
+                텍스트를 정상적으로 추출할 수 없습니다.{'\n'}
+                PDF 뷰어 모드에서 원본 그대로 읽을 수 있습니다.
+              </p>
+              {onSwitchToPdf && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onSwitchToPdf() }}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium text-white transition-colors"
+                  style={{ backgroundColor: '#3b82f6' }}
+                >
+                  PDF 뷰어로 전환
+                </button>
+              )}
+            </div>
+          )}
 
           <div>
             {currentBlocks.length > 0 ? (

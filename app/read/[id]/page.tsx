@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -872,7 +872,7 @@ export default function ReadPage() {
             style={{ backgroundColor: viewerBgColor, ...viewerFilterStyle }}
           >
             {viewMode === 'reflow' ? (
-              pdfUrl && <ReflowViewer pdfUrl={pdfUrl} documentId={documentId} pageNumber={pageNumber} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} />
+              pdfUrl && <ReflowViewer pdfUrl={pdfUrl} documentId={documentId} pageNumber={pageNumber} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onSwitchToPdf={() => setViewMode('page')} />
             ) : (
               pdfUrl && (
                 <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
