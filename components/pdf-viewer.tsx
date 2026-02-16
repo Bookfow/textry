@@ -380,7 +380,7 @@ export default function PDFViewer({
 
   return (
     <div ref={containerRef} className="h-full w-full flex flex-col" style={{ overscrollBehavior: 'none' }}>
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative" style={{ overflow: scale > 1.05 ? 'auto' : 'hidden', overscrollBehavior: 'none' }}>
 
         {/* ━━━ 투명 터치 오버레이 ━━━ */}
         <div
