@@ -130,7 +130,11 @@ export default function UploadPage() {
           const { pdfjs } = await import('react-pdf')
           pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
           const arrayBuffer = await file.arrayBuffer()
-          pdfDoc = await pdfjs.getDocument({ data: arrayBuffer }).promise
+          pdfDoc = await pdfjs.getDocument({
+            data: arrayBuffer,
+            cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+            cMapPacked: true,
+          }).promise
           pageCount = pdfDoc.numPages
         } catch (e) {
           console.warn('PDF 페이지 수 읽기 실패:', e)

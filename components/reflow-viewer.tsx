@@ -139,7 +139,11 @@ export default function ReflowViewer({
       setLoadSource('client')
 
       try {
-        const loadingTask = pdfjs.getDocument(pdfUrl)
+        const loadingTask = pdfjs.getDocument({
+          url: pdfUrl,
+          cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+          cMapPacked: true,
+        })
         const pdf = await loadingTask.promise
         const total = pdf.numPages
         setNumPages(total)
