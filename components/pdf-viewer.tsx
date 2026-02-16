@@ -278,6 +278,53 @@ export default function PDFViewer({
     }
   }, [])
 
+  // ━━━ 확대 상태에서 오버레이가 꺼져도 핀치줌 유지 (containerRef 캡처) ━━━
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const handlePinchStart = (e: TouchEvent) => {
+      if (e.touches.length < 2 || scaleRef.current <= 1.05) return
+      e.preventDefault()
+      const dist = getTouchDistance(e.touches)
+      pinchStartDistRef.current = dist
+      pinchStartScaleRef.current = scaleRef.current
+      isPinchingRef.current = true
+      pinchRatioRef.current = 1
+    }
+
+    const handlePinchMove = (e: TouchEvent) => {
+      if (e.touches.length < 2 || !isPinchingRef.current) return
+      e.preventDefault()
+      if (pinchStartDistRef.current !== null) {
+        const currentDist = getTouchDistance(e.touches)
+        const ratio = currentDist / pinchStartDistRef.current
+        pinchRatioRef.current = ratio
+        applyPinchTransform(ratio)
+      }
+    }
+
+    const handlePinchEnd = () => {
+      if (!isPinchingRef.current) return
+      clearPinchTransform()
+      const finalScale = Math.min(Math.max(pinchStartScaleRef.current * pinchRatioRef.current, 0.5), 3.0)
+      if (onScaleChangeRef.current) onScaleChangeRef.current(finalScale)
+      pinchStartDistRef.current = null
+      isPinchingRef.current = false
+      pinchRatioRef.current = 1
+    }
+
+    container.addEventListener('touchstart', handlePinchStart, { passive: false, capture: true })
+    container.addEventListener('touchmove', handlePinchMove, { passive: false, capture: true })
+    container.addEventListener('touchend', handlePinchEnd, { capture: true })
+
+    return () => {
+      container.removeEventListener('touchstart', handlePinchStart, { capture: true } as EventListenerOptions)
+      container.removeEventListener('touchmove', handlePinchMove, { capture: true } as EventListenerOptions)
+      container.removeEventListener('touchend', handlePinchEnd, { capture: true } as EventListenerOptions)
+    }
+  }, [])
+
   const handlePageAreaClick = (e: React.MouseEvent) => {
     if (viewMode === 'scroll' || !onPageChange) return
     const rect = containerRef.current?.getBoundingClientRect()
@@ -339,7 +386,10 @@ export default function PDFViewer({
         <div
           ref={touchOverlayRef}
           className="absolute inset-0 z-20"
-          style={{ touchAction: scale > 1.05 ? 'auto' : 'none' }}
+          style={{
+            touchAction: scale > 1.05 ? 'auto' : 'none',
+            pointerEvents: scale > 1.05 ? 'none' : 'auto',
+          }}
           onClick={handlePageAreaClick}
         />
 
