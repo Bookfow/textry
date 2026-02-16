@@ -556,11 +556,11 @@ export default function UploadPage() {
                     type="file"
                     onChange={handleFileChange}
                     disabled={uploading}
-                    accept=".txt,.pdf,.docx,.md,.epub"
+                    accept=".pdf,.epub"
                     required
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    지원 형식: TXT, PDF, DOCX, MD, EPUB (최대 100MB)
+                    지원 형식: PDF, EPUB (최대 100MB)
                   </p>
                   {file && (
                     <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
