@@ -328,7 +328,7 @@ export default function UploadPage() {
             for (let i = 1; i <= pageCount; i++) {
               rows.push({ document_id: docData.id, page_number: i, text_content: `(${i}페이지: 스캔 이미지)` })
               if (rows.length >= 50 || i === pageCount) {
-                await supabase.from('document_pages_text').insert(rows).catch(() => {})
+                await supabase.from('document_pages_text').insert(rows)
                 rows.length = 0
               }
             }
