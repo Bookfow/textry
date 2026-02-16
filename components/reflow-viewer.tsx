@@ -615,50 +615,47 @@ export default function ReflowViewer({
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: themeStyle.pageBg }}>
       {/* ━━━ 설정 바 ━━━ */}
-      <div className="flex items-center justify-between px-3 py-2 border-b" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setFontSize(s => Math.max(12, s - 1))}
-            className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ color: themeStyle.muted }}>
-            <Minus className="w-4 h-4" />
-          </button>
-          <span className="text-xs font-mono min-w-[32px] text-center" style={{ color: themeStyle.text }}>{fontSize}</span>
-          <button onClick={() => setFontSize(s => Math.min(32, s + 1))}
-            className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ color: themeStyle.muted }}>
-            <Plus className="w-4 h-4" />
-          </button>
+      <div className="flex items-center justify-center gap-2 px-3 py-2 border-b flex-wrap" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
+        <button onClick={() => setFontSize(s => Math.max(12, s - 1))}
+          className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ color: themeStyle.muted }}>
+          <Minus className="w-4 h-4" />
+        </button>
+        <span className="text-xs font-mono min-w-[32px] text-center" style={{ color: themeStyle.text }}>{fontSize}</span>
+        <button onClick={() => setFontSize(s => Math.min(32, s + 1))}
+          className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ color: themeStyle.muted }}>
+          <Plus className="w-4 h-4" />
+        </button>
 
-          <div className="w-px h-4 mx-1" style={{ backgroundColor: themeStyle.border }} />
+        <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
 
-          {(Object.keys(FONTS) as ReflowFont[]).map((f) => (
-            <button key={f} onClick={() => setFont(f)}
-              className={`px-2 py-1 rounded text-xs transition-all ${font === f ? 'ring-2 ring-blue-500' : 'hover:opacity-70'}`}
-              style={{ backgroundColor: font === f ? 'rgba(59,130,246,0.15)' : 'transparent', color: font === f ? '#3b82f6' : themeStyle.muted, fontFamily: FONTS[f].family }}>
-              {FONTS[f].label}
-            </button>
+        {(Object.keys(FONTS) as ReflowFont[]).map((f) => (
+          <button key={f} onClick={() => setFont(f)}
+            className={`px-2 py-1 rounded text-xs transition-all ${font === f ? 'ring-2 ring-blue-500' : 'hover:opacity-70'}`}
+            style={{ backgroundColor: font === f ? 'rgba(59,130,246,0.15)' : 'transparent', color: font === f ? '#3b82f6' : themeStyle.muted, fontFamily: FONTS[f].family }}>
+            {FONTS[f].label}
+          </button>
+        ))}
+
+        <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
+
+        <select value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))}
+          className="text-xs rounded px-1 py-0.5 border"
+          style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+          <option value={1.4}>촘촘</option>
+          <option value={1.6}>보통</option>
+          <option value={1.8}>넓게</option>
+          <option value={2.0}>아주 넓게</option>
+        </select>
+
+        <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
+
+        <div className="flex gap-1">
+          {(Object.keys(THEMES) as ReflowTheme[]).map((t) => (
+            <button key={t} onClick={() => setTheme(t)}
+              className={`w-6 h-6 rounded-full border-2 transition-all ${theme === t ? 'ring-2 ring-blue-500 ring-offset-1' : ''}`}
+              style={{ backgroundColor: THEMES[t].bg, borderColor: THEMES[t].border }}
+              title={t === 'light' ? '밝은' : t === 'sepia' ? '세피아' : '어두운'} />
           ))}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] hidden sm:inline" style={{ color: themeStyle.muted }}>줄간격</span>
-          <select value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))}
-            className="text-xs rounded px-1 py-0.5 border"
-            style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
-            <option value={1.4}>촘촘</option>
-            <option value={1.6}>보통</option>
-            <option value={1.8}>넓게</option>
-            <option value={2.0}>아주 넓게</option>
-          </select>
-
-          <div className="w-px h-4 mx-1" style={{ backgroundColor: themeStyle.border }} />
-
-          <div className="flex gap-1">
-            {(Object.keys(THEMES) as ReflowTheme[]).map((t) => (
-              <button key={t} onClick={() => setTheme(t)}
-                className={`w-6 h-6 rounded-full border-2 transition-all ${theme === t ? 'ring-2 ring-blue-500 ring-offset-1' : ''}`}
-                style={{ backgroundColor: THEMES[t].bg, borderColor: THEMES[t].border }}
-                title={t === 'light' ? '밝은' : t === 'sepia' ? '세피아' : '어두운'} />
-            ))}
-          </div>
         </div>
       </div>
 
