@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { pdfjs } from 'react-pdf'
-import { ChevronLeft, ChevronRight, Type, Minus, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 
 interface ReflowViewerProps {
   pdfUrl: string
+  documentId?: string  // ★ DB 조회용
   pageNumber: number
   onPageChange?: (page: number, total: number) => void
   onDocumentLoad?: (numPages: number) => void
@@ -31,6 +33,7 @@ const THEMES: Record<ReflowTheme, { bg: string; text: string; muted: string; bor
 
 export default function ReflowViewer({
   pdfUrl,
+  documentId,
   pageNumber,
   onPageChange,
   onDocumentLoad,
@@ -40,6 +43,7 @@ export default function ReflowViewer({
   const [numPages, setNumPages] = useState(0)
   const [extracting, setExtracting] = useState(true)
   const [extractProgress, setExtractProgress] = useState(0)
+  const [loadSource, setLoadSource] = useState<'db' | 'client' | ''>('')
 
   // ━━━ 리플로우 설정 ━━━
   const [fontSize, setFontSize] = useState(18)
@@ -87,13 +91,53 @@ export default function ReflowViewer({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [showSettings])
 
-  // ━━━ PDF 텍스트 추출 ━━━
+  // ━━━ ★ DB 우선 조회 → 없으면 클라이언트 추출 fallback ━━━
   useEffect(() => {
     if (!pdfUrl) return
     let cancelled = false
 
-    const extractText = async () => {
+    const loadTexts = async () => {
       setExtracting(true)
+      setExtractProgress(0)
+      setLoadSource('')
+
+      // ── 1) DB에서 텍스트 조회 시도 ──
+      if (documentId) {
+        try {
+          const { data, error } = await supabase
+            .from('document_pages_text')
+            .select('page_number, text_content')
+            .eq('document_id', documentId)
+            .order('page_number', { ascending: true })
+
+          if (!error && data && data.length > 0) {
+            // DB에 텍스트가 있음 → 즉시 사용
+            const texts = new Map<number, string>()
+            const total = data.length
+
+            for (const row of data) {
+              texts.set(row.page_number, row.text_content || `(${row.page_number}페이지: 텍스트 없음)`)
+            }
+
+            if (!cancelled) {
+              setPageTexts(texts)
+              setNumPages(total)
+              setLoadSource('db')
+              setExtracting(false)
+              setExtractProgress(100)
+              if (onDocumentLoad) onDocumentLoad(total)
+            }
+            return // DB 로드 성공 → 클라이언트 추출 스킵
+          }
+        } catch (dbErr) {
+          console.warn('DB 텍스트 조회 실패, 클라이언트 추출로 전환:', dbErr)
+        }
+      }
+
+      // ── 2) 클라이언트 추출 fallback ──
+      if (cancelled) return
+      setLoadSource('client')
+
       try {
         const loadingTask = pdfjs.getDocument(pdfUrl)
         const pdf = await loadingTask.promise
@@ -152,13 +196,13 @@ export default function ReflowViewer({
         }
       } catch (err) {
         console.error('Text extraction error:', err)
-        setExtracting(false)
+        if (!cancelled) setExtracting(false)
       }
     }
 
-    extractText()
+    loadTexts()
     return () => { cancelled = true }
-  }, [pdfUrl])
+  }, [pdfUrl, documentId])
 
   // ━━━ 현재 페이지 텍스트 ━━━
   const currentText = pageTexts.get(pageNumber) || ''
@@ -231,10 +275,14 @@ export default function ReflowViewer({
       <div className="h-full flex items-center justify-center" style={{ backgroundColor: themeStyle.pageBg }}>
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p style={{ color: themeStyle.muted }} className="text-sm">텍스트 추출 중... {extractProgress}%</p>
-          <div className="w-48 h-1.5 bg-gray-700 rounded-full mt-2 mx-auto overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full transition-all duration-300" style={{ width: `${extractProgress}%` }} />
-          </div>
+          <p style={{ color: themeStyle.muted }} className="text-sm">
+            {loadSource === 'client' ? `텍스트 추출 중... ${extractProgress}%` : '텍스트 불러오는 중...'}
+          </p>
+          {loadSource === 'client' && (
+            <div className="w-48 h-1.5 bg-gray-700 rounded-full mt-2 mx-auto overflow-hidden">
+              <div className="h-full bg-blue-500 rounded-full transition-all duration-300" style={{ width: `${extractProgress}%` }} />
+            </div>
+          )}
         </div>
       </div>
     )

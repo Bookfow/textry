@@ -872,7 +872,7 @@ export default function ReadPage() {
             style={{ backgroundColor: viewerBgColor, ...viewerFilterStyle }}
           >
             {viewMode === 'reflow' ? (
-              pdfUrl && <ReflowViewer pdfUrl={pdfUrl} pageNumber={pageNumber} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} />
+              pdfUrl && <ReflowViewer pdfUrl={pdfUrl} documentId={documentId} pageNumber={pageNumber} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} />
             ) : (
               pdfUrl && (
                 <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
