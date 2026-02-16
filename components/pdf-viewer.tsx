@@ -14,7 +14,7 @@ const pdfOptions = {
   standardFontDataUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
 }
 
-export type ViewMode = 'page' | 'scroll' | 'book'
+export type ViewMode = 'page' | 'scroll' | 'book' | 'reflow'
 
 interface PDFViewerProps {
   pdfUrl: string

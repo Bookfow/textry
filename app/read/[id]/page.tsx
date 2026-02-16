@@ -23,6 +23,7 @@ import {
   Sun,
   Bookmark,
   Trash2,
+  AlignLeft,
 } from 'lucide-react'
 import { AdBanner } from '@/components/ad-banner'
 import { AdOverlay } from '@/components/ad-overlay'
@@ -51,6 +52,18 @@ const PDFViewer = dynamic(() => import('@/components/pdf-viewer'), {
       <div className="text-center">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-[#8fbba5]">PDF 뷰어 로딩 중...</p>
+      </div>
+    </div>
+  ),
+})
+
+const ReflowViewer = dynamic(() => import('@/components/reflow-viewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[#8fbba5]">리플로우 뷰어 로딩 중...</p>
       </div>
     </div>
   ),
@@ -395,14 +408,14 @@ export default function ReadPage() {
         case 'ArrowLeft':
         case 'ArrowUp':
           e.preventDefault()
-          if (viewMode === 'page') goToPrevPage()
+          if (viewMode === 'page' || viewMode === 'reflow') goToPrevPage()
           else if (viewMode === 'book') setPageNumber((prev) => Math.max(prev - 2, 1))
           break
         case 'ArrowRight':
         case 'ArrowDown':
         case ' ':
           e.preventDefault()
-          if (viewMode === 'page') goToNextPage()
+          if (viewMode === 'page' || viewMode === 'reflow') goToNextPage()
           else if (viewMode === 'book') setPageNumber((prev) => Math.min(prev + 2, numPages))
           break
         case 'Escape':
@@ -604,8 +617,8 @@ export default function ReadPage() {
 
   const progress = numPages > 0 ? (pageNumber / numPages) * 100 : 0
 
-  // 밝기 + 테마 CSS 필터
-  const viewerFilterStyle: React.CSSProperties = {
+  // 밝기 + 테마 CSS 필터 (리플로우 모드에서는 적용하지 않음)
+  const viewerFilterStyle: React.CSSProperties = viewMode === 'reflow' ? {} : {
     filter: [
       brightness !== 100 ? `brightness(${brightness / 100})` : '',
       bgTheme === 'sepia' ? 'sepia(0.35) saturate(1.2)' : '',
@@ -613,7 +626,7 @@ export default function ReadPage() {
     ].filter(Boolean).join(' ') || 'none',
   }
 
-  const viewerBgColor = BG_THEMES[bgTheme].bgColor
+  const viewerBgColor = viewMode === 'reflow' ? 'transparent' : BG_THEMES[bgTheme].bgColor
 
   // 비로그인 사용자 차단
   if (!user && !loading && !authLoading) {
@@ -648,8 +661,8 @@ export default function ReadPage() {
         sessionId={sessionId}
       />
 
-      {/* ━━━ 배경/밝기 팝업 (최상위 레벨) ━━━ */}
-      {showThemePopup && (
+      {/* ━━━ 배경/밝기 팝업 (PDF 모드에서만) ━━━ */}
+      {showThemePopup && viewMode !== 'reflow' && (
         <div ref={themePopupRef} className="fixed top-[62px] left-1/2 -translate-x-1/2 w-56 bg-[#0f2419] border border-[#1c3d2e] rounded-xl shadow-2xl p-4 z-[9999]">
           <p className="text-xs text-[#6b9b84] mb-2 font-medium">배경 테마</p>
           <div className="flex gap-2 mb-4">
@@ -719,6 +732,7 @@ export default function ReadPage() {
             </div>
 
             <div className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5">
+              {/* ━━━ 뷰 모드 버튼 (리플로우 추가) ━━━ */}
               <div className="flex items-center bg-[#153024] rounded-lg p-0.5">
                 <button
                   onClick={() => setViewMode('page')}
@@ -741,64 +755,75 @@ export default function ReadPage() {
                 >
                   <ScrollText className="w-4 h-4" />
                 </button>
-              </div>
-
-              <div className="w-px h-4 bg-[#1c3d2e]" />
-
-              <button onClick={goToPrevPage} disabled={pageNumber <= 1}
-                className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white disabled:opacity-30 transition-colors">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-
-              {showPageInput ? (
-                <form onSubmit={(e) => { e.preventDefault(); const p = parseInt(pageInputValue); if (!isNaN(p)) goToPage(p) }} className="flex items-center">
-                  <input ref={pageInputRef} type="number" min={1} max={numPages} value={pageInputValue}
-                    onChange={(e) => setPageInputValue(e.target.value)}
-                    onBlur={() => { setShowPageInput(false); setPageInputValue('') }}
-                    className="w-12 px-1 py-0.5 bg-[#153024] border border-[#1c3d2e] rounded text-sm text-white text-center focus:outline-none focus:border-blue-500"
-                    placeholder={String(pageNumber)} />
-                  <span className="text-[#6b9b84] text-xs mx-0.5">/</span>
-                  <span className="text-[#8fbba5] text-xs">{numPages}</span>
-                </form>
-              ) : (
-                <button onClick={() => setShowPageInput(true)} className="px-2 py-0.5 rounded-lg hover:bg-[#153024] transition-colors text-sm" title="페이지 직접 이동 (G키)">
-                  <span className="text-white font-medium">{pageNumber}</span>
-                  <span className="text-[#6b9b84] mx-0.5">/</span>
-                  <span className="text-[#8fbba5]">{numPages}</span>
-                </button>
-              )}
-
-              <button onClick={goToNextPage} disabled={pageNumber >= numPages}
-                className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white disabled:opacity-30 transition-colors">
-                <ChevronRight className="w-5 h-5" />
-              </button>
-
-              <div className="w-px h-4 bg-[#1c3d2e]" />
-
-              <div className="flex items-center gap-0.5">
-                <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors">
-                  <ZoomOut className="w-4 h-4" />
-                </button>
-                <button onClick={resetZoom} className="px-1.5 py-0.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors text-xs font-mono">
-                  {Math.round(scale * 100)}%
-                </button>
-                <button onClick={zoomIn} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors">
-                  <ZoomIn className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* ━━━ 배경/밝기 버튼 ━━━ */}
-              <div className="w-px h-4 bg-[#1c3d2e]" />
-              <div className="relative">
                 <button
-                  onClick={() => setShowThemePopup(!showThemePopup)}
-                  className={`p-1.5 rounded-lg transition-colors ${showThemePopup ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white hover:bg-[#153024]'}`}
-                  title="배경 & 밝기"
+                  onClick={() => setViewMode('reflow')}
+                  className={`p-1.5 rounded-md transition-colors ${viewMode === 'reflow' ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white'}`}
+                  title="리플로우 모드"
                 >
-                  <Sun className="w-4 h-4" />
+                  <AlignLeft className="w-4 h-4" />
                 </button>
-
               </div>
+
+              {/* ━━━ PDF 전용 컨트롤 (리플로우에서 숨김) ━━━ */}
+              {viewMode !== 'reflow' && (
+                <>
+                  <div className="w-px h-4 bg-[#1c3d2e]" />
+
+                  <button onClick={goToPrevPage} disabled={pageNumber <= 1}
+                    className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white disabled:opacity-30 transition-colors">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+
+                  {showPageInput ? (
+                    <form onSubmit={(e) => { e.preventDefault(); const p = parseInt(pageInputValue); if (!isNaN(p)) goToPage(p) }} className="flex items-center">
+                      <input ref={pageInputRef} type="number" min={1} max={numPages} value={pageInputValue}
+                        onChange={(e) => setPageInputValue(e.target.value)}
+                        onBlur={() => { setShowPageInput(false); setPageInputValue('') }}
+                        className="w-12 px-1 py-0.5 bg-[#153024] border border-[#1c3d2e] rounded text-sm text-white text-center focus:outline-none focus:border-blue-500"
+                        placeholder={String(pageNumber)} />
+                      <span className="text-[#6b9b84] text-xs mx-0.5">/</span>
+                      <span className="text-[#8fbba5] text-xs">{numPages}</span>
+                    </form>
+                  ) : (
+                    <button onClick={() => setShowPageInput(true)} className="px-2 py-0.5 rounded-lg hover:bg-[#153024] transition-colors text-sm" title="페이지 직접 이동 (G키)">
+                      <span className="text-white font-medium">{pageNumber}</span>
+                      <span className="text-[#6b9b84] mx-0.5">/</span>
+                      <span className="text-[#8fbba5]">{numPages}</span>
+                    </button>
+                  )}
+
+                  <button onClick={goToNextPage} disabled={pageNumber >= numPages}
+                    className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white disabled:opacity-30 transition-colors">
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+
+                  <div className="w-px h-4 bg-[#1c3d2e]" />
+
+                  <div className="flex items-center gap-0.5">
+                    <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors">
+                      <ZoomOut className="w-4 h-4" />
+                    </button>
+                    <button onClick={resetZoom} className="px-1.5 py-0.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors text-xs font-mono">
+                      {Math.round(scale * 100)}%
+                    </button>
+                    <button onClick={zoomIn} className="p-1.5 rounded-lg hover:bg-[#153024] text-[#8fbba5] hover:text-white transition-colors">
+                      <ZoomIn className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* ━━━ 배경/밝기 버튼 ━━━ */}
+                  <div className="w-px h-4 bg-[#1c3d2e]" />
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowThemePopup(!showThemePopup)}
+                      className={`p-1.5 rounded-lg transition-colors ${showThemePopup ? 'bg-blue-600 text-white' : 'text-[#8fbba5] hover:text-white hover:bg-[#153024]'}`}
+                      title="배경 & 밝기"
+                    >
+                      <Sun className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
 
             {!isPremium && (
@@ -846,9 +871,13 @@ export default function ReadPage() {
             className="flex-1 overflow-hidden transition-[filter,background-color] duration-300"
             style={{ backgroundColor: viewerBgColor, ...viewerFilterStyle }}
           >
-            {pdfUrl && (
-              <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
-                showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange} />
+            {viewMode === 'reflow' ? (
+              pdfUrl && <ReflowViewer pdfUrl={pdfUrl} pageNumber={pageNumber} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} />
+            ) : (
+              pdfUrl && (
+                <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
+                  showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange} />
+              )
             )}
           </div>
         </div>
