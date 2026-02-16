@@ -45,13 +45,18 @@ export default function PDFViewer({
   const [pageAspect, setPageAspect] = useState<number>(1.414)
   const [swipeOffset, setSwipeOffset] = useState(0)
 
-  // ━━━ 핀치줌 + 스와이프 (전부 ref, state 리렌더 없음) ━━━
+  // ━━━ 핀치줌 + 스와이프 + 패닝 (전부 ref) ━━━
   const pinchStartDistRef = useRef<number | null>(null)
   const pinchStartScaleRef = useRef<number>(1)
   const isPinchingRef = useRef(false)
   const pinchRatioRef = useRef(1)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
+
+  // 확대 패닝용
+  const isPanningRef = useRef(false)
+  const panStartRef = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null)
+  const panTranslateRef = useRef({ x: 0, y: 0 })
 
   // PDF 콘텐츠 wrapper ref (DOM 직접 조작용)
   const pdfContentRef = useRef<HTMLDivElement>(null)
@@ -70,6 +75,24 @@ export default function PDFViewer({
   useEffect(() => { numPagesRef.current = numPages }, [numPages])
   useEffect(() => { onPageChangeRef.current = onPageChange }, [onPageChange])
   useEffect(() => { onScaleChangeRef.current = onScaleChange }, [onScaleChange])
+
+  // scale이 1로 돌아오면 pan 초기화
+  useEffect(() => {
+    if (scale <= 1.05) {
+      panTranslateRef.current = { x: 0, y: 0 }
+      if (pdfContentRef.current) {
+        pdfContentRef.current.style.transform = ''
+      }
+    }
+  }, [scale])
+
+  // 페이지 변경 시 pan 초기화
+  useEffect(() => {
+    panTranslateRef.current = { x: 0, y: 0 }
+    if (pdfContentRef.current) {
+      pdfContentRef.current.style.transform = ''
+    }
+  }, [pageNumber])
 
   // ━━━ 스크롤 가상화 상태 ━━━
   const [scrollCurrentPage, setScrollCurrentPage] = useState(1)
@@ -157,7 +180,7 @@ export default function PDFViewer({
 
   const minSwipeDistance = 50
 
-  // ━━━ DOM 직접 조작으로 핀치줌 시각 효과 (React 리렌더 제로) ━━━
+  // ━━━ DOM 직접 조작으로 핀치줌 + 패닝 ━━━
   const applyPinchTransform = (ratio: number) => {
     if (pdfContentRef.current) {
       pdfContentRef.current.style.transform = `scale(${ratio})`
@@ -174,15 +197,25 @@ export default function PDFViewer({
     }
   }
 
+  const applyPanTransform = (x: number, y: number) => {
+    if (pdfContentRef.current) {
+      pdfContentRef.current.style.transform = `translate(${x}px, ${y}px)`
+      pdfContentRef.current.style.transition = 'none'
+    }
+  }
+
   // ━━━ 투명 오버레이에 네이티브 터치 이벤트 바인딩 ━━━
   useEffect(() => {
     const overlay = touchOverlayRef.current
     if (!overlay) return
 
     const handleTouchStart = (e: TouchEvent) => {
+      // 2손가락: 핀치줌
       if (e.touches.length === 2) {
         e.preventDefault()
         e.stopPropagation()
+        isPanningRef.current = false
+        panStartRef.current = null
         const dist = getTouchDistance(e.touches)
         pinchStartDistRef.current = dist
         pinchStartScaleRef.current = scaleRef.current
@@ -190,17 +223,33 @@ export default function PDFViewer({
         pinchRatioRef.current = 1
         return
       }
-      // scale > 1이면 패닝 모드: 터치 이벤트를 통과시켜 overflow-auto 스크롤 허용
-      if (scaleRef.current > 1.05) return
+
+      // 1손가락
+      if (scaleRef.current > 1.05) {
+        // 확대 상태: 패닝 시작
+        e.preventDefault()
+        isPanningRef.current = true
+        panStartRef.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+          tx: panTranslateRef.current.x,
+          ty: panTranslateRef.current.y,
+        }
+        return
+      }
+
+      // 원본 크기: 스와이프
       if (viewModeRef.current === 'scroll') return
       touchEndRef.current = null
       touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
     }
 
     const handleTouchMove = (e: TouchEvent) => {
+      // 핀치줌
       if (e.touches.length === 2) {
         e.preventDefault()
         e.stopPropagation()
+        isPanningRef.current = false
 
         if (!isPinchingRef.current) {
           const dist = getTouchDistance(e.touches)
@@ -223,9 +272,19 @@ export default function PDFViewer({
         return
       }
 
-      // scale > 1이면 패닝 모드
-      if (scaleRef.current > 1.05) return
+      // 확대 패닝
+      if (isPanningRef.current && panStartRef.current) {
+        e.preventDefault()
+        const dx = e.touches[0].clientX - panStartRef.current.x
+        const dy = e.touches[0].clientY - panStartRef.current.y
+        const newX = panStartRef.current.tx + dx
+        const newY = panStartRef.current.ty + dy
+        panTranslateRef.current = { x: newX, y: newY }
+        applyPanTransform(newX, newY)
+        return
+      }
 
+      // 스와이프
       const ts = touchStartRef.current
       if (!ts || viewModeRef.current === 'scroll') return
       const currentX = e.touches[0].clientX
@@ -234,6 +293,7 @@ export default function PDFViewer({
     }
 
     const handleTouchEnd = () => {
+      // 핀치줌 종료
       if (isPinchingRef.current) {
         clearPinchTransform()
         const finalScale = Math.min(Math.max(pinchStartScaleRef.current * pinchRatioRef.current, 0.5), 3.0)
@@ -241,12 +301,20 @@ export default function PDFViewer({
         pinchStartDistRef.current = null
         isPinchingRef.current = false
         pinchRatioRef.current = 1
+        // 핀치 후 pan 초기화
+        panTranslateRef.current = { x: 0, y: 0 }
         return
       }
 
-      // scale > 1이면 스와이프 처리 안함
-      if (scaleRef.current > 1.05) return
+      // 패닝 종료
+      if (isPanningRef.current) {
+        isPanningRef.current = false
+        panStartRef.current = null
+        // panTranslateRef는 유지 (현재 위치 기억)
+        return
+      }
 
+      // 스와이프 종료
       const ts = touchStartRef.current
       const te = touchEndRef.current
       if (!ts || !te || viewModeRef.current === 'scroll') {
@@ -278,7 +346,7 @@ export default function PDFViewer({
     }
   }, [])
 
-  // ━━━ 확대 상태에서 오버레이가 꺼져도 핀치줌 유지 (containerRef 캡처) ━━━
+  // ━━━ 확대 상태에서 오버레이 밖 핀치줌 보조 (containerRef 캡처) ━━━
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -312,6 +380,7 @@ export default function PDFViewer({
       pinchStartDistRef.current = null
       isPinchingRef.current = false
       pinchRatioRef.current = 1
+      panTranslateRef.current = { x: 0, y: 0 }
     }
 
     container.addEventListener('touchstart', handlePinchStart, { passive: false, capture: true })
@@ -327,6 +396,8 @@ export default function PDFViewer({
 
   const handlePageAreaClick = (e: React.MouseEvent) => {
     if (viewMode === 'scroll' || !onPageChange) return
+    // 확대 시 클릭으로 페이지 넘기지 않음
+    if (scale > 1.05) return
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
@@ -382,39 +453,18 @@ export default function PDFViewer({
     <div ref={containerRef} className="h-full w-full flex flex-col" style={{ overscrollBehavior: 'none' }}>
       <div className="flex-1 relative overflow-hidden" style={{ overscrollBehavior: 'none' }}>
 
-        {/* ━━━ 투명 터치 오버레이 ━━━ */}
+        {/* ━━━ 투명 터치 오버레이: 항상 터치를 캡처 ━━━ */}
         <div
           ref={touchOverlayRef}
           className="absolute inset-0 z-20"
-          style={{
-            touchAction: scale > 1.05 ? 'auto' : 'none',
-            pointerEvents: scale > 1.05 ? 'none' : 'auto',
-          }}
+          style={{ touchAction: 'none' }}
           onClick={handlePageAreaClick}
         />
 
         {/* 페이지 모드 */}
         {viewMode === 'page' && (
-          <div
-            className="h-full"
-            style={{
-              overflow: scale > 1.05 ? 'auto' : 'hidden',
-              touchAction: scale > 1.05 ? 'pan-x pan-y' : 'none',
-              overscrollBehavior: 'none',
-              WebkitOverflowScrolling: 'touch',
-            }}
-          >
-            <div style={{
-              display: 'inline-flex',
-              minHeight: '100%',
-              minWidth: '100%',
-              alignItems: scale > 1.05 ? 'flex-start' : 'center',
-              justifyContent: scale > 1.05 ? 'flex-start' : 'center',
-              padding: scale > 1.05 ? '20px' : '0',
-            }}>
-              <div ref={pdfContentRef} className="transition-transform duration-200 ease-out"
-                style={{ transform: `translateX(${swipeOffset}px)`, flexShrink: 0 }}
-              >
+          <div className="h-full flex items-center justify-center overflow-hidden">
+            <div ref={pdfContentRef}>
               {pdfLoading && (
                 <div className="flex items-center justify-center p-12">
                   <div className="text-center">
@@ -437,7 +487,6 @@ export default function PDFViewer({
                   <Page pageNumber={pageNumber} width={renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
                 </div>
               </PDFDocument>
-            </div>
             </div>
 
             {numPages > 1 && (
@@ -469,26 +518,8 @@ export default function PDFViewer({
 
         {/* 책 모드 */}
         {viewMode === 'book' && (
-          <div
-            className="h-full"
-            style={{
-              overflow: scale > 1.05 ? 'auto' : 'hidden',
-              touchAction: scale > 1.05 ? 'pan-x pan-y' : 'none',
-              overscrollBehavior: 'none',
-              WebkitOverflowScrolling: 'touch',
-            }}
-          >
-            <div style={{
-              display: 'inline-flex',
-              minHeight: '100%',
-              minWidth: '100%',
-              alignItems: scale > 1.05 ? 'flex-start' : 'center',
-              justifyContent: scale > 1.05 ? 'flex-start' : 'center',
-              padding: scale > 1.05 ? '20px' : '0',
-            }}>
-              <div ref={viewMode === 'book' ? pdfContentRef : undefined} className="transition-transform duration-200 ease-out"
-                style={{ transform: `translateX(${swipeOffset}px)`, flexShrink: 0 }}
-              >
+          <div className="h-full flex items-center justify-center overflow-hidden">
+            <div ref={pdfContentRef}>
               {pdfLoading && (
                 <div className="flex items-center justify-center p-12">
                   <div className="text-center">
@@ -540,7 +571,6 @@ export default function PDFViewer({
                   )
                 })()}
               </PDFDocument>
-            </div>
             </div>
 
             {numPages > 1 && (
