@@ -28,6 +28,7 @@ export default function UploadPage() {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [progressMessage, setProgressMessage] = useState('')
   const [copyrightAgreed, setCopyrightAgreed] = useState(false)
 
   if (!user) {
@@ -80,12 +81,13 @@ export default function UploadPage() {
 
     setUploading(true)
     setProgress(10)
+    setProgressMessage('파일 업로드 중...')
 
     try {
       const fileExt = file.name.split('.').pop()
       const fileName = `${user.id}/${Date.now()}.${fileExt}`
 
-      setProgress(30)
+      setProgress(20)
 
       const { error: uploadError } = await supabase.storage
         .from('documents')
@@ -93,7 +95,8 @@ export default function UploadPage() {
 
       if (uploadError) throw uploadError
 
-      setProgress(50)
+      setProgress(40)
+      setProgressMessage('썸네일 처리 중...')
 
       let thumbnailUrl = null
 
@@ -114,23 +117,31 @@ export default function UploadPage() {
         thumbnailUrl = thumbUrlData.publicUrl
       }
 
-      setProgress(70)
+      setProgress(50)
+      setProgressMessage('PDF 분석 중...')
 
-      // PDF 페이지 수 읽기
+      // PDF 페이지 수 읽기 + 텍스트 추출 준비
       let pageCount = 0
-      if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      let pdfDoc: any = null
+      const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf')
+
+      if (isPdf) {
         try {
           const { pdfjs } = await import('react-pdf')
           pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
           const arrayBuffer = await file.arrayBuffer()
-          const pdfDoc = await pdfjs.getDocument({ data: arrayBuffer }).promise
+          pdfDoc = await pdfjs.getDocument({ data: arrayBuffer }).promise
           pageCount = pdfDoc.numPages
         } catch (e) {
           console.warn('PDF 페이지 수 읽기 실패:', e)
         }
       }
 
-      const { error: dbError } = await supabase
+      setProgress(60)
+      setProgressMessage('문서 정보 저장 중...')
+
+      // ★ .select('id') 추가 → insert 후 document id 반환받기
+      const { data: docData, error: dbError } = await supabase
         .from('documents')
         .insert({
           title: title.trim(),
@@ -145,10 +156,64 @@ export default function UploadPage() {
           page_count: pageCount || null,
           is_published: true
         })
+        .select('id')
+        .single()
 
       if (dbError) throw dbError
 
+      setProgress(70)
+
+      // ★ PDF 텍스트 추출 → DB 저장 (리플로우 뷰어용)
+      if (isPdf && pdfDoc && docData?.id) {
+        try {
+          setProgressMessage('텍스트 추출 중...')
+          const batchSize = 10 // 10페이지씩 배치 저장
+          const rows: { document_id: string; page_number: number; text_content: string }[] = []
+
+          for (let i = 1; i <= pageCount; i++) {
+            try {
+              const page = await pdfDoc.getPage(i)
+              const textContent = await page.getTextContent()
+              const text = textContent.items
+                .map((item: any) => item.str)
+                .join(' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+
+              rows.push({
+                document_id: docData.id,
+                page_number: i,
+                text_content: text
+              })
+
+              // 배치 저장 (10페이지마다 또는 마지막 페이지)
+              if (rows.length >= batchSize || i === pageCount) {
+                const { error: textError } = await supabase
+                  .from('document_pages_text')
+                  .insert(rows)
+
+                if (textError) {
+                  console.warn(`텍스트 저장 실패 (${i}p):`, textError)
+                }
+                rows.length = 0 // 배치 초기화
+              }
+
+              // 진행률 (70~95 구간)
+              const textProgress = 70 + Math.round((i / pageCount) * 25)
+              setProgress(textProgress)
+              setProgressMessage(`텍스트 추출 중... ${i}/${pageCount}`)
+            } catch (pageErr) {
+              console.warn(`${i}페이지 텍스트 추출 실패:`, pageErr)
+            }
+          }
+        } catch (extractErr) {
+          // 텍스트 추출 실패해도 업로드 자체는 성공으로 처리
+          console.warn('텍스트 추출 전체 실패:', extractErr)
+        }
+      }
+
       setProgress(100)
+      setProgressMessage('완료!')
 
       toast.success('업로드가 완료되었습니다!')
       router.push('/dashboard')
@@ -158,6 +223,7 @@ export default function UploadPage() {
     } finally {
       setUploading(false)
       setProgress(0)
+      setProgressMessage('')
     }
   }
 
@@ -303,7 +369,7 @@ export default function UploadPage() {
                       />
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                      업로드 중... {progress}%
+                      {progressMessage || `업로드 중... ${progress}%`}
                     </p>
                   </div>
                 )}
