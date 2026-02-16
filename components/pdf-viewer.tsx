@@ -395,7 +395,9 @@ export default function PDFViewer({
 
         {/* 페이지 모드 */}
         {viewMode === 'page' && (
-          <div className="h-full flex items-center justify-center overflow-auto">
+          <div className="h-full flex items-center justify-center overflow-auto"
+            style={{ touchAction: scale > 1.05 ? 'pan-x pan-y' : 'none' }}
+          >
             <div ref={pdfContentRef} className="transition-transform duration-200 ease-out"
               style={{ transform: `translateX(${swipeOffset}px)` }}
             >
@@ -452,7 +454,9 @@ export default function PDFViewer({
 
         {/* 책 모드 */}
         {viewMode === 'book' && (
-          <div className="h-full flex items-center justify-center overflow-auto">
+          <div className="h-full flex items-center justify-center overflow-auto"
+            style={{ touchAction: scale > 1.05 ? 'pan-x pan-y' : 'none' }}
+          >
             <div ref={viewMode === 'book' ? pdfContentRef : undefined} className="transition-transform duration-200 ease-out"
               style={{ transform: `translateX(${swipeOffset}px)` }}
             >
