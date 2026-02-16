@@ -71,6 +71,111 @@ export default function UploadPage() {
     }
   }
 
+  // ★ 고품질 텍스트 추출 함수 (reflow-viewer와 동일 로직)
+  function isBrokenText(text: string): boolean {
+    if (!text || text.trim().length === 0) return true
+    const cleaned = text.replace(/\s/g, '')
+    if (cleaned.length === 0) return true
+    let brokenCount = 0
+    for (let i = 0; i < cleaned.length; i++) {
+      const code = cleaned.charCodeAt(i)
+      if (
+        (code >= 0xE000 && code <= 0xF8FF) ||
+        (code < 0x0020 && code !== 0x0009 && code !== 0x000A && code !== 0x000D) ||
+        code === 0xFFFD ||
+        (code >= 0x2400 && code <= 0x243F)
+      ) brokenCount++
+    }
+    if (brokenCount / cleaned.length > 0.3) return true
+    if (/[□▯○◻◼■▪▫]{3,}/.test(cleaned)) return true
+    if (/^[\d\s.,-]+$/.test(cleaned) && cleaned.length > 50) return true
+    return false
+  }
+
+  function extractPageText(items: any[]): string {
+    if (items.length === 0) return ''
+
+    interface LineInfo { text: string; fontSize: number; y: number }
+    const lines: LineInfo[] = []
+    let lastY: number | null = null
+    let currentLine = ''
+    let currentFontSizes: number[] = []
+    let currentY = 0
+
+    for (const item of items) {
+      if (!('str' in item) || !item.str) continue
+      const y = Math.round(item.transform[5])
+      const fs = Math.round(Math.abs(item.transform[3]) || Math.abs(item.transform[0]) || 12)
+      if (lastY !== null && Math.abs(y - lastY) > 3) {
+        const trimmed = currentLine.trim()
+        if (trimmed) {
+          const avgFs = currentFontSizes.length > 0 ? currentFontSizes.reduce((a, b) => a + b, 0) / currentFontSizes.length : 12
+          lines.push({ text: trimmed, fontSize: Math.round(avgFs), y: currentY })
+        }
+        currentLine = ''
+        currentFontSizes = []
+      }
+      currentLine += item.str
+      currentFontSizes.push(fs)
+      currentY = y
+      lastY = y
+    }
+    const trimmedLast = currentLine.trim()
+    if (trimmedLast) {
+      const avgFs = currentFontSizes.length > 0 ? currentFontSizes.reduce((a, b) => a + b, 0) / currentFontSizes.length : 12
+      lines.push({ text: trimmedLast, fontSize: Math.round(avgFs), y: currentY })
+    }
+
+    if (lines.length === 0) return ''
+    const cleanLines = lines.filter(l => !isBrokenText(l.text))
+    if (cleanLines.length === 0) return ''
+
+    // 본문 폰트 크기 (최빈값)
+    const fsCount = new Map<number, number>()
+    for (const l of cleanLines) fsCount.set(l.fontSize, (fsCount.get(l.fontSize) || 0) + l.text.length)
+    let bodyFontSize = 12
+    let maxWeight = 0
+    for (const [fs, weight] of fsCount) { if (weight > maxWeight) { maxWeight = weight; bodyFontSize = fs } }
+
+    // 블록 분류
+    const parts: string[] = []
+    let currentParagraph = ''
+    let lastLineY: number | null = null
+    const avgLineGap = cleanLines.length > 1
+      ? cleanLines.slice(1).reduce((sum, l, i) => sum + Math.abs(l.y - cleanLines[i].y), 0) / (cleanLines.length - 1)
+      : 20
+
+    for (let i = 0; i < cleanLines.length; i++) {
+      const line = cleanLines[i]
+      const fsDiff = line.fontSize - bodyFontSize
+
+      if (lastLineY !== null) {
+        const gap = Math.abs(line.y - lastLineY)
+        if (gap > avgLineGap * 2.5 && currentParagraph) {
+          parts.push(currentParagraph)
+          currentParagraph = ''
+          parts.push('<hr>')
+        }
+      }
+
+      if (fsDiff >= 4 && line.text.length < 80) {
+        if (currentParagraph) { parts.push(currentParagraph); currentParagraph = '' }
+        if (fsDiff >= 8) parts.push(`<h1>${line.text}</h1>`)
+        else parts.push(`<h2>${line.text}</h2>`)
+      } else if (fsDiff >= 2 && line.text.length < 50) {
+        if (currentParagraph) { parts.push(currentParagraph); currentParagraph = '' }
+        parts.push(`<h3>${line.text}</h3>`)
+      } else {
+        if (currentParagraph) currentParagraph += ' '
+        currentParagraph += line.text
+      }
+      lastLineY = line.y
+    }
+    if (currentParagraph) parts.push(currentParagraph)
+
+    return parts.join('\n\n')
+  }
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -179,41 +284,9 @@ export default function UploadPage() {
               const page = await pdfDoc.getPage(i)
               const textContent = await page.getTextContent()
 
-              // Y좌표 기반 줄 그룹핑 (reflow-viewer와 동일 로직)
-              let lastY: number | null = null
-              let lines: string[] = []
-              let currentLine = ''
-
-              for (const item of textContent.items) {
-                if ('str' in item) {
-                  const y = Math.round((item as any).transform[5])
-                  if (lastY !== null && Math.abs(y - lastY) > 3) {
-                    if (currentLine.trim()) lines.push(currentLine.trim())
-                    currentLine = ''
-                  }
-                  currentLine += (item as any).str
-                  lastY = y
-                }
-              }
-              if (currentLine.trim()) lines.push(currentLine.trim())
-
-              // 단락 분리
-              const paragraphs: string[] = []
-              let currentParagraph = ''
-              for (const line of lines) {
-                if (line === '') {
-                  if (currentParagraph) {
-                    paragraphs.push(currentParagraph)
-                    currentParagraph = ''
-                  }
-                } else {
-                  if (currentParagraph) currentParagraph += ' '
-                  currentParagraph += line
-                }
-              }
-              if (currentParagraph) paragraphs.push(currentParagraph)
-
-              const text = paragraphs.join('\n\n') || ''
+              // ★ 고품질 추출: 폰트 크기 + Y좌표 기반 블록 분류 + 깨진 텍스트 필터링
+              const items = textContent.items as any[]
+              const text = extractPageText(items)
 
               rows.push({
                 document_id: docData.id,
