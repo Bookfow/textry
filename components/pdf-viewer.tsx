@@ -380,7 +380,7 @@ export default function PDFViewer({
 
   return (
     <div ref={containerRef} className="h-full w-full flex flex-col" style={{ overscrollBehavior: 'none' }}>
-      <div className="flex-1 relative" style={{ overflow: scale > 1.05 ? 'auto' : 'hidden', overscrollBehavior: 'none' }}>
+      <div className="flex-1 relative overflow-hidden" style={{ overscrollBehavior: 'none' }}>
 
         {/* ━━━ 투명 터치 오버레이 ━━━ */}
         <div
@@ -395,16 +395,19 @@ export default function PDFViewer({
 
         {/* 페이지 모드 */}
         {viewMode === 'page' && (
-          <div className="h-full overflow-auto"
+          <div
+            className="h-full"
             style={{
+              overflow: scale > 1.05 ? 'auto' : 'hidden',
               touchAction: scale > 1.05 ? 'pan-x pan-y' : 'none',
               overscrollBehavior: 'none',
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             <div style={{
+              display: 'inline-flex',
               minHeight: '100%',
               minWidth: '100%',
-              display: 'flex',
               alignItems: scale > 1.05 ? 'flex-start' : 'center',
               justifyContent: scale > 1.05 ? 'flex-start' : 'center',
               padding: scale > 1.05 ? '20px' : '0',
@@ -466,16 +469,19 @@ export default function PDFViewer({
 
         {/* 책 모드 */}
         {viewMode === 'book' && (
-          <div className="h-full overflow-auto"
+          <div
+            className="h-full"
             style={{
+              overflow: scale > 1.05 ? 'auto' : 'hidden',
               touchAction: scale > 1.05 ? 'pan-x pan-y' : 'none',
               overscrollBehavior: 'none',
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             <div style={{
+              display: 'inline-flex',
               minHeight: '100%',
               minWidth: '100%',
-              display: 'flex',
               alignItems: scale > 1.05 ? 'flex-start' : 'center',
               justifyContent: scale > 1.05 ? 'flex-start' : 'center',
               padding: scale > 1.05 ? '20px' : '0',
