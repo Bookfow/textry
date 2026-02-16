@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { pdfjs } from 'react-pdf'
-import { ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Minus, Plus, Play, Pause, Square, Volume2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
@@ -13,7 +13,7 @@ interface ReflowViewerProps {
   pageNumber: number
   onPageChange?: (page: number, total: number) => void
   onDocumentLoad?: (numPages: number) => void
-  onSwitchToPdf?: () => void  // ★ 리플로우 불가 시 PDF 모드 전환
+  onSwitchToPdf?: () => void
 }
 
 // ━━━ 리플로우 설정 ━━━
@@ -38,72 +38,43 @@ function isBrokenText(text: string): boolean {
   const cleaned = text.replace(/\s/g, '')
   if (cleaned.length === 0) return true
 
-  // ★ 핵심: "의미 있는 문자" = 한글 + 영문 알파벳만 카운트
-  // 숫자, 문장부호는 의미 판단에서 제외 (깨진 텍스트도 $&*7 등이 많음)
   let meaningfulCount = 0
-  let hangulCount = 0
   for (let i = 0; i < cleaned.length; i++) {
     const code = cleaned.charCodeAt(i)
-    if (
-      (code >= 0xAC00 && code <= 0xD7AF) ||  // 한글 음절
-      (code >= 0x3131 && code <= 0x318E)      // 한글 자모
-    ) {
+    if ((code >= 0xAC00 && code <= 0xD7AF) || (code >= 0x3131 && code <= 0x318E)) {
       meaningfulCount++
-      hangulCount++
-    } else if (
-      (code >= 0x0041 && code <= 0x005A) ||  // A-Z
-      (code >= 0x0061 && code <= 0x007A)     // a-z
-    ) {
+    } else if ((code >= 0x0041 && code <= 0x005A) || (code >= 0x0061 && code <= 0x007A)) {
       meaningfulCount++
     }
   }
-
-  // 10자 이상인데 의미 있는 문자(한글+영문)가 15% 미만이면 깨진 텍스트
   if (cleaned.length >= 10 && meaningfulCount / cleaned.length < 0.15) return true
-
-  // 30자 이상인데 한글+영문이 25% 미만이면 깨진 텍스트 (더 긴 줄은 더 엄격)
   if (cleaned.length >= 30 && meaningfulCount / cleaned.length < 0.25) return true
 
-  // 정상 유니코드 범위 체크 (기존)
   let normalCount = 0
   for (let i = 0; i < cleaned.length; i++) {
     const code = cleaned.charCodeAt(i)
     if (
-      (code >= 0xAC00 && code <= 0xD7AF) ||
-      (code >= 0x3131 && code <= 0x318E) ||
-      (code >= 0x0041 && code <= 0x005A) ||
-      (code >= 0x0061 && code <= 0x007A) ||
-      (code >= 0x0030 && code <= 0x0039) ||
-      (code >= 0x0020 && code <= 0x007E) ||
-      (code >= 0x2000 && code <= 0x206F) ||
-      (code >= 0x3000 && code <= 0x303F) ||
+      (code >= 0xAC00 && code <= 0xD7AF) || (code >= 0x3131 && code <= 0x318E) ||
+      (code >= 0x0041 && code <= 0x005A) || (code >= 0x0061 && code <= 0x007A) ||
+      (code >= 0x0030 && code <= 0x0039) || (code >= 0x0020 && code <= 0x007E) ||
+      (code >= 0x2000 && code <= 0x206F) || (code >= 0x3000 && code <= 0x303F) ||
       (code >= 0xFF01 && code <= 0xFF5E)
-    ) {
-      normalCount++
-    }
+    ) normalCount++
   }
-
   if (cleaned.length >= 5 && normalCount / cleaned.length < 0.4) return true
 
-  // Private Use Area 등 명확한 비정상 문자
   let brokenCount = 0
   for (let i = 0; i < cleaned.length; i++) {
     const code = cleaned.charCodeAt(i)
     if (
       (code >= 0xE000 && code <= 0xF8FF) ||
       (code < 0x0020 && code !== 0x0009 && code !== 0x000A && code !== 0x000D) ||
-      code === 0xFFFD ||
-      (code >= 0x2400 && code <= 0x243F)
-    ) {
-      brokenCount++
-    }
+      code === 0xFFFD || (code >= 0x2400 && code <= 0x243F)
+    ) brokenCount++
   }
-
   if (brokenCount / cleaned.length > 0.3) return true
   if (/[□▯○◻◼■▪▫]{3,}/.test(cleaned)) return true
-
-  // 특수문자+숫자 반복 패턴 ($&*7 등)
-  if (/^[\d$&*%#@!^+=/\\|<>.,;:'"(){}\[\]\-_~`]{8,}$/.test(cleaned)) return true
+  if (/^[\d$&*%#@!^+=\/\\|<>.,;:'"(){}\[\]\-_~`]{8,}$/.test(cleaned)) return true
 
   return false
 }
@@ -120,11 +91,7 @@ interface TextBlock {
 function classifyBlocks(items: any[]): TextBlock[] {
   if (items.length === 0) return []
 
-  interface LineInfo {
-    text: string
-    fontSize: number
-    y: number
-  }
+  interface LineInfo { text: string; fontSize: number; y: number }
 
   const lines: LineInfo[] = []
   let lastY: number | null = null
@@ -141,8 +108,7 @@ function classifyBlocks(items: any[]): TextBlock[] {
       const trimmed = currentLine.trim()
       if (trimmed) {
         const avgFs = currentFontSizes.length > 0
-          ? currentFontSizes.reduce((a, b) => a + b, 0) / currentFontSizes.length
-          : 12
+          ? currentFontSizes.reduce((a, b) => a + b, 0) / currentFontSizes.length : 12
         lines.push({ text: trimmed, fontSize: Math.round(avgFs), y: currentY })
       }
       currentLine = ''
@@ -158,44 +124,31 @@ function classifyBlocks(items: any[]): TextBlock[] {
   const trimmedLast = currentLine.trim()
   if (trimmedLast) {
     const avgFs = currentFontSizes.length > 0
-      ? currentFontSizes.reduce((a, b) => a + b, 0) / currentFontSizes.length
-      : 12
+      ? currentFontSizes.reduce((a, b) => a + b, 0) / currentFontSizes.length : 12
     lines.push({ text: trimmedLast, fontSize: Math.round(avgFs), y: currentY })
   }
 
   if (lines.length === 0) return []
 
-  // 깨진 텍스트 필터링
   const cleanLines = lines.filter(l => !isBrokenText(l.text))
   if (cleanLines.length === 0) return [{ type: 'body', content: '(텍스트를 추출할 수 없습니다)' }]
 
-  // 본문 폰트 크기 기준 계산 (최빈값 - 글자 수 가중)
   const fsCount = new Map<number, number>()
-  for (const l of cleanLines) {
-    fsCount.set(l.fontSize, (fsCount.get(l.fontSize) || 0) + l.text.length)
-  }
+  for (const l of cleanLines) fsCount.set(l.fontSize, (fsCount.get(l.fontSize) || 0) + l.text.length)
   let bodyFontSize = 12
   let maxWeight = 0
-  for (const [fs, weight] of fsCount) {
-    if (weight > maxWeight) {
-      maxWeight = weight
-      bodyFontSize = fs
-    }
-  }
+  for (const [fs, weight] of fsCount) { if (weight > maxWeight) { maxWeight = weight; bodyFontSize = fs } }
 
-  // Y좌표 간격 분석
   const blocks: TextBlock[] = []
   let currentParagraph = ''
   let lastLineY: number | null = null
   const avgLineGap = cleanLines.length > 1
-    ? cleanLines.slice(1).reduce((sum, l, i) => sum + Math.abs(l.y - cleanLines[i].y), 0) / (cleanLines.length - 1)
-    : 20
+    ? cleanLines.slice(1).reduce((sum, l, i) => sum + Math.abs(l.y - cleanLines[i].y), 0) / (cleanLines.length - 1) : 20
 
   for (let i = 0; i < cleanLines.length; i++) {
     const line = cleanLines[i]
     const fsDiff = line.fontSize - bodyFontSize
 
-    // 큰 간격 → 섹션 구분
     if (lastLineY !== null) {
       const gap = Math.abs(line.y - lastLineY)
       if (gap > avgLineGap * 2.5 && currentParagraph) {
@@ -205,39 +158,25 @@ function classifyBlocks(items: any[]): TextBlock[] {
       }
     }
 
-    // 제목 판별
     if (fsDiff >= 4 && line.text.length < 80) {
-      if (currentParagraph) {
-        blocks.push({ type: 'body', content: currentParagraph })
-        currentParagraph = ''
-      }
-      if (fsDiff >= 8) {
-        blocks.push({ type: 'heading1', content: line.text })
-      } else {
-        blocks.push({ type: 'heading2', content: line.text })
-      }
+      if (currentParagraph) { blocks.push({ type: 'body', content: currentParagraph }); currentParagraph = '' }
+      if (fsDiff >= 8) blocks.push({ type: 'heading1', content: line.text })
+      else blocks.push({ type: 'heading2', content: line.text })
     } else if (fsDiff >= 2 && line.text.length < 50) {
-      if (currentParagraph) {
-        blocks.push({ type: 'body', content: currentParagraph })
-        currentParagraph = ''
-      }
+      if (currentParagraph) { blocks.push({ type: 'body', content: currentParagraph }); currentParagraph = '' }
       blocks.push({ type: 'heading3', content: line.text })
     } else {
       if (currentParagraph) currentParagraph += ' '
       currentParagraph += line.text
     }
-
     lastLineY = line.y
   }
 
-  if (currentParagraph) {
-    blocks.push({ type: 'body', content: currentParagraph })
-  }
-
+  if (currentParagraph) blocks.push({ type: 'body', content: currentParagraph })
   return blocks
 }
 
-// ━━━ 블록 ↔ 직렬화 (DB 저장/복원) ━━━
+// ━━━ 블록 ↔ 직렬화 ━━━
 function serializeBlocks(blocks: TextBlock[]): string {
   return blocks.map(b => {
     switch (b.type) {
@@ -283,11 +222,51 @@ export default function ReflowViewer({
   const [theme, setTheme] = useState<ReflowTheme>('dark')
   const [showSettings, setShowSettings] = useState(false)
 
+  // ━━━ TTS 상태 ━━━
+  const [ttsPlaying, setTtsPlaying] = useState(false)
+  const [ttsPaused, setTtsPaused] = useState(false)
+  const [ttsBlockIndex, setTtsBlockIndex] = useState(-1)
+  const [ttsRate, setTtsRate] = useState(1.0)
+  const [ttsSupported, setTtsSupported] = useState(false)
+  const ttsUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const ttsAutoNextRef = useRef(false)
+
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const settingsRef = useRef<HTMLDivElement>(null)
+  const blockRefs = useRef<Map<number, HTMLElement>>(new Map())
 
+  // ━━━ TTS 지원 체크 ━━━
+  useEffect(() => {
+    setTtsSupported(typeof window !== 'undefined' && 'speechSynthesis' in window)
+  }, [])
+
+  // ━━━ TTS 정지 (페이지 이동/언마운트 시) ━━━
+  const stopTts = useCallback(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+    setTtsPlaying(false)
+    setTtsPaused(false)
+    setTtsBlockIndex(-1)
+    ttsUtteranceRef.current = null
+    ttsAutoNextRef.current = false
+  }, [])
+
+  useEffect(() => {
+    return () => { stopTts() }
+  }, [stopTts])
+
+  // ━━━ 페이지 변경 시 TTS 정지 ━━━
+  useEffect(() => {
+    if (!ttsAutoNextRef.current) {
+      stopTts()
+    }
+    ttsAutoNextRef.current = false
+  }, [pageNumber, stopTts])
+
+  // ━━━ localStorage 복원 ━━━
   useEffect(() => {
     try {
       const saved = localStorage.getItem('textry_reflow_settings')
@@ -297,15 +276,16 @@ export default function ReflowViewer({
         if (s.lineHeight) setLineHeight(s.lineHeight)
         if (s.font) setFont(s.font)
         if (s.theme) setTheme(s.theme)
+        if (s.ttsRate) setTtsRate(s.ttsRate)
       }
     } catch {}
   }, [])
 
   useEffect(() => {
     try {
-      localStorage.setItem('textry_reflow_settings', JSON.stringify({ fontSize, lineHeight, font, theme }))
+      localStorage.setItem('textry_reflow_settings', JSON.stringify({ fontSize, lineHeight, font, theme, ttsRate }))
     } catch {}
-  }, [fontSize, lineHeight, font, theme])
+  }, [fontSize, lineHeight, font, theme, ttsRate])
 
   useEffect(() => {
     if (!showSettings) return
@@ -352,7 +332,6 @@ export default function ReflowViewer({
               setExtractProgress(100)
               if (onDocumentLoad) onDocumentLoad(total)
 
-              // ★ 품질 체크: 빈/깨진 페이지 비율
               let emptyCount = 0
               for (const [, t] of texts) {
                 const cleaned = t.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
@@ -387,10 +366,8 @@ export default function ReflowViewer({
           if (cancelled) return
           const page = await pdf.getPage(i)
           const textContent = await page.getTextContent()
-
           const blocks = classifyBlocks(textContent.items as any[])
           const serialized = serializeBlocks(blocks)
-
           texts.set(i, serialized || `(${i}페이지: 텍스트 없음)`)
           setExtractProgress(Math.round((i / total) * 100))
         }
@@ -399,7 +376,6 @@ export default function ReflowViewer({
           setPageTexts(texts)
           setExtracting(false)
 
-          // ★ 품질 체크
           let emptyCount = 0
           for (const [, t] of texts) {
             const cleaned = t.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
@@ -419,13 +395,106 @@ export default function ReflowViewer({
 
   const currentBlocks = deserializeBlocks(pageTexts.get(pageNumber) || '')
 
-  // ★ 현재 페이지가 깨진지 판단
   const isCurrentPageBroken = (() => {
     const raw = pageTexts.get(pageNumber) || ''
     const cleaned = raw.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
     return cleaned.length < 5 && currentBlocks.length === 0
   })()
 
+  // ━━━ TTS: 블록 순차 읽기 ━━━
+  const speakBlock = useCallback((blocks: TextBlock[], index: number) => {
+    if (!ttsSupported || index >= blocks.length) {
+      // 현재 페이지 블록 모두 읽음 → 다음 페이지 자동 이동
+      if (pageNumber < numPages && onPageChange) {
+        ttsAutoNextRef.current = true
+        onPageChange(pageNumber + 1, numPages)
+        // 다음 페이지 텍스트가 로드된 후 읽기 시작은 별도 effect에서 처리
+      } else {
+        stopTts()
+      }
+      return
+    }
+
+    // separator는 건너뛰기
+    if (blocks[index].type === 'separator' || !blocks[index].content.trim()) {
+      setTtsBlockIndex(index)
+      setTimeout(() => speakBlock(blocks, index + 1), 300)
+      return
+    }
+
+    const utterance = new SpeechSynthesisUtterance(blocks[index].content)
+    utterance.lang = 'ko-KR'
+    utterance.rate = ttsRate
+
+    // 한국어 음성 선택
+    const voices = window.speechSynthesis.getVoices()
+    const koVoice = voices.find(v => v.lang.startsWith('ko'))
+    if (koVoice) utterance.voice = koVoice
+
+    utterance.onstart = () => {
+      setTtsBlockIndex(index)
+      // 현재 블록으로 스크롤
+      const el = blockRefs.current.get(index)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
+
+    utterance.onend = () => {
+      speakBlock(blocks, index + 1)
+    }
+
+    utterance.onerror = (e) => {
+      if (e.error !== 'canceled') {
+        speakBlock(blocks, index + 1)
+      }
+    }
+
+    ttsUtteranceRef.current = utterance
+    window.speechSynthesis.speak(utterance)
+  }, [ttsSupported, ttsRate, pageNumber, numPages, onPageChange, stopTts])
+
+  // ━━━ TTS 자동 다음 페이지에서 이어 읽기 ━━━
+  useEffect(() => {
+    if (ttsAutoNextRef.current && ttsPlaying && currentBlocks.length > 0) {
+      ttsAutoNextRef.current = false
+      speakBlock(currentBlocks, 0)
+    }
+  }, [pageNumber, currentBlocks, ttsPlaying, speakBlock])
+
+  const startTts = useCallback(() => {
+    if (!ttsSupported) return
+    window.speechSynthesis.cancel()
+    setTtsPlaying(true)
+    setTtsPaused(false)
+    speakBlock(currentBlocks, 0)
+  }, [ttsSupported, currentBlocks, speakBlock])
+
+  const pauseTts = useCallback(() => {
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.pause()
+      setTtsPaused(true)
+    }
+  }, [])
+
+  const resumeTts = useCallback(() => {
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume()
+      setTtsPaused(false)
+    }
+  }, [])
+
+  const toggleTts = useCallback(() => {
+    if (ttsPlaying && !ttsPaused) {
+      pauseTts()
+    } else if (ttsPlaying && ttsPaused) {
+      resumeTts()
+    } else {
+      startTts()
+    }
+  }, [ttsPlaying, ttsPaused, startTts, pauseTts, resumeTts])
+
+  // ━━━ 페이지 이동 ━━━
   const goToPrev = useCallback(() => {
     if (pageNumber > 1 && onPageChange) onPageChange(pageNumber - 1, numPages)
   }, [pageNumber, numPages, onPageChange])
@@ -463,6 +532,7 @@ export default function ReflowViewer({
 
   const handleClick = (e: React.MouseEvent) => {
     if (showSettings) return
+    if (ttsPlaying) return // TTS 재생 중엔 클릭 페이지 넘김 비활성
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
     const clickX = e.clientX - rect.left
     if (clickX < rect.width / 2) goToPrev()
@@ -490,44 +560,61 @@ export default function ReflowViewer({
     )
   }
 
+  // ━━━ 블록 렌더링 (TTS 하이라이트 포함) ━━━
   const renderBlock = (block: TextBlock, index: number) => {
+    const isHighlighted = ttsPlaying && ttsBlockIndex === index
+    const highlightStyle = isHighlighted ? {
+      backgroundColor: theme === 'dark' ? 'rgba(59,130,246,0.15)' : theme === 'sepia' ? 'rgba(180,130,60,0.15)' : 'rgba(59,130,246,0.1)',
+      borderRadius: '4px',
+      padding: '2px 4px',
+      margin: '-2px -4px',
+      transition: 'background-color 0.3s ease',
+    } : {}
+
+    const setRef = (el: HTMLElement | null) => {
+      if (el) blockRefs.current.set(index, el)
+      else blockRefs.current.delete(index)
+    }
+
     switch (block.type) {
       case 'heading1':
         return (
-          <h2 key={index} className="font-bold mt-10 mb-4"
-            style={{ fontSize: `${Math.round(fontSize * 1.6)}px`, lineHeight: 1.3, color: themeStyle.headingColor, fontFamily: fontStyle.family }}>
+          <h2 ref={setRef} key={index} className="font-bold mt-10 mb-4"
+            style={{ fontSize: `${Math.round(fontSize * 1.6)}px`, lineHeight: 1.3, color: themeStyle.headingColor, fontFamily: fontStyle.family, ...highlightStyle }}>
             {block.content}
           </h2>
         )
       case 'heading2':
         return (
-          <h3 key={index} className="font-bold mt-8 mb-3"
-            style={{ fontSize: `${Math.round(fontSize * 1.35)}px`, lineHeight: 1.35, color: themeStyle.headingColor, fontFamily: fontStyle.family }}>
+          <h3 ref={setRef} key={index} className="font-bold mt-8 mb-3"
+            style={{ fontSize: `${Math.round(fontSize * 1.35)}px`, lineHeight: 1.35, color: themeStyle.headingColor, fontFamily: fontStyle.family, ...highlightStyle }}>
             {block.content}
           </h3>
         )
       case 'heading3':
         return (
-          <h4 key={index} className="font-semibold mt-6 mb-2"
-            style={{ fontSize: `${Math.round(fontSize * 1.15)}px`, lineHeight: 1.4, color: themeStyle.headingColor, fontFamily: fontStyle.family }}>
+          <h4 ref={setRef} key={index} className="font-semibold mt-6 mb-2"
+            style={{ fontSize: `${Math.round(fontSize * 1.15)}px`, lineHeight: 1.4, color: themeStyle.headingColor, fontFamily: fontStyle.family, ...highlightStyle }}>
             {block.content}
           </h4>
         )
       case 'separator':
-        return <div key={index} className="my-6" style={{ borderTop: `1px solid ${themeStyle.border}` }} />
+        return <div ref={setRef} key={index} className="my-6" style={{ borderTop: `1px solid ${themeStyle.border}` }} />
       default:
         return (
-          <p key={index} className="mb-4"
-            style={{ textIndent: '1em', fontFamily: fontStyle.family, fontSize: `${fontSize}px`, lineHeight: lineHeight, color: themeStyle.text, wordBreak: 'keep-all', overflowWrap: 'break-word' }}>
+          <p ref={setRef} key={index} className="mb-4"
+            style={{ textIndent: '1em', fontFamily: fontStyle.family, fontSize: `${fontSize}px`, lineHeight: lineHeight, color: themeStyle.text, wordBreak: 'keep-all', overflowWrap: 'break-word', ...highlightStyle }}>
             {block.content}
           </p>
         )
     }
   }
 
+  const TTS_RATES = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: themeStyle.pageBg }}>
-      {/* 설정 바 */}
+      {/* ━━━ 설정 바 ━━━ */}
       <div className="flex items-center justify-between px-3 py-2 border-b" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
         <div className="flex items-center gap-2">
           <button onClick={() => setFontSize(s => Math.max(12, s - 1))}
@@ -575,7 +662,7 @@ export default function ReflowViewer({
         </div>
       </div>
 
-      {/* 텍스트 본문 */}
+      {/* ━━━ 텍스트 본문 ━━━ */}
       <div ref={contentRef} className="flex-1 overflow-y-auto cursor-pointer" style={{ backgroundColor: themeStyle.bg }}
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onClick={handleClick}>
         <div className="max-w-2xl mx-auto px-6 sm:px-10 py-8">
@@ -585,17 +672,14 @@ export default function ReflowViewer({
             </span>
           </div>
 
-          {/* ━━━ 전체 문서 리플로우 미지원 안내 ━━━ */}
+          {/* 전체 문서 미지원 안내 */}
           {unsupported && (
             <div className="mb-6 rounded-xl p-5 text-center" style={{
               backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
               border: `1px solid ${theme === 'dark' ? '#2d2d50' : theme === 'sepia' ? '#d4c5a9' : '#d0d8f0'}`,
             }}>
               <div className="text-2xl mb-2">📄</div>
-              <p className="font-semibold mb-1" style={{
-                color: themeStyle.headingColor,
-                fontSize: `${Math.round(fontSize * 0.9)}px`,
-              }}>
+              <p className="font-semibold mb-1" style={{ color: themeStyle.headingColor, fontSize: `${Math.round(fontSize * 0.9)}px` }}>
                 이 문서는 리플로우 모드를 지원하지 않습니다
               </p>
               <p className="text-xs mb-4 leading-relaxed" style={{ color: themeStyle.muted }}>
@@ -604,35 +688,27 @@ export default function ReflowViewer({
                 PDF 뷰어 모드에서 원본 그대로 읽을 수 있습니다.
               </p>
               {onSwitchToPdf && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onSwitchToPdf() }}
+                <button onClick={(e) => { e.stopPropagation(); onSwitchToPdf() }}
                   className="px-5 py-2.5 rounded-lg text-sm font-medium text-white transition-colors"
-                  style={{ backgroundColor: '#3b82f6' }}
-                >
+                  style={{ backgroundColor: '#3b82f6' }}>
                   PDF 뷰어로 전환
                 </button>
               )}
             </div>
           )}
 
-          {/* ━━━ 현재 페이지 텍스트 없음 안내 ━━━ */}
+          {/* 현재 페이지 텍스트 없음 안내 */}
           {isCurrentPageBroken && !unsupported && (
             <div className="mb-6 rounded-lg p-4 text-center" style={{
               backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
               border: `1px solid ${theme === 'dark' ? '#2d2d50' : theme === 'sepia' ? '#d4c5a9' : '#d0d8f0'}`,
             }}>
-              <p className="text-sm mb-2" style={{ color: themeStyle.muted }}>
-                이 페이지는 텍스트를 추출할 수 없습니다
-              </p>
-              <p className="text-xs mb-3" style={{ color: themeStyle.muted }}>
-                이미지, 장식 폰트 등이 포함된 페이지입니다.
-              </p>
+              <p className="text-sm mb-2" style={{ color: themeStyle.muted }}>이 페이지는 텍스트를 추출할 수 없습니다</p>
+              <p className="text-xs mb-3" style={{ color: themeStyle.muted }}>이미지, 장식 폰트 등이 포함된 페이지입니다.</p>
               {onSwitchToPdf && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onSwitchToPdf() }}
+                <button onClick={(e) => { e.stopPropagation(); onSwitchToPdf() }}
                   className="px-4 py-2 rounded-lg text-xs font-medium text-white transition-colors"
-                  style={{ backgroundColor: '#3b82f6' }}
-                >
+                  style={{ backgroundColor: '#3b82f6' }}>
                   PDF 뷰어로 전환
                 </button>
               )}
@@ -649,6 +725,7 @@ export default function ReflowViewer({
             ) : null}
           </div>
 
+          {/* 하단 페이지 네비 */}
           <div className="mt-8 pt-4 border-t flex items-center justify-between" style={{ borderColor: themeStyle.border }}>
             <button onClick={(e) => { e.stopPropagation(); goToPrev() }} disabled={pageNumber <= 1}
               className="flex items-center gap-1 px-3 py-2 rounded-lg transition-opacity disabled:opacity-30" style={{ color: themeStyle.muted }}>
@@ -662,6 +739,69 @@ export default function ReflowViewer({
           </div>
         </div>
       </div>
+
+      {/* ━━━ TTS 플레이어 바 ━━━ */}
+      {ttsSupported && !unsupported && !isCurrentPageBroken && currentBlocks.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-2.5 border-t" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
+          {/* 재생/일시정지/정지 */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleTts() }}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+              style={{ backgroundColor: ttsPlaying ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)', color: '#3b82f6' }}
+            >
+              {ttsPlaying && !ttsPaused ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+            </button>
+
+            {ttsPlaying && (
+              <button
+                onClick={(e) => { e.stopPropagation(); stopTts() }}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                style={{ backgroundColor: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
+              >
+                <Square className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* 상태 표시 */}
+          <div className="flex items-center gap-2">
+            {ttsPlaying && (
+              <div className="flex items-center gap-1.5">
+                <Volume2 className="w-3.5 h-3.5" style={{ color: '#3b82f6' }} />
+                <span className="text-xs" style={{ color: themeStyle.muted }}>
+                  {ttsPaused ? '일시정지' : `읽는 중 ${ttsBlockIndex + 1}/${currentBlocks.filter(b => b.type !== 'separator').length}`}
+                </span>
+              </div>
+            )}
+            {!ttsPlaying && (
+              <span className="text-xs" style={{ color: themeStyle.muted }}>듣기</span>
+            )}
+          </div>
+
+          {/* 배속 */}
+          <select
+            value={ttsRate}
+            onChange={(e) => {
+              e.stopPropagation()
+              const newRate = Number(e.target.value)
+              setTtsRate(newRate)
+              // 재생 중이면 재시작
+              if (ttsPlaying) {
+                window.speechSynthesis.cancel()
+                setTimeout(() => speakBlock(currentBlocks, ttsBlockIndex >= 0 ? ttsBlockIndex : 0), 100)
+              }
+            }}
+            className="text-xs rounded px-1.5 py-1 border"
+            style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {TTS_RATES.map(r => (
+              <option key={r} value={r}>{r}x</option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   )
 }
