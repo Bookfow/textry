@@ -258,13 +258,25 @@ export default function ReflowViewer({
     return () => { stopTts() }
   }, [stopTts])
 
-  // ━━━ 페이지 변경 시 TTS 정지 ━━━
+  // ━━━ 페이지 변경 시: 자동 넘김이면 이어 읽기, 아니면 TTS 정지 ━━━
   useEffect(() => {
-    if (!ttsAutoNextRef.current) {
-      stopTts()
+    if (ttsAutoNextRef.current) {
+      // 자동 페이지 넘김 → 이어 읽기는 currentBlocks 업데이트 후 처리
+      return
     }
-    ttsAutoNextRef.current = false
+    stopTts()
   }, [pageNumber, stopTts])
+
+  // ━━━ TTS 자동 다음 페이지에서 이어 읽기 ━━━
+  useEffect(() => {
+    if (ttsAutoNextRef.current && ttsPlaying && currentBlocks.length > 0) {
+      ttsAutoNextRef.current = false
+      // 약간의 딜레이 후 읽기 시작 (페이지 렌더링 대기)
+      setTimeout(() => {
+        speakBlock(currentBlocks, 0)
+      }, 300)
+    }
+  }, [currentBlocks, ttsPlaying, speakBlock])
 
   // ━━━ localStorage 복원 ━━━
   useEffect(() => {
@@ -453,14 +465,6 @@ export default function ReflowViewer({
     ttsUtteranceRef.current = utterance
     window.speechSynthesis.speak(utterance)
   }, [ttsSupported, ttsRate, pageNumber, numPages, onPageChange, stopTts])
-
-  // ━━━ TTS 자동 다음 페이지에서 이어 읽기 ━━━
-  useEffect(() => {
-    if (ttsAutoNextRef.current && ttsPlaying && currentBlocks.length > 0) {
-      ttsAutoNextRef.current = false
-      speakBlock(currentBlocks, 0)
-    }
-  }, [pageNumber, currentBlocks, ttsPlaying, speakBlock])
 
   const startTts = useCallback(() => {
     if (!ttsSupported) return
