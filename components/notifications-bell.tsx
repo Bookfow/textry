@@ -18,15 +18,15 @@ import { useRouter } from 'next/navigation'
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
-    case 'comment': return { icon: MessageSquare, color: 'text-blue-500', bg: 'bg-blue-50' }
-    case 'reply': return { icon: MessageSquare, color: 'text-cyan-500', bg: 'bg-cyan-50' }
-    case 'like': return { icon: Heart, color: 'text-red-500', bg: 'bg-red-50' }
-    case 'subscribe': return { icon: UserPlus, color: 'text-purple-500', bg: 'bg-purple-50' }
-    case 'revenue': return { icon: DollarSign, color: 'text-green-500', bg: 'bg-green-50' }
-    case 'tier': return { icon: Award, color: 'text-amber-500', bg: 'bg-amber-50' }
-    case 'new_document': return { icon: FileText, color: 'text-indigo-500', bg: 'bg-indigo-50' }
-    case 'premium': return { icon: Crown, color: 'text-orange-500', bg: 'bg-orange-50' }
-    default: return { icon: Bell, color: 'text-gray-500', bg: 'bg-gray-50' }
+    case 'comment': return { icon: MessageSquare, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/30' }
+    case 'reply': return { icon: MessageSquare, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/30' }
+    case 'like': return { icon: Heart, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/30' }
+    case 'subscribe': return { icon: UserPlus, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/30' }
+    case 'revenue': return { icon: DollarSign, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/30' }
+    case 'tier': return { icon: Award, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/30' }
+    case 'new_document': return { icon: FileText, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/30' }
+    case 'premium': return { icon: Crown, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/30' }
+    default: return { icon: Bell, color: 'text-gray-500', bg: 'bg-gray-50 dark:bg-gray-700' }
   }
 }
 
@@ -102,12 +102,12 @@ export function NotificationsBell() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96 p-0" aria-label="알림 목록">
+      <DropdownMenuContent align="end" className="w-96 p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700" aria-label="알림 목록">
         {/* 헤더 */}
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <span className="font-bold text-base">알림</span>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <span className="font-bold text-base text-gray-900 dark:text-white">알림</span>
           {unreadCount > 0 && (
-            <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:underline flex items-center gap-1" aria-label="모든 알림 읽음 처리">
+            <button onClick={handleMarkAllRead} className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1" aria-label="모든 알림 읽음 처리">
               <CheckCheck className="w-3 h-3" aria-hidden="true" /> 모두 읽음
             </button>
           )}
@@ -116,8 +116,8 @@ export function NotificationsBell() {
         {/* 알림 목록 */}
         {notifications.length === 0 ? (
           <div className="p-8 text-center" role="status">
-            <Bell className="w-8 h-8 text-gray-200 mx-auto mb-2" aria-hidden="true" />
-            <p className="text-sm text-gray-400">알림이 없습니다</p>
+            <Bell className="w-8 h-8 text-gray-200 dark:text-gray-600 mx-auto mb-2" aria-hidden="true" />
+            <p className="text-sm text-gray-400 dark:text-gray-500">알림이 없습니다</p>
           </div>
         ) : (
           <div className="max-h-[420px] overflow-y-auto" role="list" aria-label="알림 목록">
@@ -127,8 +127,8 @@ export function NotificationsBell() {
                 <DropdownMenuItem
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
-                  className={`flex items-start gap-3 px-4 py-3 cursor-pointer rounded-none border-b border-gray-50 ${
-                    !notification.is_read ? 'bg-blue-50/50' : ''
+                  className={`flex items-start gap-3 px-4 py-3 cursor-pointer rounded-none border-b border-gray-100 dark:border-gray-800 ${
+                    !notification.is_read ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''
                   }`}
                   role="listitem"
                   aria-label={`${notification.title} - ${getTimeAgo(notification.created_at)}${!notification.is_read ? ' (읽지 않음)' : ''}`}
@@ -140,11 +140,11 @@ export function NotificationsBell() {
 
                   {/* 내용 */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm leading-snug ${!notification.is_read ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
+                    <p className={`text-sm leading-snug ${!notification.is_read ? 'font-medium text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                       {notification.title}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notification.message}</p>
-                    <p className="text-[11px] text-gray-400 mt-1">{getTimeAgo(notification.created_at)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{notification.message}</p>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">{getTimeAgo(notification.created_at)}</p>
                   </div>
 
                   {/* 읽지 않음 표시 */}
