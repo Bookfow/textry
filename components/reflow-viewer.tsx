@@ -970,20 +970,55 @@ export default function ReflowViewer({
             ) : null}
           </div>
 
-          {/* 하단 페이지 네비 */}
-          <div className="mt-8 pt-4 border-t flex items-center justify-between" style={{ borderColor: themeStyle.border }}>
-            <button onClick={(e) => { e.stopPropagation(); goToPrev() }} disabled={pageNumber <= 1}
-              className="flex items-center gap-1 px-3 py-2 rounded-lg transition-opacity disabled:opacity-30" style={{ color: themeStyle.muted }}>
-              <ChevronLeft className="w-4 h-4" /> 이전
-            </button>
-            <span className="text-xs" style={{ color: themeStyle.muted }}>{pageNumber} / {numPages}</span>
-            <button onClick={(e) => { e.stopPropagation(); goToNext() }} disabled={pageNumber >= numPages}
-              className="flex items-center gap-1 px-3 py-2 rounded-lg transition-opacity disabled:opacity-30" style={{ color: themeStyle.muted }}>
-              다음 <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          {/* 하단 여백 (고정 바와 겹치지 않게) */}
+          <div className="h-16" />
         </div>
       </div>
+
+      {/* ━━━ 하단 고정 바: 진행률 슬라이더 + 페이지 네비 ━━━ */}
+      {numPages > 0 && (
+        <div className="border-t px-4 py-2" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
+          {/* 슬라이더 */}
+          <div className="flex items-center gap-3">
+            <button onClick={(e) => { e.stopPropagation(); goToPrev() }} disabled={pageNumber <= 1}
+              className="p-1 rounded transition-opacity disabled:opacity-30" style={{ color: themeStyle.muted }}>
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <div className="flex-1 relative group"
+              onClick={(e) => {
+                e.stopPropagation()
+                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+                const targetPage = Math.max(1, Math.round(ratio * numPages))
+                goToPage(targetPage)
+              }}>
+              {/* 배경 트랙 */}
+              <div className="h-1.5 rounded-full cursor-pointer" style={{ backgroundColor: theme === 'dark' ? '#2d2d44' : theme === 'sepia' ? '#d4c5a9' : '#e5e5e5' }}>
+                {/* 진행 바 */}
+                <div className="h-full rounded-full transition-all duration-200"
+                  style={{ width: `${numPages > 1 ? ((pageNumber - 1) / (numPages - 1)) * 100 : 0}%`, backgroundColor: '#3b82f6' }} />
+              </div>
+              {/* 드래그 핸들 (thumb) */}
+              <input type="range" min={1} max={numPages} value={pageNumber}
+                onChange={(e) => { e.stopPropagation(); goToPage(Number(e.target.value)) }}
+                onClick={(e) => e.stopPropagation()}
+                className="absolute inset-0 w-full opacity-0 cursor-pointer"
+                style={{ height: '24px', top: '-6px' }} />
+            </div>
+
+            <button onClick={(e) => { e.stopPropagation(); goToNext() }} disabled={pageNumber >= numPages}
+              className="p-1 rounded transition-opacity disabled:opacity-30" style={{ color: themeStyle.muted }}>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+          {/* 페이지 표시 */}
+          <div className="flex justify-between mt-1">
+            <span className="text-[10px]" style={{ color: themeStyle.muted }}>{pageNumber} / {numPages} {pageLabel}</span>
+            <span className="text-[10px]" style={{ color: themeStyle.muted }}>{numPages > 1 ? Math.round(((pageNumber - 1) / (numPages - 1)) * 100) : 0}%</span>
+          </div>
+        </div>
+      )}
 
       {/* ━━━ TTS 플레이어 바 ━━━ */}
       {ttsSupported && !unsupported && !isCurrentPageBroken && currentBlocks.length > 0 && (
