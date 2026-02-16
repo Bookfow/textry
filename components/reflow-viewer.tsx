@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { pdfjs } from 'react-pdf'
-import { ChevronLeft, ChevronRight, Minus, Plus, Play, Pause, Square, Volume2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Minus, Plus, Play, Square, Volume2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
@@ -224,11 +224,12 @@ export default function ReflowViewer({
 
   // ━━━ TTS 상태 ━━━
   const [ttsPlaying, setTtsPlaying] = useState(false)
-  const [ttsPaused, setTtsPaused] = useState(false)
   const [ttsBlockIndex, setTtsBlockIndex] = useState(-1)
   const [ttsRate, setTtsRate] = useState(1.0)
   const [ttsSupported, setTtsSupported] = useState(false)
-  const ttsUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const ttsPlayingRef = useRef(false)
+  const ttsRateRef = useRef(1.0)
+  const ttsBlockIndexRef = useRef(-1)
   const ttsAutoNextRef = useRef(false)
 
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
@@ -242,41 +243,28 @@ export default function ReflowViewer({
     setTtsSupported(typeof window !== 'undefined' && 'speechSynthesis' in window)
   }, [])
 
-  // ━━━ TTS 정지 (페이지 이동/언마운트 시) ━━━
+  // ━━━ TTS 정지 ━━━
   const stopTts = useCallback(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel()
     }
+    ttsPlayingRef.current = false
     setTtsPlaying(false)
-    setTtsPaused(false)
     setTtsBlockIndex(-1)
-    ttsUtteranceRef.current = null
+    ttsBlockIndexRef.current = -1
     ttsAutoNextRef.current = false
   }, [])
 
+  // 언마운트 시 정지
   useEffect(() => {
     return () => { stopTts() }
   }, [stopTts])
 
-  // ━━━ 페이지 변경 시: 자동 넘김이면 이어 읽기, 아니면 TTS 정지 ━━━
+  // 페이지 변경 시: 자동 넘김이면 유지, 아니면 정지
   useEffect(() => {
-    if (ttsAutoNextRef.current) {
-      // 자동 페이지 넘김 → 이어 읽기는 currentBlocks 업데이트 후 처리
-      return
-    }
+    if (ttsAutoNextRef.current) return
     stopTts()
   }, [pageNumber, stopTts])
-
-  // ━━━ TTS 자동 다음 페이지에서 이어 읽기 ━━━
-  useEffect(() => {
-    if (ttsAutoNextRef.current && ttsPlaying && currentBlocks.length > 0) {
-      ttsAutoNextRef.current = false
-      // 약간의 딜레이 후 읽기 시작 (페이지 렌더링 대기)
-      setTimeout(() => {
-        speakBlock(currentBlocks, 0)
-      }, 300)
-    }
-  }, [currentBlocks, ttsPlaying, speakBlock])
 
   // ━━━ localStorage 복원 ━━━
   useEffect(() => {
@@ -413,90 +401,99 @@ export default function ReflowViewer({
     return cleaned.length < 5 && currentBlocks.length === 0
   })()
 
-  // ━━━ TTS: 블록 순차 읽기 ━━━
-  const speakBlock = useCallback((blocks: TextBlock[], index: number) => {
-    if (!ttsSupported || index >= blocks.length) {
-      // 현재 페이지 블록 모두 읽음 → 다음 페이지 자동 이동
+  // ━━━ TTS: 블록 순차 읽기 (ref 기반으로 최신 상태 참조) ━━━
+  const speakBlockFromIndex = useCallback((blocks: TextBlock[], index: number) => {
+    // 정지 상태면 중단
+    if (!ttsPlayingRef.current) return
+
+    if (index >= blocks.length) {
+      // 현재 페이지 끝 → 다음 페이지 자동 이동
       if (pageNumber < numPages && onPageChange) {
         ttsAutoNextRef.current = true
         onPageChange(pageNumber + 1, numPages)
-        // 다음 페이지 텍스트가 로드된 후 읽기 시작은 별도 effect에서 처리
       } else {
         stopTts()
       }
       return
     }
 
-    // separator는 건너뛰기
+    // separator 건너뛰기
     if (blocks[index].type === 'separator' || !blocks[index].content.trim()) {
       setTtsBlockIndex(index)
-      setTimeout(() => speakBlock(blocks, index + 1), 300)
+      ttsBlockIndexRef.current = index
+      setTimeout(() => speakBlockFromIndex(blocks, index + 1), 200)
       return
     }
 
     const utterance = new SpeechSynthesisUtterance(blocks[index].content)
     utterance.lang = 'ko-KR'
-    utterance.rate = ttsRate
+    utterance.rate = ttsRateRef.current
 
-    // 한국어 음성 선택
     const voices = window.speechSynthesis.getVoices()
     const koVoice = voices.find(v => v.lang.startsWith('ko'))
     if (koVoice) utterance.voice = koVoice
 
     utterance.onstart = () => {
       setTtsBlockIndex(index)
-      // 현재 블록으로 스크롤
+      ttsBlockIndexRef.current = index
       const el = blockRefs.current.get(index)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
 
     utterance.onend = () => {
-      speakBlock(blocks, index + 1)
-    }
-
-    utterance.onerror = (e) => {
-      if (e.error !== 'canceled') {
-        speakBlock(blocks, index + 1)
+      if (ttsPlayingRef.current) {
+        speakBlockFromIndex(blocks, index + 1)
       }
     }
 
-    ttsUtteranceRef.current = utterance
+    utterance.onerror = (e) => {
+      if (e.error !== 'canceled' && ttsPlayingRef.current) {
+        speakBlockFromIndex(blocks, index + 1)
+      }
+    }
+
     window.speechSynthesis.speak(utterance)
-  }, [ttsSupported, ttsRate, pageNumber, numPages, onPageChange, stopTts])
+  }, [pageNumber, numPages, onPageChange, stopTts])
+
+  // ━━━ TTS 자동 다음 페이지에서 이어 읽기 ━━━
+  useEffect(() => {
+    if (ttsAutoNextRef.current && ttsPlayingRef.current && currentBlocks.length > 0) {
+      ttsAutoNextRef.current = false
+      setTimeout(() => {
+        speakBlockFromIndex(currentBlocks, 0)
+      }, 300)
+    }
+  }, [currentBlocks, speakBlockFromIndex])
 
   const startTts = useCallback(() => {
     if (!ttsSupported) return
     window.speechSynthesis.cancel()
+    ttsPlayingRef.current = true
     setTtsPlaying(true)
-    setTtsPaused(false)
-    speakBlock(currentBlocks, 0)
-  }, [ttsSupported, currentBlocks, speakBlock])
-
-  const pauseTts = useCallback(() => {
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.pause()
-      setTtsPaused(true)
-    }
-  }, [])
-
-  const resumeTts = useCallback(() => {
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume()
-      setTtsPaused(false)
-    }
-  }, [])
+    speakBlockFromIndex(currentBlocks, 0)
+  }, [ttsSupported, currentBlocks, speakBlockFromIndex])
 
   const toggleTts = useCallback(() => {
-    if (ttsPlaying && !ttsPaused) {
-      pauseTts()
-    } else if (ttsPlaying && ttsPaused) {
-      resumeTts()
+    if (ttsPlaying) {
+      stopTts()
     } else {
       startTts()
     }
-  }, [ttsPlaying, ttsPaused, startTts, pauseTts, resumeTts])
+  }, [ttsPlaying, startTts, stopTts])
+
+  // 배속 변경 핸들러
+  const handleRateChange = useCallback((newRate: number) => {
+    ttsRateRef.current = newRate
+    setTtsRate(newRate)
+    // 재생 중이면 현재 블록부터 새 배속으로 재시작
+    if (ttsPlayingRef.current) {
+      window.speechSynthesis.cancel()
+      const idx = ttsBlockIndexRef.current >= 0 ? ttsBlockIndexRef.current : 0
+      setTimeout(() => {
+        speakBlockFromIndex(currentBlocks, idx)
+      }, 100)
+    }
+  }, [currentBlocks, speakBlockFromIndex])
 
   // ━━━ 페이지 이동 ━━━
   const goToPrev = useCallback(() => {
@@ -744,26 +741,14 @@ export default function ReflowViewer({
       {/* ━━━ TTS 플레이어 바 ━━━ */}
       {ttsSupported && !unsupported && !isCurrentPageBroken && currentBlocks.length > 0 && (
         <div className="flex items-center justify-center gap-4 px-4 py-2.5 border-t" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
-          {/* 재생/일시정지/정지 */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={(e) => { e.stopPropagation(); toggleTts() }}
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
-              style={{ backgroundColor: ttsPlaying ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)', color: '#3b82f6' }}
-            >
-              {ttsPlaying && !ttsPaused ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
-            </button>
-
-            {ttsPlaying && (
-              <button
-                onClick={(e) => { e.stopPropagation(); stopTts() }}
-                className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                style={{ backgroundColor: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
-              >
-                <Square className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+          {/* 재생/정지 */}
+          <button
+            onClick={(e) => { e.stopPropagation(); toggleTts() }}
+            className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+            style={{ backgroundColor: ttsPlaying ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: ttsPlaying ? '#ef4444' : '#3b82f6' }}
+          >
+            {ttsPlaying ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+          </button>
 
           {/* 상태 표시 */}
           <div className="flex items-center gap-1.5">
@@ -771,7 +756,7 @@ export default function ReflowViewer({
               <>
                 <Volume2 className="w-3.5 h-3.5" style={{ color: '#3b82f6' }} />
                 <span className="text-xs" style={{ color: themeStyle.muted }}>
-                  {ttsPaused ? '일시정지' : `읽는 중 ${ttsBlockIndex + 1}/${currentBlocks.filter(b => b.type !== 'separator').length}`}
+                  읽는 중 {ttsBlockIndex + 1}/{currentBlocks.filter(b => b.type !== 'separator').length}
                 </span>
               </>
             )}
@@ -783,15 +768,7 @@ export default function ReflowViewer({
           {/* 배속 */}
           <select
             value={ttsRate}
-            onChange={(e) => {
-              e.stopPropagation()
-              const newRate = Number(e.target.value)
-              setTtsRate(newRate)
-              if (ttsPlaying) {
-                window.speechSynthesis.cancel()
-                setTimeout(() => speakBlock(currentBlocks, ttsBlockIndex >= 0 ? ttsBlockIndex : 0), 100)
-              }
-            }}
+            onChange={(e) => { e.stopPropagation(); handleRateChange(Number(e.target.value)) }}
             className="text-xs rounded px-1.5 py-1 border"
             style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}
             onClick={(e) => e.stopPropagation()}
