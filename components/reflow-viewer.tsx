@@ -38,32 +38,54 @@ function isBrokenText(text: string): boolean {
   const cleaned = text.replace(/\s/g, '')
   if (cleaned.length === 0) return true
 
-  // 정상 문자: 한글(가-힣, ㄱ-ㅎ, ㅏ-ㅣ), 영문, 숫자, 일반 문장부호
-  let normalCount = 0
+  // ★ 핵심: "의미 있는 문자" = 한글 + 영문 알파벳만 카운트
+  // 숫자, 문장부호는 의미 판단에서 제외 (깨진 텍스트도 $&*7 등이 많음)
+  let meaningfulCount = 0
+  let hangulCount = 0
   for (let i = 0; i < cleaned.length; i++) {
     const code = cleaned.charCodeAt(i)
     if (
       (code >= 0xAC00 && code <= 0xD7AF) ||  // 한글 음절
-      (code >= 0x3131 && code <= 0x318E) ||  // 한글 자모
+      (code >= 0x3131 && code <= 0x318E)      // 한글 자모
+    ) {
+      meaningfulCount++
+      hangulCount++
+    } else if (
       (code >= 0x0041 && code <= 0x005A) ||  // A-Z
-      (code >= 0x0061 && code <= 0x007A) ||  // a-z
-      (code >= 0x0030 && code <= 0x0039) ||  // 0-9
-      (code >= 0x0020 && code <= 0x002F) ||  // 공백, !, ", #, $, %, &, ', (, ), *, +, ,, -, ., /
-      (code >= 0x003A && code <= 0x0040) ||  // :, ;, <, =, >, ?, @
-      (code >= 0x005B && code <= 0x0060) ||  // [, \, ], ^, _, `
-      (code >= 0x007B && code <= 0x007E) ||  // {, |, }, ~
-      (code >= 0x2000 && code <= 0x206F) ||  // 일반 구두점
-      (code >= 0x3000 && code <= 0x303F) ||  // CJK 구두점 (。、「」 등)
-      (code >= 0xFF01 && code <= 0xFF5E)     // 전각 영숫자/문장부호
+      (code >= 0x0061 && code <= 0x007A)     // a-z
+    ) {
+      meaningfulCount++
+    }
+  }
+
+  // 10자 이상인데 의미 있는 문자(한글+영문)가 15% 미만이면 깨진 텍스트
+  if (cleaned.length >= 10 && meaningfulCount / cleaned.length < 0.15) return true
+
+  // 30자 이상인데 한글+영문이 25% 미만이면 깨진 텍스트 (더 긴 줄은 더 엄격)
+  if (cleaned.length >= 30 && meaningfulCount / cleaned.length < 0.25) return true
+
+  // 정상 유니코드 범위 체크 (기존)
+  let normalCount = 0
+  for (let i = 0; i < cleaned.length; i++) {
+    const code = cleaned.charCodeAt(i)
+    if (
+      (code >= 0xAC00 && code <= 0xD7AF) ||
+      (code >= 0x3131 && code <= 0x318E) ||
+      (code >= 0x0041 && code <= 0x005A) ||
+      (code >= 0x0061 && code <= 0x007A) ||
+      (code >= 0x0030 && code <= 0x0039) ||
+      (code >= 0x0020 && code <= 0x007E) ||
+      (code >= 0x2000 && code <= 0x206F) ||
+      (code >= 0x3000 && code <= 0x303F) ||
+      (code >= 0xFF01 && code <= 0xFF5E)
     ) {
       normalCount++
     }
   }
 
-  // 정상 문자가 40% 미만이면 깨진 텍스트
   if (cleaned.length >= 5 && normalCount / cleaned.length < 0.4) return true
 
-  // 기존 체크도 유지
+  // Private Use Area 등 명확한 비정상 문자
   let brokenCount = 0
   for (let i = 0; i < cleaned.length; i++) {
     const code = cleaned.charCodeAt(i)
@@ -79,7 +101,9 @@ function isBrokenText(text: string): boolean {
 
   if (brokenCount / cleaned.length > 0.3) return true
   if (/[□▯○◻◼■▪▫]{3,}/.test(cleaned)) return true
-  if (/^[\d\s.,-]+$/.test(cleaned) && cleaned.length > 50) return true
+
+  // 특수문자+숫자 반복 패턴 ($&*7 등)
+  if (/^[\d$&*%#@!^+=/\\|<>.,;:'"(){}\[\]\-_~`]{8,}$/.test(cleaned)) return true
 
   return false
 }

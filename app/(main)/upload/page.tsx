@@ -77,22 +77,26 @@ export default function UploadPage() {
     const cleaned = text.replace(/\s/g, '')
     if (cleaned.length === 0) return true
 
-    // 정상 문자 비율 체크
+    let meaningfulCount = 0
+    for (let i = 0; i < cleaned.length; i++) {
+      const code = cleaned.charCodeAt(i)
+      if ((code >= 0xAC00 && code <= 0xD7AF) || (code >= 0x3131 && code <= 0x318E)) {
+        meaningfulCount++
+      } else if ((code >= 0x0041 && code <= 0x005A) || (code >= 0x0061 && code <= 0x007A)) {
+        meaningfulCount++
+      }
+    }
+    if (cleaned.length >= 10 && meaningfulCount / cleaned.length < 0.15) return true
+    if (cleaned.length >= 30 && meaningfulCount / cleaned.length < 0.25) return true
+
     let normalCount = 0
     for (let i = 0; i < cleaned.length; i++) {
       const code = cleaned.charCodeAt(i)
       if (
-        (code >= 0xAC00 && code <= 0xD7AF) ||
-        (code >= 0x3131 && code <= 0x318E) ||
-        (code >= 0x0041 && code <= 0x005A) ||
-        (code >= 0x0061 && code <= 0x007A) ||
-        (code >= 0x0030 && code <= 0x0039) ||
-        (code >= 0x0020 && code <= 0x002F) ||
-        (code >= 0x003A && code <= 0x0040) ||
-        (code >= 0x005B && code <= 0x0060) ||
-        (code >= 0x007B && code <= 0x007E) ||
-        (code >= 0x2000 && code <= 0x206F) ||
-        (code >= 0x3000 && code <= 0x303F) ||
+        (code >= 0xAC00 && code <= 0xD7AF) || (code >= 0x3131 && code <= 0x318E) ||
+        (code >= 0x0041 && code <= 0x005A) || (code >= 0x0061 && code <= 0x007A) ||
+        (code >= 0x0030 && code <= 0x0039) || (code >= 0x0020 && code <= 0x007E) ||
+        (code >= 0x2000 && code <= 0x206F) || (code >= 0x3000 && code <= 0x303F) ||
         (code >= 0xFF01 && code <= 0xFF5E)
       ) normalCount++
     }
@@ -104,13 +108,12 @@ export default function UploadPage() {
       if (
         (code >= 0xE000 && code <= 0xF8FF) ||
         (code < 0x0020 && code !== 0x0009 && code !== 0x000A && code !== 0x000D) ||
-        code === 0xFFFD ||
-        (code >= 0x2400 && code <= 0x243F)
+        code === 0xFFFD || (code >= 0x2400 && code <= 0x243F)
       ) brokenCount++
     }
     if (brokenCount / cleaned.length > 0.3) return true
     if (/[□▯○◻◼■▪▫]{3,}/.test(cleaned)) return true
-    if (/^[\d\s.,-]+$/.test(cleaned) && cleaned.length > 50) return true
+    if (/^[\d$&*%#@!^+=\/\\|<>.,;:'"(){}\[\]\-_~`]{8,}$/.test(cleaned)) return true
     return false
   }
 
