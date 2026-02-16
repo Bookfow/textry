@@ -403,10 +403,10 @@ export default function PDFViewer({
 
     const step = viewMode === 'book' ? 2 : 1
     const clickX = e.clientX - rect.left
-    const threshold = viewMode === 'book' ? 0.3 : 0.33
+    const center = rect.width / 2
 
-    if (clickX < rect.width * threshold) onPageChange(Math.max(pageNumber - step, 1), numPages)
-    else if (clickX > rect.width * (1 - threshold)) onPageChange(Math.min(pageNumber + step, numPages), numPages)
+    if (clickX < center) onPageChange(Math.max(pageNumber - step, 1), numPages)
+    else onPageChange(Math.min(pageNumber + step, numPages), numPages)
   }
 
   const renderWidth = fitWidth * scale
