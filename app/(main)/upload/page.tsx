@@ -301,46 +301,73 @@ export default function UploadPage() {
       if (isPdf && pdfDoc && docData?.id) {
         try {
           setProgressMessage('텍스트 추출 중...')
-          const batchSize = 10 // 10페이지씩 배치 저장
-          const rows: { document_id: string; page_number: number; text_content: string }[] = []
 
-          for (let i = 1; i <= pageCount; i++) {
+          // ★ 스캔 PDF 사전 감지: 처음 3페이지 operatorList 체크
+          let scanPageCount = 0
+          const checkPages = Math.min(3, pageCount)
+          for (let i = 1; i <= checkPages; i++) {
             try {
               const page = await pdfDoc.getPage(i)
-              const textContent = await page.getTextContent()
-
-              // ★ 고품질 추출: 폰트 크기 + Y좌표 기반 블록 분류 + 깨진 텍스트 필터링
-              const items = textContent.items as any[]
-              const text = extractPageText(items)
-
-              rows.push({
-                document_id: docData.id,
-                page_number: i,
-                text_content: text
-              })
-
-              // 배치 저장 (10페이지마다 또는 마지막 페이지)
-              if (rows.length >= batchSize || i === pageCount) {
-                const { error: textError } = await supabase
-                  .from('document_pages_text')
-                  .insert(rows)
-
-                if (textError) {
-                  console.warn(`텍스트 저장 실패 (${i}p):`, textError)
-                }
-                rows.length = 0 // 배치 초기화
+              const ops = await page.getOperatorList()
+              let hasImage = false
+              let textOpCount = 0
+              for (let j = 0; j < ops.fnArray.length; j++) {
+                const fn = ops.fnArray[j]
+                if (fn === 85 || fn === 82) hasImage = true
+                if (fn === 44 || fn === 45) textOpCount++
               }
+              if (hasImage && textOpCount < 5) scanPageCount++
+            } catch {}
+          }
 
-              // 진행률 (70~95 구간)
-              const textProgress = 70 + Math.round((i / pageCount) * 25)
-              setProgress(textProgress)
-              setProgressMessage(`텍스트 추출 중... ${i}/${pageCount}`)
-            } catch (pageErr) {
-              console.warn(`${i}페이지 텍스트 추출 실패:`, pageErr)
+          const isScannedPdf = scanPageCount >= checkPages
+
+          if (isScannedPdf) {
+            // 스캔 PDF: 빈 텍스트로 저장 (추출 건너뜀)
+            const rows: { document_id: string; page_number: number; text_content: string }[] = []
+            for (let i = 1; i <= pageCount; i++) {
+              rows.push({ document_id: docData.id, page_number: i, text_content: `(${i}페이지: 스캔 이미지)` })
+              if (rows.length >= 50 || i === pageCount) {
+                await supabase.from('document_pages_text').insert(rows).catch(() => {})
+                rows.length = 0
+              }
+            }
+            setProgressMessage('스캔 PDF 감지 (텍스트 추출 불가)')
+          } else {
+            // 일반 PDF: 정상 텍스트 추출
+            const batchSize = 10
+            const rows: { document_id: string; page_number: number; text_content: string }[] = []
+
+            for (let i = 1; i <= pageCount; i++) {
+              try {
+                const page = await pdfDoc.getPage(i)
+                const textContent = await page.getTextContent()
+                const items = textContent.items as any[]
+                const text = extractPageText(items)
+
+                rows.push({
+                  document_id: docData.id,
+                  page_number: i,
+                  text_content: text
+                })
+
+                if (rows.length >= batchSize || i === pageCount) {
+                  const { error: textError } = await supabase
+                    .from('document_pages_text')
+                    .insert(rows)
+                  if (textError) console.warn(`텍스트 저장 실패 (${i}p):`, textError)
+                  rows.length = 0
+                }
+
+                const textProgress = 70 + Math.round((i / pageCount) * 25)
+                setProgress(textProgress)
+                setProgressMessage(`텍스트 추출 중... ${i}/${pageCount}`)
+              } catch (pageErr) {
+                console.warn(`${i}페이지 텍스트 추출 실패:`, pageErr)
+              }
             }
           }
         } catch (extractErr) {
-          // 텍스트 추출 실패해도 업로드 자체는 성공으로 처리
           console.warn('텍스트 추출 전체 실패:', extractErr)
         }
       }

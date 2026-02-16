@@ -335,7 +335,14 @@ export default function ReflowViewer({
               let emptyCount = 0
               for (const [, t] of texts) {
                 const cleaned = t.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
-                if (cleaned.length < 10) emptyCount++
+                if (cleaned.length < 10) { emptyCount++; continue }
+                let mc = 0
+                for (let i = 0; i < cleaned.length; i++) {
+                  const c = cleaned.charCodeAt(i)
+                  if ((c >= 0xAC00 && c <= 0xD7AF) || (c >= 0x3131 && c <= 0x318E) ||
+                      (c >= 0x0041 && c <= 0x005A) || (c >= 0x0061 && c <= 0x007A)) mc++
+                }
+                if (cleaned.length < 20 && mc < 5) emptyCount++
               }
               if (total > 0 && emptyCount / total > 0.5) setUnsupported(true)
             }
@@ -360,6 +367,41 @@ export default function ReflowViewer({
         setNumPages(total)
         if (onDocumentLoad) onDocumentLoad(total)
 
+        // ★ 스캔 PDF 사전 감지: 처음 3페이지의 operatorList 체크
+        let scanPageCount = 0
+        const checkPages = Math.min(3, total)
+        for (let i = 1; i <= checkPages; i++) {
+          if (cancelled) return
+          const page = await pdf.getPage(i)
+          const ops = await page.getOperatorList()
+          let hasImage = false
+          let textOpCount = 0
+          for (let j = 0; j < ops.fnArray.length; j++) {
+            const fn = ops.fnArray[j]
+            // paintImageXObject = 85, paintJpegXObject = 82
+            if (fn === 85 || fn === 82) hasImage = true
+            // showText = 44, showSpacedText = 45
+            if (fn === 44 || fn === 45) textOpCount++
+          }
+          if (hasImage && textOpCount < 5) scanPageCount++
+        }
+
+        if (scanPageCount >= checkPages) {
+          // 거의 모든 체크 페이지가 이미지만 → 스캔 PDF
+          if (!cancelled) {
+            const texts = new Map<number, string>()
+            for (let i = 1; i <= total; i++) {
+              texts.set(i, `(${i}페이지: 스캔 이미지)`)
+            }
+            setPageTexts(texts)
+            setNumPages(total)
+            setExtracting(false)
+            setExtractProgress(100)
+            setUnsupported(true)
+          }
+          return
+        }
+
         const texts = new Map<number, string>()
 
         for (let i = 1; i <= total; i++) {
@@ -379,7 +421,14 @@ export default function ReflowViewer({
           let emptyCount = 0
           for (const [, t] of texts) {
             const cleaned = t.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
-            if (cleaned.length < 10) emptyCount++
+            if (cleaned.length < 10) { emptyCount++; continue }
+            let mc = 0
+            for (let i = 0; i < cleaned.length; i++) {
+              const c = cleaned.charCodeAt(i)
+              if ((c >= 0xAC00 && c <= 0xD7AF) || (c >= 0x3131 && c <= 0x318E) ||
+                  (c >= 0x0041 && c <= 0x005A) || (c >= 0x0061 && c <= 0x007A)) mc++
+            }
+            if (cleaned.length < 20 && mc < 5) emptyCount++
           }
           if (total > 0 && emptyCount / total > 0.5) setUnsupported(true)
         }
@@ -398,7 +447,24 @@ export default function ReflowViewer({
   const isCurrentPageBroken = (() => {
     const raw = pageTexts.get(pageNumber) || ''
     const cleaned = raw.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
-    return cleaned.length < 5 && currentBlocks.length === 0
+    // 텍스트가 거의 없으면 깨진 페이지
+    if (cleaned.length < 5) return true
+    // 블록이 있어도 전체 의미 있는 텍스트(한글+영문)가 너무 적으면 깨진 페이지
+    const allText = currentBlocks
+      .filter(b => b.type !== 'separator')
+      .map(b => b.content)
+      .join('')
+      .replace(/\s/g, '')
+    let meaningfulCount = 0
+    for (let i = 0; i < allText.length; i++) {
+      const code = allText.charCodeAt(i)
+      if ((code >= 0xAC00 && code <= 0xD7AF) || (code >= 0x3131 && code <= 0x318E) ||
+          (code >= 0x0041 && code <= 0x005A) || (code >= 0x0061 && code <= 0x007A)) {
+        meaningfulCount++
+      }
+    }
+    if (allText.length > 0 && allText.length < 20 && meaningfulCount < 5) return true
+    return false
   })()
 
   // ━━━ TTS: 블록 순차 읽기 (ref 기반으로 최신 상태 참조) ━━━
