@@ -419,6 +419,13 @@ export default function ReflowViewer({
 
   const currentBlocks = deserializeBlocks(pageTexts.get(pageNumber) || '')
 
+  // ★ 현재 페이지가 깨진지 판단
+  const isCurrentPageBroken = (() => {
+    const raw = pageTexts.get(pageNumber) || ''
+    const cleaned = raw.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
+    return cleaned.length < 5 && currentBlocks.length === 0
+  })()
+
   const goToPrev = useCallback(() => {
     if (pageNumber > 1 && onPageChange) onPageChange(pageNumber - 1, numPages)
   }, [pageNumber, numPages, onPageChange])
@@ -578,7 +585,7 @@ export default function ReflowViewer({
             </span>
           </div>
 
-          {/* ━━━ 리플로우 미지원 안내 ━━━ */}
+          {/* ━━━ 전체 문서 리플로우 미지원 안내 ━━━ */}
           {unsupported && (
             <div className="mb-6 rounded-xl p-5 text-center" style={{
               backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
@@ -608,14 +615,38 @@ export default function ReflowViewer({
             </div>
           )}
 
+          {/* ━━━ 현재 페이지 텍스트 없음 안내 ━━━ */}
+          {isCurrentPageBroken && !unsupported && (
+            <div className="mb-6 rounded-lg p-4 text-center" style={{
+              backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
+              border: `1px solid ${theme === 'dark' ? '#2d2d50' : theme === 'sepia' ? '#d4c5a9' : '#d0d8f0'}`,
+            }}>
+              <p className="text-sm mb-2" style={{ color: themeStyle.muted }}>
+                이 페이지는 텍스트를 추출할 수 없습니다
+              </p>
+              <p className="text-xs mb-3" style={{ color: themeStyle.muted }}>
+                이미지, 장식 폰트 등이 포함된 페이지입니다.
+              </p>
+              {onSwitchToPdf && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onSwitchToPdf() }}
+                  className="px-4 py-2 rounded-lg text-xs font-medium text-white transition-colors"
+                  style={{ backgroundColor: '#3b82f6' }}
+                >
+                  PDF 뷰어로 전환
+                </button>
+              )}
+            </div>
+          )}
+
           <div>
             {currentBlocks.length > 0 ? (
               currentBlocks.map((block, i) => renderBlock(block, i))
-            ) : (
+            ) : !isCurrentPageBroken ? (
               <p className="text-center py-8" style={{ color: themeStyle.muted }}>
                 (이 페이지에 추출 가능한 텍스트가 없습니다)
               </p>
-            )}
+            ) : null}
           </div>
 
           <div className="mt-8 pt-4 border-t flex items-center justify-between" style={{ borderColor: themeStyle.border }}>
