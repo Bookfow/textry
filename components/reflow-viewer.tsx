@@ -742,7 +742,7 @@ export default function ReflowViewer({
 
       {/* ━━━ TTS 플레이어 바 ━━━ */}
       {ttsSupported && !unsupported && !isCurrentPageBroken && currentBlocks.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-2.5 border-t" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
+        <div className="flex items-center justify-center gap-4 px-4 py-2.5 border-t" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
           {/* 재생/일시정지/정지 */}
           <div className="flex items-center gap-2">
             <button
@@ -765,14 +765,14 @@ export default function ReflowViewer({
           </div>
 
           {/* 상태 표시 */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {ttsPlaying && (
-              <div className="flex items-center gap-1.5">
+              <>
                 <Volume2 className="w-3.5 h-3.5" style={{ color: '#3b82f6' }} />
                 <span className="text-xs" style={{ color: themeStyle.muted }}>
                   {ttsPaused ? '일시정지' : `읽는 중 ${ttsBlockIndex + 1}/${currentBlocks.filter(b => b.type !== 'separator').length}`}
                 </span>
-              </div>
+              </>
             )}
             {!ttsPlaying && (
               <span className="text-xs" style={{ color: themeStyle.muted }}>듣기</span>
@@ -786,7 +786,6 @@ export default function ReflowViewer({
               e.stopPropagation()
               const newRate = Number(e.target.value)
               setTtsRate(newRate)
-              // 재생 중이면 재시작
               if (ttsPlaying) {
                 window.speechSynthesis.cancel()
                 setTimeout(() => speakBlock(currentBlocks, ttsBlockIndex >= 0 ? ttsBlockIndex : 0), 100)
