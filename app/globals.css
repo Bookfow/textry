@@ -263,3 +263,7 @@ a *,
   -webkit-user-select: none !important;
   user-select: none !important;
 }
+/* 이미지 long-press 다운로드/공유/인쇄 메뉴 차단 */
+img {
+  pointer-events: none !important;
+}
