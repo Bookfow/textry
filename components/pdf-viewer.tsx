@@ -379,7 +379,7 @@ export default function PDFViewer({
   const pageHeight = renderWidth * pageAspect
 
   return (
-    <div ref={containerRef} className="h-full w-full flex flex-col">
+    <div ref={containerRef} className="h-full w-full flex flex-col" style={{ overscrollBehavior: 'none' }}>
       <div className="flex-1 relative overflow-hidden">
 
         {/* ━━━ 투명 터치 오버레이 ━━━ */}
@@ -395,12 +395,23 @@ export default function PDFViewer({
 
         {/* 페이지 모드 */}
         {viewMode === 'page' && (
-          <div className="h-full flex items-center justify-center overflow-auto"
-            style={{ touchAction: scale > 1.05 ? 'pan-x pan-y' : 'none' }}
+          <div className="h-full overflow-auto"
+            style={{
+              touchAction: scale > 1.05 ? 'pan-x pan-y' : 'none',
+              overscrollBehavior: 'none',
+            }}
           >
-            <div ref={pdfContentRef} className="transition-transform duration-200 ease-out"
-              style={{ transform: `translateX(${swipeOffset}px)` }}
-            >
+            <div style={{
+              minHeight: '100%',
+              minWidth: '100%',
+              display: 'flex',
+              alignItems: scale > 1.05 ? 'flex-start' : 'center',
+              justifyContent: scale > 1.05 ? 'flex-start' : 'center',
+              padding: scale > 1.05 ? '20px' : '0',
+            }}>
+              <div ref={pdfContentRef} className="transition-transform duration-200 ease-out"
+                style={{ transform: `translateX(${swipeOffset}px)`, flexShrink: 0 }}
+              >
               {pdfLoading && (
                 <div className="flex items-center justify-center p-12">
                   <div className="text-center">
@@ -423,6 +434,7 @@ export default function PDFViewer({
                   <Page pageNumber={pageNumber} width={renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
                 </div>
               </PDFDocument>
+            </div>
             </div>
 
             {numPages > 1 && (
@@ -454,12 +466,23 @@ export default function PDFViewer({
 
         {/* 책 모드 */}
         {viewMode === 'book' && (
-          <div className="h-full flex items-center justify-center overflow-auto"
-            style={{ touchAction: scale > 1.05 ? 'pan-x pan-y' : 'none' }}
+          <div className="h-full overflow-auto"
+            style={{
+              touchAction: scale > 1.05 ? 'pan-x pan-y' : 'none',
+              overscrollBehavior: 'none',
+            }}
           >
-            <div ref={viewMode === 'book' ? pdfContentRef : undefined} className="transition-transform duration-200 ease-out"
-              style={{ transform: `translateX(${swipeOffset}px)` }}
-            >
+            <div style={{
+              minHeight: '100%',
+              minWidth: '100%',
+              display: 'flex',
+              alignItems: scale > 1.05 ? 'flex-start' : 'center',
+              justifyContent: scale > 1.05 ? 'flex-start' : 'center',
+              padding: scale > 1.05 ? '20px' : '0',
+            }}>
+              <div ref={viewMode === 'book' ? pdfContentRef : undefined} className="transition-transform duration-200 ease-out"
+                style={{ transform: `translateX(${swipeOffset}px)`, flexShrink: 0 }}
+              >
               {pdfLoading && (
                 <div className="flex items-center justify-center p-12">
                   <div className="text-center">
@@ -511,6 +534,7 @@ export default function PDFViewer({
                   )
                 })()}
               </PDFDocument>
+            </div>
             </div>
 
             {numPages > 1 && (
