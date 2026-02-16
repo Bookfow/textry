@@ -38,6 +38,32 @@ function isBrokenText(text: string): boolean {
   const cleaned = text.replace(/\s/g, '')
   if (cleaned.length === 0) return true
 
+  // 정상 문자: 한글(가-힣, ㄱ-ㅎ, ㅏ-ㅣ), 영문, 숫자, 일반 문장부호
+  let normalCount = 0
+  for (let i = 0; i < cleaned.length; i++) {
+    const code = cleaned.charCodeAt(i)
+    if (
+      (code >= 0xAC00 && code <= 0xD7AF) ||  // 한글 음절
+      (code >= 0x3131 && code <= 0x318E) ||  // 한글 자모
+      (code >= 0x0041 && code <= 0x005A) ||  // A-Z
+      (code >= 0x0061 && code <= 0x007A) ||  // a-z
+      (code >= 0x0030 && code <= 0x0039) ||  // 0-9
+      (code >= 0x0020 && code <= 0x002F) ||  // 공백, !, ", #, $, %, &, ', (, ), *, +, ,, -, ., /
+      (code >= 0x003A && code <= 0x0040) ||  // :, ;, <, =, >, ?, @
+      (code >= 0x005B && code <= 0x0060) ||  // [, \, ], ^, _, `
+      (code >= 0x007B && code <= 0x007E) ||  // {, |, }, ~
+      (code >= 0x2000 && code <= 0x206F) ||  // 일반 구두점
+      (code >= 0x3000 && code <= 0x303F) ||  // CJK 구두점 (。、「」 등)
+      (code >= 0xFF01 && code <= 0xFF5E)     // 전각 영숫자/문장부호
+    ) {
+      normalCount++
+    }
+  }
+
+  // 정상 문자가 40% 미만이면 깨진 텍스트
+  if (cleaned.length >= 5 && normalCount / cleaned.length < 0.4) return true
+
+  // 기존 체크도 유지
   let brokenCount = 0
   for (let i = 0; i < cleaned.length; i++) {
     const code = cleaned.charCodeAt(i)

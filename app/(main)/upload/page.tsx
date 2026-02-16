@@ -76,6 +76,28 @@ export default function UploadPage() {
     if (!text || text.trim().length === 0) return true
     const cleaned = text.replace(/\s/g, '')
     if (cleaned.length === 0) return true
+
+    // 정상 문자 비율 체크
+    let normalCount = 0
+    for (let i = 0; i < cleaned.length; i++) {
+      const code = cleaned.charCodeAt(i)
+      if (
+        (code >= 0xAC00 && code <= 0xD7AF) ||
+        (code >= 0x3131 && code <= 0x318E) ||
+        (code >= 0x0041 && code <= 0x005A) ||
+        (code >= 0x0061 && code <= 0x007A) ||
+        (code >= 0x0030 && code <= 0x0039) ||
+        (code >= 0x0020 && code <= 0x002F) ||
+        (code >= 0x003A && code <= 0x0040) ||
+        (code >= 0x005B && code <= 0x0060) ||
+        (code >= 0x007B && code <= 0x007E) ||
+        (code >= 0x2000 && code <= 0x206F) ||
+        (code >= 0x3000 && code <= 0x303F) ||
+        (code >= 0xFF01 && code <= 0xFF5E)
+      ) normalCount++
+    }
+    if (cleaned.length >= 5 && normalCount / cleaned.length < 0.4) return true
+
     let brokenCount = 0
     for (let i = 0; i < cleaned.length; i++) {
       const code = cleaned.charCodeAt(i)
