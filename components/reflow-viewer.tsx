@@ -306,7 +306,6 @@ export default function ReflowViewer({
                 style={{
                   backgroundColor: THEMES[t].bg,
                   borderColor: THEMES[t].border,
-                  ringOffsetColor: themeStyle.pageBg,
                 }}
                 title={t === 'light' ? '밝은' : t === 'sepia' ? '세피아' : '어두운'}
               />
