@@ -302,7 +302,6 @@ export default function AuthorPage() {
             <div className="flex-1 min-w-0">
               {/* 이름 줄 */}
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate">{author.username || author.email}</h1>
                 {isEditing ? (
                   <input value={editUsername} onChange={e => setEditUsername(e.target.value)} className="text-xl md:text-2xl font-bold bg-transparent border-b-2 border-[#B2967D] outline-none text-[#2D2016] dark:text-[#EEE4E1] w-full max-w-[200px]" />
                 ) : (
@@ -409,7 +408,6 @@ export default function AuthorPage() {
         </div>
       </div>
 
-      {/* ━━━ 탭 ━━━ */}
       {/* ━━━ 탭 ━━━ */}
       <div className="px-4 md:px-6 lg:px-8 sticky top-0 z-20 bg-gray-50/80 dark:bg-gray-950/80 backdrop-blur-sm">
         <div className="max-w-[1400px] mx-auto">
