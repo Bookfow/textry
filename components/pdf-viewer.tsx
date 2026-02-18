@@ -27,7 +27,82 @@ interface PDFViewerProps {
   onScaleChange?: (scale: number) => void
 }
 
-const VIRTUALIZATION_BUFFER = 3
+// ━━━ Lazy 페이지 컴포넌트 (IntersectionObserver) ━━━
+function LazyPage({ pageNum, width, height, frameStyle, frameStyleDark }: {
+  pageNum: number; width: number; height: number;
+  frameStyle: React.CSSProperties; frameStyleDark: React.CSSProperties
+}) {
+  const [isVisible, setIsVisible] = useState(false)
+  const [hasLoaded, setHasLoaded] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          setHasLoaded(true)
+        } else if (hasLoaded) {
+          const rect = entry.boundingClientRect
+          const rootRect = entry.rootBounds
+          if (rootRect) {
+            const distance = Math.abs(rect.top - rootRect.top)
+            if (distance > rootRect.height * 3) {
+              setIsVisible(false)
+            }
+          }
+        }
+      },
+      { rootMargin: '200% 0px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasLoaded])
+
+  return (
+    <div ref={ref} data-page-number={pageNum}>
+      {isVisible ? (
+        <>
+          <div className="dark:hidden" style={frameStyle}>
+            <Page
+              pageNumber={pageNum}
+              width={width}
+              renderTextLayer={true}
+              renderAnnotationLayer={true}
+              loading={
+                <div className="flex items-center justify-center bg-gray-100"
+                  style={{ width, height }}>
+                  <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin" />
+                </div>
+              }
+            />
+          </div>
+          <div className="hidden dark:block" style={frameStyleDark}>
+            <Page
+              pageNumber={pageNum}
+              width={width}
+              renderTextLayer={true}
+              renderAnnotationLayer={true}
+              loading={
+                <div className="flex items-center justify-center bg-gray-900"
+                  style={{ width, height }}>
+                  <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin" />
+                </div>
+              }
+            />
+          </div>
+        </>
+      ) : (
+        <div style={{ width: width + 24, height: height + 24 }}
+          className="bg-[#EEE4E1]/30 dark:bg-[#2E2620]/30 rounded-sm flex items-center justify-center">
+          <span className="text-xs text-[#9C8B7A]">{pageNum}</span>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function PDFViewer({
   pdfUrl,
@@ -45,7 +120,6 @@ export default function PDFViewer({
   const [pageAspect, setPageAspect] = useState<number>(1.414)
   const [swipeOffset, setSwipeOffset] = useState(0)
 
-  // ━━━ 핀치줌 + 스와이프 + 패닝 (전부 ref) ━━━
   const pinchStartDistRef = useRef<number | null>(null)
   const pinchStartScaleRef = useRef<number>(1)
   const isPinchingRef = useRef(false)
@@ -53,15 +127,12 @@ export default function PDFViewer({
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
 
-  // 확대 패닝용
   const isPanningRef = useRef(false)
   const panStartRef = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null)
   const panTranslateRef = useRef({ x: 0, y: 0 })
 
-  // PDF 콘텐츠 wrapper ref (DOM 직접 조작용)
   const pdfContentRef = useRef<HTMLDivElement>(null)
 
-  // 최신 props를 ref로 유지
   const scaleRef = useRef(scale)
   const viewModeRef = useRef(viewMode)
   const pageNumberRef = useRef(pageNumber)
@@ -76,25 +147,18 @@ export default function PDFViewer({
   useEffect(() => { onPageChangeRef.current = onPageChange }, [onPageChange])
   useEffect(() => { onScaleChangeRef.current = onScaleChange }, [onScaleChange])
 
-  // scale이 1로 돌아오면 pan 초기화
   useEffect(() => {
     if (scale <= 1.05) {
       panTranslateRef.current = { x: 0, y: 0 }
-      if (pdfContentRef.current) {
-        pdfContentRef.current.style.transform = ''
-      }
+      if (pdfContentRef.current) pdfContentRef.current.style.transform = ''
     }
   }, [scale])
 
-  // 페이지 변경 시 pan 초기화
   useEffect(() => {
     panTranslateRef.current = { x: 0, y: 0 }
-    if (pdfContentRef.current) {
-      pdfContentRef.current.style.transform = ''
-    }
+    if (pdfContentRef.current) pdfContentRef.current.style.transform = ''
   }, [pageNumber])
 
-  // ━━━ 스크롤 가상화 상태 ━━━
   const [scrollCurrentPage, setScrollCurrentPage] = useState(1)
 
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -170,7 +234,6 @@ export default function PDFViewer({
     }
   }
 
-  // ━━━ 터치 유틸 ━━━
   const getTouchDistance = (touches: TouchList) => {
     if (touches.length < 2) return 0
     const dx = touches[0].clientX - touches[1].clientX
@@ -180,7 +243,6 @@ export default function PDFViewer({
 
   const minSwipeDistance = 50
 
-  // ━━━ DOM 직접 조작으로 핀치줌 + 패닝 ━━━
   const applyPinchTransform = (ratio: number) => {
     if (pdfContentRef.current) {
       pdfContentRef.current.style.transform = `scale(${ratio})`
@@ -210,7 +272,6 @@ export default function PDFViewer({
     if (!overlay) return
 
     const handleTouchStart = (e: TouchEvent) => {
-      // 2손가락: 핀치줌
       if (e.touches.length === 2) {
         e.preventDefault()
         e.stopPropagation()
@@ -224,33 +285,26 @@ export default function PDFViewer({
         return
       }
 
-      // 1손가락
       if (scaleRef.current > 1.05) {
-        // 확대 상태: 패닝 시작
         e.preventDefault()
         isPanningRef.current = true
         panStartRef.current = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY,
-          tx: panTranslateRef.current.x,
-          ty: panTranslateRef.current.y,
+          x: e.touches[0].clientX, y: e.touches[0].clientY,
+          tx: panTranslateRef.current.x, ty: panTranslateRef.current.y,
         }
         return
       }
 
-      // 원본 크기: 스와이프
       if (viewModeRef.current === 'scroll') return
       touchEndRef.current = null
       touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
     }
 
     const handleTouchMove = (e: TouchEvent) => {
-      // 핀치줌
       if (e.touches.length === 2) {
         e.preventDefault()
         e.stopPropagation()
         isPanningRef.current = false
-
         if (!isPinchingRef.current) {
           const dist = getTouchDistance(e.touches)
           pinchStartDistRef.current = dist
@@ -262,7 +316,6 @@ export default function PDFViewer({
           touchEndRef.current = null
           return
         }
-
         if (pinchStartDistRef.current !== null) {
           const currentDist = getTouchDistance(e.touches)
           const ratio = currentDist / pinchStartDistRef.current
@@ -272,7 +325,6 @@ export default function PDFViewer({
         return
       }
 
-      // 확대 패닝
       if (isPanningRef.current && panStartRef.current) {
         e.preventDefault()
         const dx = e.touches[0].clientX - panStartRef.current.x
@@ -284,7 +336,6 @@ export default function PDFViewer({
         return
       }
 
-      // 스와이프
       const ts = touchStartRef.current
       if (!ts || viewModeRef.current === 'scroll') return
       const currentX = e.touches[0].clientX
@@ -293,7 +344,6 @@ export default function PDFViewer({
     }
 
     const handleTouchEnd = () => {
-      // 핀치줌 종료
       if (isPinchingRef.current) {
         clearPinchTransform()
         const finalScale = Math.min(Math.max(pinchStartScaleRef.current * pinchRatioRef.current, 0.5), 3.0)
@@ -301,20 +351,16 @@ export default function PDFViewer({
         pinchStartDistRef.current = null
         isPinchingRef.current = false
         pinchRatioRef.current = 1
-        // 핀치 후 pan 초기화
         panTranslateRef.current = { x: 0, y: 0 }
         return
       }
 
-      // 패닝 종료
       if (isPanningRef.current) {
         isPanningRef.current = false
         panStartRef.current = null
-        // panTranslateRef는 유지 (현재 위치 기억)
         return
       }
 
-      // 스와이프 종료
       const ts = touchStartRef.current
       const te = touchEndRef.current
       if (!ts || !te || viewModeRef.current === 'scroll') {
@@ -346,7 +392,7 @@ export default function PDFViewer({
     }
   }, [])
 
-  // ━━━ 확대 상태에서 오버레이 밖 핀치줌 보조 (containerRef 캡처) ━━━
+  // ━━━ 확대 상태에서 오버레이 밖 핀치줌 보조 ━━━
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -396,15 +442,12 @@ export default function PDFViewer({
 
   const handlePageAreaClick = (e: React.MouseEvent) => {
     if (viewMode === 'scroll' || !onPageChange) return
-    // 확대 시 클릭으로 페이지 넘기지 않음
     if (scale > 1.05) return
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
-
     const step = viewMode === 'book' ? 2 : 1
     const clickX = e.clientX - rect.left
     const center = rect.width / 2
-
     if (clickX < center) onPageChange(Math.max(pageNumber - step, 1), numPages)
     else onPageChange(Math.min(pageNumber + step, numPages), numPages)
   }
@@ -415,18 +458,8 @@ export default function PDFViewer({
     if (pageNumber === 1) return { left: 1, right: null }
     const leftPage = pageNumber % 2 === 0 ? pageNumber : pageNumber - 1
     const rightPage = leftPage + 1
-    return {
-      left: leftPage,
-      right: rightPage <= numPages ? rightPage : null,
-    }
+    return { left: leftPage, right: rightPage <= numPages ? rightPage : null }
   }
-
-  const visiblePages = useMemo(() => {
-    if (viewMode !== 'scroll') return []
-    const start = Math.max(1, scrollCurrentPage - VIRTUALIZATION_BUFFER)
-    const end = Math.min(numPages, scrollCurrentPage + VIRTUALIZATION_BUFFER)
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i)
-  }, [viewMode, scrollCurrentPage, numPages])
 
   const frameStyle: React.CSSProperties = {
     borderWidth: '12px',
@@ -602,7 +635,7 @@ export default function PDFViewer({
           </div>
         )}
 
-        {/* 스크롤 모드 */}
+        {/* 스크롤 모드 (IntersectionObserver lazy load) */}
         {viewMode === 'scroll' && (
           <div ref={scrollContainerRef} className="h-full overflow-y-auto" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
             <div className="py-4 flex flex-col items-center gap-4">
@@ -614,36 +647,14 @@ export default function PDFViewer({
                 options={pdfOptions}
               >
                 {Array.from({ length: numPages }, (_, index) => (
-                  <div key={`page_${index + 1}`} data-page-number={index + 1}>
-                    <div className="dark:hidden" style={frameStyle}>
-                      <Page
-                        pageNumber={index + 1}
-                        width={renderWidth}
-                        renderTextLayer={true}
-                        renderAnnotationLayer={true}
-                        loading={
-                          <div className="flex items-center justify-center bg-gray-100"
-                            style={{ width: renderWidth, height: pageHeight }}>
-                            <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin" />
-                          </div>
-                        }
-                      />
-                    </div>
-                    <div className="hidden dark:block" style={frameStyleDark}>
-                      <Page
-                        pageNumber={index + 1}
-                        width={renderWidth}
-                        renderTextLayer={true}
-                        renderAnnotationLayer={true}
-                        loading={
-                          <div className="flex items-center justify-center bg-gray-900"
-                            style={{ width: renderWidth, height: pageHeight }}>
-                            <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin" />
-                          </div>
-                        }
-                      />
-                    </div>
-                  </div>
+                  <LazyPage
+                    key={`page_${index + 1}`}
+                    pageNum={index + 1}
+                    width={renderWidth}
+                    height={pageHeight}
+                    frameStyle={frameStyle}
+                    frameStyleDark={frameStyleDark}
+                  />
                 ))}
               </PDFDocument>
             </div>
