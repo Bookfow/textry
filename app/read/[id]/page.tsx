@@ -754,7 +754,7 @@ useEffect(() => {
             ))}
           </div>
           <p className="text-xs text-[#9C8B7A] mb-2 font-medium">밝기 {brightness}%</p>
-          <input type="range" min={30} max={150} value={brightness} onChange={(e) => setBrightness(Number(e.target.value))}
+          <input type="range" min={50} max={150} value={brightness} onChange={(e) => setBrightness(Number(e.target.value))}
             className="w-full h-1.5 bg-[#2E2620] rounded-full appearance-none cursor-pointer accent-[#B2967D]" />
           <div className="flex justify-between text-[10px] text-[#9C8B7A] mt-1">
             <span>어둡게</span>
@@ -762,7 +762,7 @@ useEffect(() => {
             <span>밝게</span>
           </div>
           <p className="text-xs text-[#9C8B7A] mb-2 mt-4 font-medium">선명도 {contrast}%</p>
-          <input type="range" min={50} max={200} value={contrast} onChange={(e) => setContrast(Number(e.target.value))}
+          <input type="range" min={50} max={150} value={contrast} onChange={(e) => setContrast(Number(e.target.value))}
             className="w-full h-1.5 bg-[#2E2620] rounded-full appearance-none cursor-pointer accent-[#B2967D]" />
           <div className="flex justify-between text-[10px] text-[#9C8B7A] mt-1">
             <span>흐리게</span>
