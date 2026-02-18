@@ -50,6 +50,7 @@ export default function LandingPage() {
         </div>
       </header>
 
+      {/* ━━━ 히어로 ━━━ */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-[#7a5a30] via-[#c9a96e] to-[#7a5a30] dark:from-[#c9a96e] dark:via-[#f0d58c] dark:to-[#c9a96e] bg-clip-text text-transparent">
@@ -73,6 +74,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ━━━ 왜 Textry인가요? ━━━ */}
       <section className="container mx-auto px-4 py-20">
         <h3 className="text-3xl font-bold text-center mb-12 text-[#2D2016] dark:text-[#EEE4E1]">왜 Textry인가요?</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -107,8 +109,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ━━━ 기능 소개 + 목업 ━━━ */}
       <section className="bg-[#EEE4E1]/50 dark:bg-[#1A1410] py-20">
         <div className="container mx-auto px-4">
+
+          {/* 리더 목업 + 설명 */}
           <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div>
               <h3 className="text-3xl font-bold mb-4 text-[#2D2016] dark:text-[#EEE4E1]">유튜브처럼 쉬운 문서 스트리밍 플랫폼</h3>
@@ -149,6 +154,7 @@ export default function LandingPage() {
                 <div className="h-0.5 bg-[#2E2620]">
                   <div className="h-full w-[15%] bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] rounded-r" />
                 </div>
+                {/* 페이지 본문 */}
                 <div className="p-5 min-h-[200px] bg-[#faf6f0]">
                   <h3 className="text-[13px] font-bold text-[#2D2016] mb-3 leading-tight">Chapter 3. 첫 번째 문서 업로드하기</h3>
                   <div className="space-y-2 text-[10px] text-[#5C4A38] leading-relaxed">
@@ -181,9 +187,10 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+          </div>
 
+          {/* 대시보드 목업 + 설명 */}
           <div className="grid md:grid-cols-2 gap-12 items-center">
-
             {/* ━━━ 대시보드 목업 ━━━ */}
             <div className="bg-gradient-to-br from-[#EEE4E1] to-[#E7D8C9] dark:from-[#2E2620] dark:to-[#3A302A] rounded-2xl p-4 shadow-xl overflow-hidden order-2 md:order-1">
               <div className="bg-white dark:bg-[#241E18] rounded-xl overflow-hidden shadow-2xl">
@@ -265,10 +272,11 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+
         </div>
-        </div>.
       </section>
 
+      {/* ━━━ CTA ━━━ */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-3xl mx-auto bg-gradient-to-r from-[#a67c52] to-[#c9a96e] rounded-2xl p-12 text-white">
           <h3 className="text-3xl font-bold mb-4">지금 바로 시작하세요</h3>
@@ -284,6 +292,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ━━━ 푸터 ━━━ */}
       <footer className="bg-[#2D2016] text-white py-12">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#c9a96e] via-[#f0d58c] to-[#c9a96e] bg-clip-text text-transparent" style={{WebkitTextStroke: '0.3px #daa520', paintOrder: 'stroke fill', letterSpacing: '1px'}}>
