@@ -67,6 +67,7 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#B2967D" />
+        <link rel="stylesheet" as="style" crossOrigin="anonymous" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
       </head>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-J9YDSY8L1R"
