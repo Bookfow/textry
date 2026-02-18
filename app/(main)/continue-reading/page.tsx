@@ -159,11 +159,16 @@ export default function ContinueReadingPage() {
 
   if (loading) {
     return (
-      <main className="max-w-6xl mx-auto px-4 md:px-6 py-8">
+      <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-48" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5].map(i => <div key={i} className="aspect-[3/4] bg-gray-200 rounded-xl" />)}
+          <div className="h-8 bg-[#EEE4E1] dark:bg-[#2E2620] rounded w-48" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="space-y-2">
+                <div className="aspect-[3/4] bg-[#EEE4E1] dark:bg-[#2E2620] rounded-xl" />
+                <div className="h-4 bg-[#EEE4E1] dark:bg-[#2E2620] rounded w-3/4" />
+              </div>
+            ))}
           </div>
         </div>
       </main>
@@ -171,30 +176,30 @@ export default function ContinueReadingPage() {
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-4 md:px-6 py-8">
+    <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-8">
       <div className="flex items-center gap-3 mb-6">
-        <BookOpen className="w-6 h-6 text-blue-600" />
-        <h1 className="text-2xl font-bold dark:text-white">읽고 있는 콘텐츠</h1>
-        <span className="text-sm text-gray-400 dark:text-gray-500">{docs.length}개</span>
+        <BookOpen className="w-6 h-6 text-[#B2967D]" />
+        <h1 className="text-2xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">읽고 있는 콘텐츠</h1>
+        <span className="text-sm text-[#9C8B7A]">{docs.length}개</span>
       </div>
 
       {docs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="relative mb-6">
-            <div className="absolute inset-0 -m-4 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20 rounded-full blur-xl opacity-60" />
-            <div className="relative w-20 h-20 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full flex items-center justify-center">
-              <BookOpen className="w-10 h-10 text-amber-500 dark:text-amber-400" />
+            <div className="absolute inset-0 -m-4 bg-gradient-to-br from-[#E6BEAE]/30 to-[#B2967D]/20 rounded-full blur-xl opacity-60" />
+            <div className="relative w-20 h-20 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full flex items-center justify-center">
+              <BookOpen className="w-10 h-10 text-[#B2967D]" />
             </div>
           </div>
-          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">아직 읽고 있는 문서가 없어요</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 text-center max-w-xs">문서를 읽기 시작하면 여기에 표시됩니다.<br />지금 새로운 문서를 발견해보세요!</p>
-          <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-xl transition-colors shadow-lg shadow-amber-500/20">
+          <p className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-2">아직 읽고 있는 문서가 없어요</p>
+          <p className="text-sm text-[#9C8B7A] mb-6 text-center max-w-xs">문서를 읽기 시작하면 여기에 표시됩니다.<br />지금 새로운 문서를 발견해보세요!</p>
+          <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#B2967D] hover:bg-[#a67c52] text-white text-sm font-medium rounded-full transition-colors shadow-lg shadow-[#B2967D]/20">
             <Compass className="w-4 h-4" />
             문서 둘러보기
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
           {docs.map(doc => {
             const progress = doc.page_count > 0 ? Math.round((doc.current_page / doc.page_count) * 100) : 0
             const isFav = favSet.has(doc.id)
@@ -203,58 +208,63 @@ export default function ContinueReadingPage() {
             return (
               <Link key={doc.id} href={`/read/${doc.id}`}>
                 <div className="group cursor-pointer transition-all duration-200 hover:-translate-y-1">
-                  <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2 shadow-sm ring-1 ring-black/[0.06] dark:ring-white/[0.08] group-hover:shadow-lg group-hover:shadow-black/10 dark:group-hover:shadow-black/30 transition-shadow duration-200">
+                  <div className="relative aspect-[3/4] bg-[#EEE4E1] dark:bg-[#2E2620] rounded-xl overflow-hidden mb-2 shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06] group-hover:shadow-lg transition-shadow duration-200">
                     {doc.thumbnail_url ? (
                       <Image src={doc.thumbnail_url} alt={doc.title} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-5xl opacity-20">📄</div>
+                        <BookOpen className="w-10 h-10 text-[#E7D8C9]" />
                       </div>
                     )}
+                    {/* 호버 설명 */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex flex-col justify-end">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 w-full">
-                        <p className="text-white text-[11px] leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                        <p className="text-white text-[11px] leading-relaxed line-clamp-3">
                           {doc.description || '설명이 없습니다'}
                         </p>
                       </div>
                     </div>
+                    {/* 찜/좋아요 */}
                     <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      <button
-                        onClick={(e) => toggleFav(e, doc.id)}
-                        className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${isFav ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                        title={isFav ? '찜 해제' : '찜하기'}
-                      >
+                      <button onClick={(e) => toggleFav(e, doc.id)}
+                        className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${isFav ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}>
                         <Heart className="w-4 h-4" fill={isFav ? 'currentColor' : 'none'} />
                       </button>
-                      <button
-                        onClick={(e) => toggleLike(e, doc.id)}
-                        className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${isLiked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                        title={isLiked ? '좋아요 취소' : '좋아요'}
-                      >
+                      <button onClick={(e) => toggleLike(e, doc.id)}
+                        className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${isLiked ? 'bg-[#B2967D] text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}>
                         <ThumbsUp className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} />
                       </button>
                     </div>
+                    {/* 카테고리 */}
                     <div className="absolute top-2 left-2">
                       <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
                         {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
                       </span>
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200/50">
-                      <div className="h-full bg-blue-500 transition-all" style={{ width: `${progress}%` }} />
+                    {/* ★ 진행률 바 (강화) */}
+                    <div className="absolute bottom-0 left-0 right-0">
+                      <div className="h-1.5 bg-black/20 backdrop-blur-sm">
+                        <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] transition-all" style={{ width: `${progress}%` }} />
+                      </div>
+                    </div>
+                    {/* ★ 진행률 배지 */}
+                    <div className="absolute bottom-3 right-2">
+                      <span className="px-2 py-0.5 bg-[#B2967D] text-white text-[10px] font-bold rounded-full shadow-sm">
+                        {progress}%
+                      </span>
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors dark:text-white">
+                    <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-1 group-hover:text-[#B2967D] transition-colors text-[#2D2016] dark:text-[#EEE4E1]">
                       {doc.title}
                     </h3>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mb-1">
+                    <p className="text-[11px] text-[#9C8B7A] truncate mb-1">
                       {doc.authorName}
                     </p>
-                    <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                    <div className="flex items-center gap-2 text-[11px] text-[#9C8B7A]">
                       <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{doc.view_count.toLocaleString()}</span>
                       <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{likes.toLocaleString()}</span>
-                      <span className="text-blue-600 font-medium ml-auto">{progress}%</span>
-                      <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{getTimeAgo(doc.last_read_at)}</span>
+                      <span className="flex items-center gap-0.5 ml-auto"><Clock className="w-3 h-3" />{getTimeAgo(doc.last_read_at)}</span>
                     </div>
                   </div>
                 </div>
