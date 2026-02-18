@@ -413,7 +413,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
                 placeholder="댓글을 입력하세요..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="flex-1 text-xs bg-[#EEE4E1] dark:bg-[#3A302A] border-[#E7D8C9] dark:border-[#4A3E34] text-[#2D2016] dark:text-[#EEE4E1] placeholder:text-[#9C8B7A] min-h-[60px] resize-none"
+                className="flex-1 text-xs bg-[#EEE4E1] dark:bg-[#4A3E34] border-[#E7D8C9] dark:border-[#5C4A38] text-[#2D2016] dark:text-[#EEE4E1] placeholder:text-[#9C8B7A] min-h-[60px] resize-none"
                 rows={2}
               />
               <button
