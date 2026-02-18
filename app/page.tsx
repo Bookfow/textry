@@ -181,11 +181,6 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-```
-
-수정 후 배포:
-```
-cd C:\Users\user\textry && git add . && git commit -m "feat: 랜딩 리더 목업을 실제 책 느낌으로 교체" && git push
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
 
