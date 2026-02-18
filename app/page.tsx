@@ -272,6 +272,7 @@ cd C:\Users\user\textry && git add . && git commit -m "feat: 랜딩 리더 목�
             </div>
           </div>
         </div>
+        </div>.
       </section>
 
       <section className="container mx-auto px-4 py-20 text-center">
