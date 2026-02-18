@@ -1,13 +1,12 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, Compass, Search, BookOpen, User } from 'lucide-react'
+import { Home, BookOpen, Upload, User } from 'lucide-react'
 
 const tabs = [
   { label: '홈', icon: Home, path: '/home' },
-  { label: '둘러보기', icon: Compass, path: '/browse' },
-  { label: '검색', icon: Search, path: '/browse?focus=search' },
   { label: '내 서재', icon: BookOpen, path: '/library' },
+  { label: '업로드', icon: Upload, path: '/upload' },
   { label: '마이', icon: User, path: '/settings' },
 ]
 

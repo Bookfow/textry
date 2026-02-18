@@ -214,7 +214,7 @@ export function MainHeader({
         <div className="flex items-center gap-4">
           {/* 왼쪽: 햄버거 + 로고 */}
           <div className="flex items-center gap-4">
-            <button onClick={onMenuClick} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
+          <button onClick={onMenuClick} className="hidden lg:block p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
               <Menu className="w-6 h-6" />
             </button>
             <Link href="/home" className="flex-shrink-0">
