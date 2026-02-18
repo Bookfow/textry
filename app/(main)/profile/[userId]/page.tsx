@@ -373,10 +373,7 @@ export default function AuthorPage() {
                     <CheckCircle className="w-3.5 h-3.5" /> 저장
                   </Button>
                 )}
-```
 
-저장 후 배포:
-```
 cd C:\Users\user\textry && git add . && git commit -m "feat: 프로필 독서통계+편집+배너변경+팔로잉 표시, 설정 간소화" && git push
               </div>
             </div>
