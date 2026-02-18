@@ -6,7 +6,9 @@ import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Eye, ThumbsUp, BookOpen as ReadIcon, FileText, Users, Clock, Calendar, Crown, Award, Share2 } from 'lucide-react'
+import { Eye, ThumbsUp, BookOpen as ReadIcon, FileText, Users, Clock, Calendar, Crown, Award, Share2, Camera, ImagePlus, Pencil, CheckCircle, Flame, BookCheck } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 import { SubscribeButton } from '@/components/subscribe-button'
@@ -30,6 +32,15 @@ export default function AuthorPage() {
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'likes'>('recent')
   const [totalReadingTime, setTotalReadingTime] = useState(0)
   const [totalViews, setTotalViews] = useState(0)
+  const [readingStats, setReadingStats] = useState({ totalRead: 0, totalTime: 0, streak: 0, completed: 0 })
+  const [recentReading, setRecentReading] = useState<any[]>([])
+  const [followingCount, setFollowingCount] = useState(0)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editUsername, setEditUsername] = useState('')
+  const [editBio, setEditBio] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
+  const isMyProfile = user?.id === authorId
 
   useEffect(() => {
     loadAuthorData()
@@ -58,6 +69,60 @@ export default function AuthorPage() {
       const time = docs?.reduce((s, d) => s + d.total_reading_time, 0) || 0
       setTotalViews(views)
       setTotalReadingTime(time)
+      // 독서 통계
+      const { data: sessions } = await supabase
+        .from('reading_sessions')
+        .select('document_id, current_page, last_read_at, completed')
+        .eq('reader_id', authorId)
+
+      if (sessions) {
+        const uniqueDocs = new Set(sessions.map(s => s.document_id))
+        const completedDocs = sessions.filter(s => s.completed).map(s => s.document_id)
+        const uniqueCompleted = new Set(completedDocs)
+        
+        // 연속 읽기 일수 계산
+        const readDates = [...new Set(sessions.map(s => new Date(s.last_read_at).toDateString()))].sort().reverse()
+        let streak = 0
+        const today = new Date().toDateString()
+        const yesterday = new Date(Date.now() - 86400000).toDateString()
+        if (readDates[0] === today || readDates[0] === yesterday) {
+          streak = 1
+          for (let i = 1; i < readDates.length; i++) {
+            const diff = new Date(readDates[i - 1]).getTime() - new Date(readDates[i]).getTime()
+            if (diff <= 86400000 * 1.5) streak++
+            else break
+          }
+        }
+
+        setReadingStats({
+          totalRead: uniqueDocs.size,
+          totalTime: time,
+          streak,
+          completed: uniqueCompleted.size
+        })
+
+        // 최근 읽은 문서
+        const recentSessions = sessions
+          .filter(s => !s.completed)
+          .sort((a, b) => new Date(b.last_read_at).getTime() - new Date(a.last_read_at).getTime())
+          .slice(0, 6)
+
+        if (recentSessions.length > 0) {
+          const recentDocIds = [...new Set(recentSessions.map(s => s.document_id))]
+          const { data: recentDocs } = await supabase
+            .from('documents')
+            .select('id, title, thumbnail_url')
+            .in('id', recentDocIds)
+          setRecentReading(recentDocs || [])
+        }
+      }
+
+      // 팔로잉 수
+      const { count: followCount } = await supabase
+        .from('subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('subscriber_id', authorId)
+      setFollowingCount(followCount || 0)
     } catch (err) {
       console.error('Error loading author data:', err)
     } finally {
@@ -147,7 +212,7 @@ export default function AuthorPage() {
       <div className="px-4 md:px-6 lg:px-8 pt-4">
         <div className="max-w-[1400px] mx-auto">
           <div className="relative h-28 sm:h-36 md:h-44 rounded-xl overflow-hidden">
-            {author.banner_url ? (
+          {author.banner_url ? (
               <Image src={author.banner_url} alt="배너" fill className="object-cover" sizes="100vw" />
             ) : (
               <>
@@ -155,7 +220,33 @@ export default function AuthorPage() {
                 <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '20px 20px' }} />
                 <div className="absolute top-0 right-1/4 w-48 h-48 bg-blue-500/15 rounded-full blur-3xl" />
                 <div className="absolute bottom-0 left-1/3 w-40 h-40 bg-purple-500/15 rounded-full blur-3xl" />
-              </>
+                
+                </>
+            )}
+            {isMyProfile && (
+              <label className="absolute bottom-2 right-2 cursor-pointer">
+                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file || !user) return
+                  if (file.size > 10 * 1024 * 1024) { toast.error('10MB 이하만 가능합니다'); return }
+                  setUploadingBanner(true)
+                  try {
+                    const ext = file.name.split('.').pop()
+                    const path = `${user.id}/banner_${Date.now()}.${ext}`
+                    const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { cacheControl: '3600', upsert: false })
+                    if (upErr) throw upErr
+                    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+                    await supabase.from('profiles').update({ banner_url: urlData.publicUrl }).eq('id', user.id)
+                    setAuthor(prev => prev ? { ...prev, banner_url: urlData.publicUrl } : prev)
+                    toast.success('배너가 변경되었습니다!')
+                  } catch { toast.error('업로드 실패') }
+                  finally { setUploadingBanner(false) }
+                }} />
+                <span className="flex items-center gap-1 px-2.5 py-1.5 bg-black/50 hover:bg-black/70 text-white text-xs rounded-lg backdrop-blur-sm transition-colors">
+                  <ImagePlus className="w-3.5 h-3.5" />
+                  {uploadingBanner ? '...' : '배너 변경'}
+                </span>
+              </label>
             )}
           </div>
         </div>
@@ -174,6 +265,30 @@ export default function AuthorPage() {
                   {(author.username || author.email)[0].toUpperCase()}
                 </div>
               )}
+              {isMyProfile && (
+                <label className="absolute -bottom-1 -right-1 cursor-pointer z-10">
+                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file || !user) return
+                    if (file.size > 5 * 1024 * 1024) { toast.error('5MB 이하만 가능합니다'); return }
+                    setUploading(true)
+                    try {
+                      const ext = file.name.split('.').pop()
+                      const path = `${user.id}/${Date.now()}.${ext}`
+                      const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { cacheControl: '3600', upsert: false })
+                      if (upErr) throw upErr
+                      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+                      await supabase.from('profiles').update({ avatar_url: urlData.publicUrl }).eq('id', user.id)
+                      setAuthor(prev => prev ? { ...prev, avatar_url: urlData.publicUrl } : prev)
+                      toast.success('프로필 사진이 변경되었습니다!')
+                    } catch { toast.error('업로드 실패') }
+                    finally { setUploading(false) }
+                  }} />
+                  <span className="flex items-center justify-center w-7 h-7 bg-[#B2967D] hover:bg-[#a67c52] text-white rounded-full shadow-md transition-colors">
+                    <Camera className="w-3.5 h-3.5" />
+                  </span>
+                </label>
+              )}
               {(author.author_tier || 0) >= 1 && (
                 <div className={`absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full flex items-center justify-center shadow-md border-2 border-white dark:border-gray-950 ${
                   author.author_tier === 2 ? 'bg-purple-500' : 'bg-blue-500'
@@ -188,6 +303,11 @@ export default function AuthorPage() {
               {/* 이름 줄 */}
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate">{author.username || author.email}</h1>
+                {isEditing ? (
+                  <input value={editUsername} onChange={e => setEditUsername(e.target.value)} className="text-xl md:text-2xl font-bold bg-transparent border-b-2 border-[#B2967D] outline-none text-[#2D2016] dark:text-[#EEE4E1] w-full max-w-[200px]" />
+                ) : (
+                  <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate">{author.username || author.email}</h1>
+                )}
                 {isPremium && (
                   <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-[10px] font-medium flex items-center gap-0.5">
                     <Crown className="w-3 h-3" /> Premium
@@ -209,12 +329,20 @@ export default function AuthorPage() {
                 <span>구독자 {author.subscribers_count?.toLocaleString() || 0}명</span>
                 <span>·</span>
                 <span>문서 {documents.length}개</span>
+                <span>·</span>
+                <span>팔로잉 {followingCount}명</span>
               </div>
 
               {/* 소개 (짧게) */}
-              {author.bio && (
+              {isEditing ? (
+                <textarea value={editBio} onChange={e => setEditBio(e.target.value)} maxLength={300} rows={2}
+                  placeholder="자기소개를 입력하세요"
+                  className="text-sm mt-1.5 w-full max-w-2xl bg-transparent border border-[#E7D8C9] dark:border-[#3A302A] rounded-lg px-2 py-1 outline-none focus:border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1] resize-none" />
+              ) : author.bio ? (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 max-w-2xl">{author.bio}</p>
-              )}
+              ) : isMyProfile ? (
+                <p className="text-sm text-[#9C8B7A] mt-1.5 cursor-pointer hover:text-[#B2967D]" onClick={() => { setIsEditing(true); setEditUsername(author.username || ''); setEditBio('') }}>+ 소개글을 추가하세요</p>
+              ) : null}
 
               {/* 구독 + 공유 버튼 */}
               <div className="flex items-center gap-2 mt-3">
@@ -228,12 +356,64 @@ export default function AuthorPage() {
                 <Button variant="outline" size="sm" onClick={handleShare} className="gap-1 rounded-full">
                   <Share2 className="w-4 h-4" /> 공유
                 </Button>
+                {isMyProfile && !isEditing && (
+                  <Button variant="outline" size="sm" onClick={() => { setIsEditing(true); setEditUsername(author.username || ''); setEditBio(author.bio || '') }} className="gap-1 rounded-full border-[#E7D8C9] dark:border-[#3A302A]">
+                    <Pencil className="w-3.5 h-3.5" /> 편집
+                  </Button>
+                )}
+                {isMyProfile && isEditing && (
+                  <Button size="sm" onClick={async () => {
+                    try {
+                      await supabase.from('profiles').update({ username: editUsername, bio: editBio }).eq('id', user!.id)
+                      setAuthor(prev => prev ? { ...prev, username: editUsername, bio: editBio } : prev)
+                      setIsEditing(false)
+                      toast.success('프로필이 수정되었습니다!')
+                    } catch { toast.error('수정 실패') }
+                  }} className="gap-1 rounded-full bg-[#B2967D] hover:bg-[#a67c52] text-white">
+                    <CheckCircle className="w-3.5 h-3.5" /> 저장
+                  </Button>
+                )}
+```
+
+저장 후 배포:
+```
+cd C:\Users\user\textry && git add . && git commit -m "feat: 프로필 독서통계+편집+배너변경+팔로잉 표시, 설정 간소화" && git push
               </div>
             </div>
           </div>
         </div>
       </div>
+{/* ━━━ 독서 통계 ━━━ */}
+<div className="px-4 md:px-6 lg:px-8 py-3">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+            <div className="bg-[#EEE4E1]/60 dark:bg-[#2E2620] rounded-xl p-3 text-center">
+              <ReadIcon className="w-4 h-4 text-[#B2967D] mx-auto mb-1" />
+              <p className="text-lg sm:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">{readingStats.totalRead}</p>
+              <p className="text-[10px] sm:text-xs text-[#9C8B7A]">읽은 문서</p>
+            </div>
+            <div className="bg-[#EEE4E1]/60 dark:bg-[#2E2620] rounded-xl p-3 text-center">
+              <Clock className="w-4 h-4 text-[#B2967D] mx-auto mb-1" />
+              <p className="text-lg sm:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">
+                {readingStats.totalTime >= 3600 ? `${Math.floor(readingStats.totalTime / 3600)}h` : `${Math.floor(readingStats.totalTime / 60)}m`}
+              </p>
+              <p className="text-[10px] sm:text-xs text-[#9C8B7A]">읽기 시간</p>
+            </div>
+            <div className="bg-[#EEE4E1]/60 dark:bg-[#2E2620] rounded-xl p-3 text-center">
+              <Flame className="w-4 h-4 text-orange-400 mx-auto mb-1" />
+              <p className="text-lg sm:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">{readingStats.streak}</p>
+              <p className="text-[10px] sm:text-xs text-[#9C8B7A]">연속일</p>
+            </div>
+            <div className="bg-[#EEE4E1]/60 dark:bg-[#2E2620] rounded-xl p-3 text-center">
+              <BookCheck className="w-4 h-4 text-green-500 mx-auto mb-1" />
+              <p className="text-lg sm:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">{readingStats.completed}</p>
+              <p className="text-[10px] sm:text-xs text-[#9C8B7A]">완독</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      {/* ━━━ 탭 ━━━ */}
       {/* ━━━ 탭 ━━━ */}
       <div className="px-4 md:px-6 lg:px-8 sticky top-0 z-20 bg-gray-50/80 dark:bg-gray-950/80 backdrop-blur-sm">
         <div className="max-w-[1400px] mx-auto">
