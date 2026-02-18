@@ -154,6 +154,7 @@ export default function ReadPage() {
   // ━━━ 배경 테마 & 밝기 ━━━
   const [bgTheme, setBgTheme] = useState<BgTheme>('default')
   const [brightness, setBrightness] = useState<number>(100)
+  const [contrast, setContrast] = useState<number>(100)
   const [showThemePopup, setShowThemePopup] = useState(false)
   const themePopupRef = useRef<HTMLDivElement>(null)
 
@@ -172,7 +173,26 @@ export default function ReadPage() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const viewerRef = useRef<HTMLDivElement>(null)
   const pageInputRef = useRef<HTMLInputElement>(null)
-
+// ★ 마지막 읽은 페이지 복원
+useEffect(() => {
+  if (!user || !documentId || loading) return
+  const restorePosition = async () => {
+    try {
+      const { data } = await supabase
+        .from('reading_sessions')
+        .select('current_page')
+        .eq('document_id', documentId)
+        .eq('reader_id', user.id)
+        .order('last_read_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (data?.current_page && data.current_page > 1) {
+        setPageNumber(data.current_page)
+      }
+    } catch {}
+  }
+  restorePosition()
+}, [user, documentId, loading])
   // ─── 광고 상태 ───
   const [showAdOverlay, setShowAdOverlay] = useState(false)
   const [adType, setAdType] = useState<'start' | 'middle' | 'end'>('middle')
@@ -204,8 +224,10 @@ export default function ReadPage() {
       const savedTheme = localStorage.getItem('textry_bg_theme') as BgTheme | null
       const savedBrightness = localStorage.getItem('textry_brightness')
       if (savedTheme && BG_THEMES[savedTheme]) setBgTheme(savedTheme)
-      if (savedBrightness) setBrightness(Number(savedBrightness))
-    } catch {}
+        if (savedBrightness) setBrightness(Number(savedBrightness))
+          const savedContrast = localStorage.getItem('textry_contrast')
+          if (savedContrast) setContrast(Number(savedContrast))
+        } catch {}
   }, [])
 
   useEffect(() => {
@@ -215,6 +237,10 @@ export default function ReadPage() {
   useEffect(() => {
     try { localStorage.setItem('textry_brightness', String(brightness)) } catch {}
   }, [brightness])
+
+  useEffect(() => {
+    try { localStorage.setItem('textry_contrast', String(contrast)) } catch {}
+  }, [contrast])
 
   useEffect(() => {
     if (!showThemePopup) return
@@ -641,6 +667,7 @@ export default function ReadPage() {
   const viewerFilterStyle: React.CSSProperties = viewMode === 'reflow' ? {} : {
     filter: [
       brightness !== 100 ? `brightness(${brightness / 100})` : '',
+      contrast !== 100 ? `contrast(${contrast / 100})` : '',
       bgTheme === 'sepia' ? 'sepia(0.35) saturate(1.2)' : '',
       bgTheme === 'dark' ? 'brightness(0.85) contrast(1.1)' : '',
     ].filter(Boolean).join(' ') || 'none',
@@ -733,6 +760,14 @@ export default function ReadPage() {
             <span>어둡게</span>
             <button onClick={() => setBrightness(100)} className="hover:text-[#EEE4E1] transition-colors">초기화</button>
             <span>밝게</span>
+          </div>
+          <p className="text-xs text-[#9C8B7A] mb-2 mt-4 font-medium">선명도 {contrast}%</p>
+          <input type="range" min={50} max={200} value={contrast} onChange={(e) => setContrast(Number(e.target.value))}
+            className="w-full h-1.5 bg-[#2E2620] rounded-full appearance-none cursor-pointer accent-[#B2967D]" />
+          <div className="flex justify-between text-[10px] text-[#9C8B7A] mt-1">
+            <span>흐리게</span>
+            <button onClick={() => setContrast(100)} className="hover:text-[#EEE4E1] transition-colors">초기화</button>
+            <span>선명하게</span>
           </div>
         </div>
       )}
