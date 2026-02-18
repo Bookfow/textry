@@ -243,14 +243,14 @@ export default function HomePage() {
         <div className="relative -mx-4 px-4">
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+            className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
           >
             {docs.map(doc => (
-              <div key={doc.id} className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[190px]">
+              <div key={doc.id} className="flex-shrink-0 w-[155px] sm:w-[170px] md:w-[185px] lg:w-[195px]">
                 <DocumentCard
                   doc={doc}
                   authorName={doc.profiles?.username || doc.profiles?.email}
-                  variant="compact"
+                  variant="grid"
                 />
               </div>
             ))}
