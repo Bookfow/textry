@@ -21,6 +21,11 @@ export function Footer() {
 저장 후 배포:
 ```
 cd C:\Users\user\textry && git add . && git commit -m "fix: 푸터 개인정보처리방침 bold 제거" && git push
+```
+
+저장 후 배포:
+```
+cd C:\Users\user\textry && git add . && git commit -m "fix: 푸터 개인정보처리방침 bold 제거" && git push
           <Link href="/policies/safety" className="hover:text-[#5C4A38] dark:hover:text-[#C4A882] transition-colors">정책및안전</Link>
           <button onClick={handleResetCookieConsent} className="hover:text-[#5C4A38] dark:hover:text-[#C4A882] transition-colors cursor-pointer">쿠키 설정</button>
         </div>
