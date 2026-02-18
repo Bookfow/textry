@@ -342,8 +342,8 @@ export function MainHeader({
           </div>
         </div>
 
-        {/* 모바일/태블릿 필터 */}
-        <div className="lg:hidden mt-3 grid grid-cols-2 gap-2">
+        {/* 모바일/태블릿 필터 — 데스크톱에서만 표시 (홈/브라우즈에 이미 있음) */}
+        <div className="hidden lg:hidden mt-3 grid grid-cols-2 gap-2">
           <Select value={category} onValueChange={onCategoryChange}>
             <SelectTrigger className="rounded-full bg-gray-100 dark:bg-gray-800 dark:text-white border-0 text-xs">
               <SelectValue />
