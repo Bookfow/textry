@@ -317,3 +317,44 @@
 .animate-page-enter {
   animation: page-enter 0.3s ease-out;
 }
+
+/* ━━━ 스크롤바 숨김 + 다크모드 스크롤바 ━━━ */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* 일반 스크롤바 다크모드 */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #1A1410;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #3A302A;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #5C4A38;
+}
+
+/* 라이트 모드 스크롤바 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F7F2EF;
+}
+::-webkit-scrollbar-thumb {
+  background: #E7D8C9;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B2967D;
+}
