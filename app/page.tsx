@@ -57,12 +57,12 @@ export default function LandingPage() {
             지식을 스트리밍하다
           </h2>
           <p className="text-xl md:text-2xl text-[#2D2016] dark:text-[#EEE4E1] mb-8">
-            유튜브처럼 자유롭게 문서를 읽고, 공유하고, 소통하세요
+          누구나 자유롭게 읽고, 나누는 열린 플랫폼
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/signup">
               <Button size="lg" className="bg-gradient-to-r from-[#a67c52] to-[#c9a96e] hover:from-[#8a6842] hover:to-[#b89860] text-white text-lg px-8">
-                무료로 시작하기
+              지금 바로 시작하기
               </Button>
             </Link>
             <Link href="/browse">
@@ -82,7 +82,7 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-[#EEE4E1] dark:bg-[#B2967D]/20 rounded-lg flex items-center justify-center mb-4">
               <FileText className="w-6 h-6 text-[#B2967D]" />
             </div>
-            <h4 className="text-xl font-semibold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">무료 문서 공유</h4>
+            <h4 className="text-xl font-semibold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">열린 문서 공유</h4>
             <p className="text-[#5C4A38] dark:text-[#C4A882]">PDF를 업로드하고 전 세계 사람들과 공유하세요</p>
           </div>
           <div className="bg-white dark:bg-[#2E2620] p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-[#E7D8C9]/50 dark:border-[#3A302A]">
@@ -255,7 +255,7 @@ export default function LandingPage() {
 
             <div className="order-1 md:order-2">
               <h3 className="text-3xl font-bold mb-4 text-[#2D2016] dark:text-[#EEE4E1]">작가와 독자가 함께 성장</h3>
-              <p className="text-[#5C4A38] dark:text-[#C4A882] mb-6">작가는 광고 수익을 얻고, 독자는 무료로 문서를 읽고, 모두가 Win-Win!</p>
+              <p className="text-[#5C4A38] dark:text-[#C4A882] mb-6">작가는 광고 수익을 얻고, 독자는 장벽 없이 지식을 만나는 열린 생태계</p>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <TrendingUp className="w-5 h-5 text-[#B2967D]" />
@@ -283,7 +283,7 @@ export default function LandingPage() {
           <p className="text-xl mb-8 opacity-90">5분이면 첫 문서를 업로드하고 독자들을 만날 수 있습니다</p>
           <div className="flex gap-4 justify-center">
             <Link href="/signup">
-              <Button size="lg" variant="secondary" className="text-lg px-8">무료 회원가입</Button>
+            <Button size="lg" variant="secondary" className="text-lg px-8">지금 시작하기</Button>
             </Link>
             <Link href="/browse">
               <Button size="lg" variant="outline" className="text-lg px-8 bg-white/10 text-white border-white hover:bg-white/20">문서 둘러보기</Button>

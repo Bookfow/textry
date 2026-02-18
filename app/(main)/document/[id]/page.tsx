@@ -230,7 +230,7 @@ export default function DocumentDetailPage() {
                 href={`/read/${doc.id}`}
                 className="flex-1 sm:flex-none px-8 py-3 bg-[#B2967D] hover:bg-[#a67c52] text-white font-semibold rounded-full transition-colors shadow-md shadow-[#B2967D]/20 text-base text-center"
               >
-                {progress !== null && progress > 0 ? `이어서 읽기 (${progress}%)` : '무료로 읽기'}
+                {progress !== null && progress > 0 ? `이어서 읽기 (${progress}%)` : '바로 읽기'}
               </Link>
               <ReadingListButton documentId={documentId} />
               <ShareButton documentId={documentId} title={doc.title} />
