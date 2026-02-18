@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { MainHeader } from '@/components/main-header'
 import { BottomTabBar } from '@/components/bottom-tab-bar'
+import { Footer } from '@/components/footer'
 
 export default function MainLayout({
   children,
@@ -29,6 +30,11 @@ export default function MainLayout({
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[350px] z-0" style={{ background: 'radial-gradient(ellipse at center, rgba(251,191,36,0.15) 0%, transparent 70%)' }} />
         <div className="relative z-10 animate-page-enter">
           {children}
+        </div>
+
+        {/* 푸터 — PC에서만 (모바일은 탭바) */}
+        <div className="hidden lg:block relative z-10">
+          <Footer />
         </div>
       </main>
 
