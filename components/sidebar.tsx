@@ -70,9 +70,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   ]
 
   const myPageMenuItems = [
-    { icon: TrendingUp, label: '인기 있는 콘텐츠', path: '/browse?sort=popular' },
-    { icon: BookOpen, label: '읽고 있는 콘텐츠', path: '/continue-reading' },
-    { icon: Heart, label: '찜한 콘텐츠', path: '/reading-list' },
+    { icon: TrendingUp, label: '둘러보기', path: '/browse' },
+    { icon: BookOpen, label: '내 서재', path: '/library' },
   ]
 
   const handleLinkClick = () => {
@@ -142,7 +141,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               >
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5 flex-shrink-0" />
-                  {isOpen && <span className="text-sm font-semibold whitespace-nowrap">내 페이지</span>}
+                  {isOpen && <span className="text-sm font-semibold whitespace-nowrap">메뉴</span>}
                 </div>
                 {isOpen && (myPageOpen ? <ChevronDown className="w-4 h-4 flex-shrink-0" /> : <ChevronRight className="w-4 h-4 flex-shrink-0" />)}
                 <Tooltip label="내 페이지" />
