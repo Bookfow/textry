@@ -134,54 +134,59 @@ export default function LandingPage() {
               <div className="bg-[#1A1410] rounded-xl overflow-hidden shadow-2xl">
                 {/* 상단 컨트롤바 */}
                 <div className="bg-[#241E18] px-3 py-2 flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                  <div className="flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5 text-[#C4A882]" />
+                    <span className="text-[10px] text-[#EEE4E1] font-medium truncate max-w-[120px]">창작자를 위한 글쓰기 가이드</span>
                   </div>
                   <div className="flex-1 flex items-center justify-center gap-2">
                     <ChevronLeft className="w-3.5 h-3.5 text-[#9C8B7A]" />
-                    <span className="text-[10px] text-[#C4A882] font-mono">12 / 48</span>
+                    <span className="text-[10px] text-[#C4A882] font-mono">24 / 156</span>
                     <ChevronRight className="w-3.5 h-3.5 text-[#9C8B7A]" />
                   </div>
-                  <div className="text-[10px] text-[#9C8B7A] font-mono">100%</div>
+                  <div className="text-[10px] text-[#9C8B7A] font-mono">110%</div>
                 </div>
                 {/* 프로그레스바 */}
                 <div className="h-0.5 bg-[#2E2620]">
-                  <div className="h-full w-1/4 bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] rounded-r" />
+                  <div className="h-full w-[15%] bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] rounded-r" />
                 </div>
-                {/* 페이지 본문 목업 */}
-                <div className="p-5 space-y-2.5 min-h-[180px]">
-                  <div className="h-3.5 bg-[#3A302A]/60 rounded w-3/4" />
-                  <div className="h-2.5 bg-[#3A302A]/40 rounded w-full" />
-                  <div className="h-2.5 bg-[#3A302A]/40 rounded w-full" />
-                  <div className="h-2.5 bg-[#3A302A]/40 rounded w-5/6" />
-                  <div className="h-2.5 bg-[#3A302A]/40 rounded w-full" />
-                  <div className="h-2.5 bg-[#3A302A]/40 rounded w-2/3" />
-                  <div className="mt-3 h-16 bg-[#3A302A]/30 rounded-lg" />
+                {/* 페이지 본문 — 실제 책 느낌 */}
+                <div className="p-5 min-h-[200px] bg-[#faf6f0]">
+                  <h3 className="text-[13px] font-bold text-[#2D2016] mb-3 leading-tight">제3장. 독자의 마음을 사로잡는 첫 문장</h3>
+                  <div className="space-y-2 text-[10px] text-[#5C4A38] leading-relaxed">
+                    <p>글의 첫 문장은 독자와의 약속이다. 그 한 줄이 흥미를 끌지 못하면, 이후 아무리 좋은 내용이 있어도 독자는 페이지를 넘기지 않는다.</p>
+                    <p>좋은 첫 문장에는 세 가지 요소가 있다. 첫째, 구체적인 이미지를 떠올리게 할 것. 둘째, 궁금증을 유발할 것. 셋째, 글의 톤을 암시할 것.</p>
+                    <p className="text-[#9C8B7A] italic border-l-2 border-[#E6BEAE] pl-3">
+                      &ldquo;나는 그해 여름, 한 통의 편지로 인생이 바뀌었다.&rdquo;
+                    </p>
+                    <p>위 문장이 효과적인 이유를 분석해보자. 시간(&lsquo;그해 여름&rsquo;), 사건(&lsquo;한 통의 편지&rsquo;), 결과(&lsquo;인생이 바뀌었다&rsquo;)가 모두 담겨 있다...</p>
+                  </div>
                 </div>
                 {/* 하단 인터랙션 바 */}
-                <div className="px-4 py-2.5 border-t border-[#3A302A] flex items-center gap-4">
+                <div className="px-4 py-2.5 bg-[#241E18] border-t border-[#3A302A] flex items-center gap-4">
                   <div className="flex items-center gap-1.5">
                     <ThumbsUp className="w-3.5 h-3.5 text-[#C4A882]" />
-                    <span className="text-[10px] text-[#9C8B7A]">234</span>
+                    <span className="text-[10px] text-[#9C8B7A]">1,247</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <MessageCircle className="w-3.5 h-3.5 text-[#9C8B7A]" />
-                    <span className="text-[10px] text-[#9C8B7A]">18</span>
+                    <span className="text-[10px] text-[#9C8B7A]">86</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Bookmark className="w-3.5 h-3.5 text-amber-400" />
+                    <Bookmark className="w-3.5 h-3.5 text-amber-400" fill="currentColor" />
                   </div>
                   <div className="ml-auto flex items-center gap-1.5">
                     <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#B2967D] to-[#E6BEAE]" />
-                    <span className="text-[10px] text-[#C4A882]">김작가</span>
-                    <span className="text-[9px] px-1.5 py-0.5 bg-[#B2967D] text-[#1A1410] rounded font-medium">구독</span>
+                    <span className="text-[10px] text-[#C4A882]">이서윤 작가</span>
+                    <span className="text-[9px] px-1.5 py-0.5 bg-[#B2967D] text-[#1A1410] rounded font-medium">구독중</span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+```
+
+수정 후 배포:
+```
+cd C:\Users\user\textry && git add . && git commit -m "feat: 랜딩 리더 목업을 실제 책 느낌으로 교체" && git push
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
 
