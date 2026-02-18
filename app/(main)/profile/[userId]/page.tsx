@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ProfileSkeleton } from '@/components/loading-skeleton'
 import { useToast } from '@/components/toast'
 
-type TabType = 'documents' | 'series' | 'about'
+type TabType = 'documents' | 'series' | 'following' | 'about'
 
 export default function AuthorPage() {
   const params = useParams()
@@ -61,6 +61,9 @@ export default function AuthorPage() {
   const [seriesDocs, setSeriesDocs] = useState<any[]>([])
   const [showAddDocDialog, setShowAddDocDialog] = useState(false)
 
+  // 구독 작가 (팔로잉)
+  const [subscribedAuthors, setSubscribedAuthors] = useState<any[]>([])
+
   const isMyProfile = user?.id === authorId
 
   useEffect(() => {
@@ -70,19 +73,12 @@ export default function AuthorPage() {
   const loadAuthorData = async () => {
     try {
       const { data: authorData, error: authorError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authorId)
-        .single()
+        .from('profiles').select('*').eq('id', authorId).single()
       if (authorError) throw authorError
       setAuthor(authorData)
 
       const { data: docs, error: docsError } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('author_id', authorId)
-        .eq('is_published', true)
-        .order('created_at', { ascending: false })
+        .from('documents').select('*').eq('author_id', authorId).eq('is_published', true).order('created_at', { ascending: false })
       if (docsError) throw docsError
       setDocuments(docs || [])
 
@@ -102,7 +98,6 @@ export default function AuthorPage() {
         const completedDocs = sessions.filter(s => s.completed).map(s => s.document_id)
         const uniqueCompleted = new Set(completedDocs)
 
-        // 연속 읽기 일수
         const readDates = [...new Set(sessions.map(s => new Date(s.last_read_at).toDateString()))].sort().reverse()
         let streak = 0
         const today = new Date().toDateString()
@@ -118,7 +113,6 @@ export default function AuthorPage() {
 
         setReadingStats({ totalRead: uniqueDocs.size, totalTime: time, streak, completed: uniqueCompleted.size })
 
-        // 최근 읽은 문서
         const recentSessions = sessions
           .filter(s => !s.completed)
           .sort((a, b) => new Date(b.last_read_at).getTime() - new Date(a.last_read_at).getTime())
@@ -133,18 +127,25 @@ export default function AuthorPage() {
 
       // 팔로잉 수
       const { count: followCount } = await supabase
-        .from('subscriptions')
-        .select('*', { count: 'exact', head: true })
-        .eq('subscriber_id', authorId)
+        .from('subscriptions').select('*', { count: 'exact', head: true }).eq('subscriber_id', authorId)
       setFollowingCount(followCount || 0)
 
       // 시리즈
       const { data: seriesData } = await supabase
-        .from('document_series')
-        .select('*')
-        .eq('author_id', authorId)
-        .order('created_at', { ascending: false })
+        .from('document_series').select('*').eq('author_id', authorId).order('created_at', { ascending: false })
       setSeriesList(seriesData || [])
+
+      // 구독 작가 목록
+      const { data: subs } = await supabase
+        .from('subscriptions').select('author_id').eq('subscriber_id', authorId)
+      if (subs && subs.length > 0) {
+        const authorIds = subs.map(s => s.author_id)
+        const { data: authors } = await supabase
+          .from('profiles').select('id, username, email, avatar_url, subscribers_count').in('id', authorIds)
+        setSubscribedAuthors(authors || [])
+      } else {
+        setSubscribedAuthors([])
+      }
     } catch (err) {
       console.error('Error loading author data:', err)
     } finally {
@@ -407,7 +408,6 @@ export default function AuthorPage() {
                 )}
               </div>
 
-              {/* 메타 */}
               <div className="flex items-center gap-1.5 text-xs text-[#9C8B7A] mt-1 flex-wrap">
                 <span>@{author.username || author.email.split('@')[0]}</span>
                 <span>·</span>
@@ -418,7 +418,6 @@ export default function AuthorPage() {
                 <span>팔로잉 {followingCount}명</span>
               </div>
 
-              {/* 소개 */}
               {isEditing ? (
                 <textarea value={editBio} onChange={e => setEditBio(e.target.value)} maxLength={300} rows={2}
                   placeholder="자기소개를 입력하세요"
@@ -429,7 +428,6 @@ export default function AuthorPage() {
                 <p className="text-sm text-[#9C8B7A] mt-1.5 cursor-pointer hover:text-[#B2967D]" onClick={() => { setIsEditing(true); setEditUsername(author.username || ''); setEditBio('') }}>+ 소개글을 추가하세요</p>
               ) : null}
 
-              {/* 버튼 */}
               <div className="flex items-center gap-2 mt-3">
                 {user && user.id !== authorId && (
                   <SubscribeButton authorId={authorId} authorName={author.username || author.email} initialSubscribersCount={author.subscribers_count || 0} />
@@ -499,19 +497,23 @@ export default function AuthorPage() {
       {/* ━━━ 탭 ━━━ */}
       <div className="px-4 md:px-6 lg:px-8 sticky top-0 z-20 bg-[#F7F2EF]/80 dark:bg-[#1A1410]/80 backdrop-blur-sm">
         <div className="max-w-[1400px] mx-auto">
-          <div className="flex gap-0 border-b border-[#E7D8C9] dark:border-[#3A302A]">
+          <div className="flex gap-0 border-b border-[#E7D8C9] dark:border-[#3A302A] overflow-x-auto scrollbar-hide">
             <button onClick={() => setActiveTab('documents')}
-              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'documents' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
+              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'documents' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
               문서
             </button>
             {(isMyProfile || seriesList.length > 0) && (
               <button onClick={() => { setActiveTab('series'); setManagingSeries(null) }}
-                className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'series' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
+                className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'series' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
                 시리즈 {seriesList.length > 0 && `(${seriesList.length})`}
               </button>
             )}
+            <button onClick={() => setActiveTab('following')}
+              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'following' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
+              팔로잉 {subscribedAuthors.length > 0 && `(${subscribedAuthors.length})`}
+            </button>
             <button onClick={() => setActiveTab('about')}
-              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'about' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
+              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'about' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
               정보
             </button>
           </div>
@@ -596,7 +598,6 @@ export default function AuthorPage() {
                   </div>
                 )
               ) : (
-                /* 시리즈 문서 관리 */
                 <div>
                   <div className="flex items-center gap-3 mb-4">
                     <Button variant="outline" size="sm" onClick={() => setManagingSeries(null)} className="border-[#E7D8C9] dark:border-[#3A302A]">← 목록</Button>
@@ -645,6 +646,39 @@ export default function AuthorPage() {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 팔로잉 탭 */}
+          {activeTab === 'following' && (
+            <div>
+              {subscribedAuthors.length === 0 ? (
+                <div className="text-center py-16">
+                  <Users className="w-12 h-12 text-[#E7D8C9] dark:text-[#3A302A] mx-auto mb-3" />
+                  <p className="text-[#9C8B7A] mb-1">구독 중인 작가가 없습니다</p>
+                  <p className="text-xs text-[#9C8B7A]">마음에 드는 작가를 구독해보세요</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {subscribedAuthors.map((a: any) => (
+                    <Link key={a.id} href={`/profile/${a.id}`}>
+                      <div className="flex items-center gap-3 p-4 bg-white dark:bg-[#241E18] rounded-xl border border-[#E7D8C9] dark:border-[#3A302A] hover:shadow-md transition-shadow">
+                        {a.avatar_url ? (
+                          <Image src={a.avatar_url} alt={a.username || ''} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] text-white flex items-center justify-center text-lg font-bold">
+                            {(a.username || a.email)[0].toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-[#2D2016] dark:text-[#EEE4E1] truncate">{a.username || a.email}</p>
+                          <p className="text-xs text-[#9C8B7A]">구독자 {a.subscribers_count?.toLocaleString() || 0}명</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               )}
             </div>
