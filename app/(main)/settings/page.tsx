@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Crown, Sun, Moon, Monitor, Lock, Trash2, User } from 'lucide-react'
+import { Crown, Sun, Moon, Monitor, Lock, Trash2 } from 'lucide-react'
 import { useToast } from '@/components/toast'
 import { useTheme } from '@/lib/theme-context'
 import Link from 'next/link'
@@ -118,27 +118,7 @@ export default function SettingsPage() {
             <p className="text-[#9C8B7A]">계정 및 앱 설정을 관리하세요</p>
           </div>
 
-          {/* 프로필 편집 바로가기 */}
-          <Card className="mb-6 border-[#E7D8C9] dark:border-[#3A302A]">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#EEE4E1] dark:bg-[#2E2620] flex items-center justify-center">
-                    <User className="w-5 h-5 text-[#B2967D]" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-[#2D2016] dark:text-[#EEE4E1]">{profile?.username || profile?.email}</p>
-                    <p className="text-xs text-[#9C8B7A]">프로필, 배너, 소개글을 수정하세요</p>
-                  </div>
-                </div>
-                <Link href={`/profile/${user.id}`}>
-                  <Button variant="outline" size="sm" className="border-[#E7D8C9] dark:border-[#3A302A] text-[#5C4A38] dark:text-[#C4A882]">
-                    프로필 편집
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+  
 
           {/* 테마 설정 */}
           <Card className="mb-6 border-[#E7D8C9] dark:border-[#3A302A]">
