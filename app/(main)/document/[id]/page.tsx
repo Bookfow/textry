@@ -8,7 +8,6 @@ import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { Eye, ThumbsUp, Clock, BookOpen, ChevronRight, FileText } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
-import { ReactionButtons } from '@/components/reaction-buttons'
 import { SubscribeButton } from '@/components/subscribe-button'
 import { ShareButton } from '@/components/share-button'
 import { ReadingListButton } from '@/components/reading-list-button'
@@ -37,7 +36,6 @@ export default function DocumentDetailPage() {
 
   const loadDocument = async () => {
     try {
-      // 문서 로드
       const { data: docData, error } = await supabase
         .from('documents')
         .select('*')
@@ -46,7 +44,6 @@ export default function DocumentDetailPage() {
       if (error) throw error
       setDoc(docData)
 
-      // 작가 프로필
       const { data: authorData } = await supabase
         .from('profiles')
         .select('*')
@@ -54,7 +51,6 @@ export default function DocumentDetailPage() {
         .single()
       if (authorData) setAuthor(authorData)
 
-      // 이 작가의 다른 문서
       const { data: otherDocs } = await supabase
         .from('documents')
         .select('*')
@@ -65,7 +61,6 @@ export default function DocumentDetailPage() {
         .limit(6)
       if (otherDocs) setMoreDocs(otherDocs)
 
-      // 시리즈 정보
       const { data: seriesDoc } = await supabase
         .from('series_documents')
         .select('series_id, position')
@@ -104,7 +99,6 @@ export default function DocumentDetailPage() {
         }
       }
 
-      // 읽기 진행률
       if (user) {
         const { data: session } = await supabase
           .from('reading_sessions')
@@ -173,7 +167,6 @@ export default function DocumentDetailPage() {
                   <BookOpen className="w-16 h-16 text-[#E7D8C9] dark:text-[#3A302A]" />
                 </div>
               )}
-              {/* 진행률 오버레이 */}
               {progress !== null && progress > 0 && (
                 <div className="absolute bottom-0 left-0 right-0">
                   <div className="h-1.5 bg-black/20">
@@ -186,17 +179,14 @@ export default function DocumentDetailPage() {
 
           {/* 정보 */}
           <div className="flex-1 min-w-0">
-            {/* 카테고리 */}
             <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EEE4E1] dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-full mb-3">
               {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
             </span>
 
-            {/* 제목 */}
             <h1 className="text-2xl md:text-3xl font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-3 leading-tight">
               {doc.title}
             </h1>
 
-            {/* 작가 */}
             {author && (
               <div className="flex items-center justify-between mb-4">
                 <Link href={`/author/${author.id}`}>
@@ -223,7 +213,6 @@ export default function DocumentDetailPage() {
               </div>
             )}
 
-            {/* 통계 */}
             <div className="flex items-center gap-4 text-sm text-[#9C8B7A] mb-5">
               <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {doc.view_count.toLocaleString()}</span>
               <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> {doc.likes_count.toLocaleString()}</span>
@@ -236,19 +225,16 @@ export default function DocumentDetailPage() {
             </div>
 
             {/* CTA 버튼 */}
-            <div className="flex items-center gap-3 mb-5">
-              <button
-                onClick={() => router.push(`/document/${doc.id}`)}
-                className="flex-1 sm:flex-none px-8 py-3 bg-[#B2967D] hover:bg-[#a67c52] text-white font-semibold rounded-full transition-colors shadow-md shadow-[#B2967D]/20 text-base"
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/read/${doc.id}`}
+                className="flex-1 sm:flex-none px-8 py-3 bg-[#B2967D] hover:bg-[#a67c52] text-white font-semibold rounded-full transition-colors shadow-md shadow-[#B2967D]/20 text-base text-center"
               >
                 {progress !== null && progress > 0 ? `이어서 읽기 (${progress}%)` : '무료로 읽기'}
-              </button>
+              </Link>
               <ReadingListButton documentId={documentId} />
               <ShareButton documentId={documentId} title={doc.title} />
             </div>
-
-            {/* 좋아요/싫어요 */}
-            <ReactionButtons documentId={documentId} initialLikes={doc.likes_count} initialDislikes={doc.dislikes_count} />
           </div>
         </div>
 
