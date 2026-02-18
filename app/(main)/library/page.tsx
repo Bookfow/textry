@@ -211,9 +211,8 @@ export default function LibraryPage() {
                         {/* 호버 오버레이 */}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
                       </div>
-
-                      {/* 책 제목 */}
-                      <div className="mt-2 px-0.5">
+{/* 책 제목 */}
+<div className="mt-2 px-0.5 h-[52px] sm:h-[56px]">
                         <h3 className="text-[11px] sm:text-xs font-medium line-clamp-2 text-[#2D2016] dark:text-[#EEE4E1] group-hover:text-[#B2967D] transition-colors leading-tight">
                           {doc.title}
                         </h3>
