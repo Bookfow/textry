@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
-import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight } from 'lucide-react'
+import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
 import { CATEGORIES } from '@/lib/categories'
 
@@ -99,7 +99,6 @@ export default function HomePage() {
     }
   }
 
-  // 카테고리 필터 적용
   const filterByCategory = (docs: DocWithAuthor[]) => {
     if (activeCategory === 'all') return docs
     return docs.filter(d => d.category === activeCategory)
@@ -127,7 +126,6 @@ export default function HomePage() {
           {top5.map((doc, index) => (
             <Link key={doc.id} href={`/document/${doc.id}`}>
               <div className="group flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] hover:shadow-md hover:border-[#B2967D]/50 hover:-translate-y-1 transition-all duration-200 cursor-pointer">
-                {/* 순위 번호 */}
                 <span className={`text-2xl font-black flex-shrink-0 w-8 text-center ${
                   index === 0 ? 'text-amber-500' :
                   index === 1 ? 'text-[#9C8B7A]' :
@@ -136,8 +134,6 @@ export default function HomePage() {
                 }`}>
                   {index + 1}
                 </span>
-
-                {/* 썸네일 */}
                 <div className="relative w-10 h-14 rounded-md overflow-hidden flex-shrink-0 bg-[#EEE4E1] dark:bg-[#2E2620]">
                   {doc.thumbnail_url ? (
                     <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
@@ -145,8 +141,6 @@ export default function HomePage() {
                     <div className="w-full h-full flex items-center justify-center text-lg opacity-30">📄</div>
                   )}
                 </div>
-
-                {/* 정보 */}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-[#2D2016] dark:text-[#EEE4E1] line-clamp-1 group-hover:text-[#B2967D] transition-colors">
                     {doc.title}
@@ -167,8 +161,8 @@ export default function HomePage() {
     )
   }
 
-  // ━━━ 섹션 컴포넌트 ━━━
-  const ShelfSection = ({
+  // ━━━ 캐러셀 섹션 ━━━
+  const CarouselSection = ({
     title,
     icon: Icon,
     docs,
@@ -179,7 +173,38 @@ export default function HomePage() {
     docs: DocWithAuthor[]
     showMore?: string
   }) => {
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const [canScrollLeft, setCanScrollLeft] = useState(false)
+    const [canScrollRight, setCanScrollRight] = useState(false)
+
     if (docs.length === 0) return null
+
+    const checkScroll = () => {
+      const el = scrollRef.current
+      if (!el) return
+      setCanScrollLeft(el.scrollLeft > 4)
+      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
+    }
+
+    const scroll = (dir: 'left' | 'right') => {
+      const el = scrollRef.current
+      if (!el) return
+      const cardWidth = el.querySelector('div')?.offsetWidth || 180
+      const amount = cardWidth * 3
+      el.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' })
+    }
+
+    useEffect(() => {
+      const el = scrollRef.current
+      if (!el) return
+      checkScroll()
+      el.addEventListener('scroll', checkScroll, { passive: true })
+      window.addEventListener('resize', checkScroll)
+      return () => {
+        el.removeEventListener('scroll', checkScroll)
+        window.removeEventListener('resize', checkScroll)
+      }
+    }, [docs])
 
     return (
       <div className="mb-10">
@@ -188,22 +213,48 @@ export default function HomePage() {
             <Icon className="w-5 h-5 text-[#B2967D]" />
             <h2 className="text-lg md:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">{title}</h2>
           </div>
-          {showMore && (
-            <Link href={showMore} className="flex items-center gap-1 text-sm text-[#B2967D] hover:text-[#a67c52] transition-colors">
-              더보기 <ChevronRight className="w-4 h-4" />
-            </Link>
-          )}
+          <div className="flex items-center gap-2">
+            {/* 데스크톱 화살표 */}
+            <div className="hidden md:flex items-center gap-1">
+              <button
+                onClick={() => scroll('left')}
+                disabled={!canScrollLeft}
+                className="p-1.5 rounded-full bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] text-[#9C8B7A] hover:text-[#B2967D] hover:border-[#B2967D] disabled:opacity-30 disabled:hover:text-[#9C8B7A] disabled:hover:border-[#E7D8C9] transition-all"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => scroll('right')}
+                disabled={!canScrollRight}
+                className="p-1.5 rounded-full bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] text-[#9C8B7A] hover:text-[#B2967D] hover:border-[#B2967D] disabled:opacity-30 disabled:hover:text-[#9C8B7A] disabled:hover:border-[#E7D8C9] transition-all"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+            {showMore && (
+              <Link href={showMore} className="flex items-center gap-1 text-sm text-[#B2967D] hover:text-[#a67c52] transition-colors">
+                더보기 <ChevronRight className="w-4 h-4" />
+              </Link>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {docs.map(doc => (
-            <DocumentCard
-              key={doc.id}
-              doc={doc}
-              authorName={doc.profiles?.username || doc.profiles?.email}
-              variant="grid"
-            />
-          ))}
+        {/* 가로 스크롤 캐러셀 */}
+        <div className="relative -mx-4 px-4">
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+          >
+            {docs.map(doc => (
+              <div key={doc.id} className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[190px]">
+                <DocumentCard
+                  doc={doc}
+                  authorName={doc.profiles?.username || doc.profiles?.email}
+                  variant="compact"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -263,22 +314,22 @@ export default function HomePage() {
             </div>
           ) : (
             <>
-              {/* 이어 읽기 (카테고리 필터 무관 — 항상 표시) */}
+              {/* 이어 읽기 */}
               {continueReading.length > 0 && (
-                <ShelfSection title="이어서 읽기" icon={BookOpen} docs={continueReading} />
+                <CarouselSection title="이어서 읽기" icon={BookOpen} docs={continueReading} />
               )}
 
               {/* 랭킹 */}
               <RankingSection docs={filteredPopular} />
 
               {/* 인기 콘텐츠 */}
-              <ShelfSection title="인기 있는 콘텐츠" icon={TrendingUp} docs={filteredPopular} showMore="/browse?sort=popular" />
+              <CarouselSection title="인기 있는 콘텐츠" icon={TrendingUp} docs={filteredPopular} showMore="/browse?sort=popular" />
 
               {/* 최신 콘텐츠 */}
-              <ShelfSection title="새로운 콘텐츠" icon={Sparkles} docs={filteredRecent} showMore="/browse?sort=recent" />
+              <CarouselSection title="새로운 콘텐츠" icon={Sparkles} docs={filteredRecent} showMore="/browse?sort=recent" />
 
               {/* 구독자 콘텐츠 */}
-              <ShelfSection title="구독 작가의 새 콘텐츠" icon={Users} docs={filterByCategory(subscribedDocs)} />
+              <CarouselSection title="구독 작가의 새 콘텐츠" icon={Users} docs={filterByCategory(subscribedDocs)} />
             </>
           )}
         </div>
