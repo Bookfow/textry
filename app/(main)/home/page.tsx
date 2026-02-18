@@ -246,7 +246,7 @@ export default function HomePage() {
             className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
           >
             {docs.map(doc => (
-              <div key={doc.id} className="flex-shrink-0 w-[155px] sm:w-[170px] md:w-[185px] lg:w-[195px]">
+              <div key={doc.id} className="flex-shrink-0 w-[155px] sm:w-[170px] md:w-[200px] lg:w-[210px] xl:w-[220px]">
                 <DocumentCard
                   doc={doc}
                   authorName={doc.profiles?.username || doc.profiles?.email}
