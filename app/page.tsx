@@ -53,8 +53,9 @@ export default function LandingPage() {
       {/* ━━━ 히어로 ━━━ */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
+        <p className="text-sm md:text-base tracking-widest text-[#B2967D] font-medium mb-4 uppercase">지식은 모두에게 공유되어야 한다</p>
           <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-[#7a5a30] via-[#c9a96e] to-[#7a5a30] dark:from-[#c9a96e] dark:via-[#f0d58c] dark:to-[#c9a96e] bg-clip-text text-transparent">
-            지식을 스트리밍하다
+            지식 스트리밍 플랫폼
           </h2>
           <p className="text-xl md:text-2xl text-[#2D2016] dark:text-[#EEE4E1] mb-8">
           누구나 자유롭게 읽고, 나누는 열린 플랫폼
