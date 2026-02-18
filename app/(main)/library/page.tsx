@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BookOpen, Heart, Compass, Eye, ThumbsUp, Clock } from 'lucide-react'
-import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
+import { BookOpen, Heart, Clock, Grid, BookMarked } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
 
 type ReadingDoc = {
@@ -37,11 +36,13 @@ type FavDoc = {
 }
 
 type TabType = 'reading' | 'favorites'
+type ViewMode = 'shelf' | 'grid'
 
 export default function LibraryPage() {
   const { user } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>('reading')
+  const [viewMode, setViewMode] = useState<ViewMode>('shelf')
   const [readingDocs, setReadingDocs] = useState<ReadingDoc[]>([])
   const [favDocs, setFavDocs] = useState<FavDoc[]>([])
   const [loading, setLoading] = useState(true)
@@ -156,6 +157,98 @@ export default function LibraryPage() {
     return `${days}일 전`
   }
 
+  // ━━━ 책장 선반 컴포넌트 ━━━
+  const BookShelf = ({ docs, type }: { docs: (ReadingDoc | FavDoc)[]; type: TabType }) => {
+    // 한 선반에 들어갈 책 수 (반응형)
+    const booksPerShelf = 6
+    const shelves: (ReadingDoc | FavDoc)[][] = []
+    for (let i = 0; i < docs.length; i += booksPerShelf) {
+      shelves.push(docs.slice(i, i + booksPerShelf))
+    }
+
+    return (
+      <div className="space-y-0">
+        {shelves.map((shelf, shelfIndex) => (
+          <div key={shelfIndex} className="relative">
+            {/* 책들 */}
+            <div className="flex items-end gap-3 sm:gap-4 px-4 sm:px-6 pt-6 pb-0 overflow-x-auto scrollbar-hide">
+              {shelf.map(doc => {
+                const progress = type === 'reading' && 'current_page' in doc
+                  ? doc.page_count > 0 ? Math.round((doc.current_page / doc.page_count) * 100) : 0
+                  : null
+
+                return (
+                  <Link key={doc.id} href={type === 'reading' ? `/read/${doc.id}` : `/document/${doc.id}`}>
+                    <div className="group flex-shrink-0 w-[100px] sm:w-[120px] md:w-[130px] cursor-pointer transition-all duration-300 hover:-translate-y-2">
+                      {/* 책 표지 */}
+                      <div className="relative aspect-[3/4] rounded-sm overflow-hidden shadow-[4px_4px_8px_rgba(0,0,0,0.3)] ring-1 ring-black/10 dark:ring-white/5">
+                        {doc.thumbnail_url ? (
+                          <Image
+                            src={doc.thumbnail_url}
+                            alt={doc.title}
+                            fill
+                            sizes="(max-width: 640px) 100px, 130px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] flex items-center justify-center">
+                            <BookOpen className="w-8 h-8 text-white/60" />
+                          </div>
+                        )}
+
+                        {/* 책등 효과 — 왼쪽 그림자 */}
+                        <div className="absolute inset-y-0 left-0 w-[6px] bg-gradient-to-r from-black/30 to-transparent" />
+
+                        {/* 진행률 배지 */}
+                        {progress !== null && progress > 0 && (
+                          <div className="absolute bottom-1.5 right-1.5">
+                            <span className="px-1.5 py-0.5 bg-[#B2967D] text-white text-[9px] font-bold rounded shadow-sm">
+                              {progress}%
+                            </span>
+                          </div>
+                        )}
+
+                        {/* 호버 오버레이 */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
+                      </div>
+
+                      {/* 책 제목 */}
+                      <div className="mt-2 px-0.5">
+                        <h3 className="text-[11px] sm:text-xs font-medium line-clamp-2 text-[#2D2016] dark:text-[#EEE4E1] group-hover:text-[#B2967D] transition-colors leading-tight">
+                          {doc.title}
+                        </h3>
+                        <p className="text-[10px] text-[#9C8B7A] truncate mt-0.5">{doc.authorName}</p>
+                        {type === 'reading' && 'last_read_at' in doc && (
+                          <p className="text-[9px] text-[#9C8B7A] flex items-center gap-0.5 mt-0.5">
+                            <Clock className="w-2.5 h-2.5" />{getTimeAgo(doc.last_read_at)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* 나무 선반 */}
+            <div className="relative mt-1">
+              {/* 선반 상단면 */}
+              <div className="h-[10px] bg-gradient-to-b from-[#C4A27A] to-[#A8885C] dark:from-[#6B5740] dark:to-[#5A4835] rounded-t-sm shadow-inner" />
+              {/* 선반 정면 */}
+              <div className="h-[14px] bg-gradient-to-b from-[#A8885C] to-[#8B7049] dark:from-[#5A4835] dark:to-[#4A3C2C]" 
+                style={{ 
+                  backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.05) 60px, rgba(0,0,0,0.05) 61px)',
+                }} 
+              />
+              {/* 선반 하단 그림자 */}
+              <div className="h-[6px] bg-gradient-to-b from-[#8B7049]/60 to-transparent dark:from-[#3A302A]/60" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   // 비로그인
   if (!user && !loading) {
     return (
@@ -184,23 +277,51 @@ export default function LibraryPage() {
             <div className="h-9 w-24 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full" />
             <div className="h-9 w-24 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full" />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="space-y-2">
-                <div className="aspect-[3/4] bg-[#EEE4E1] dark:bg-[#2E2620] rounded-xl" />
-                <div className="h-4 bg-[#EEE4E1] dark:bg-[#2E2620] rounded w-3/4" />
+          {/* 선반 스켈레톤 */}
+          {[1, 2].map(i => (
+            <div key={i}>
+              <div className="flex gap-4 px-6 pt-6 pb-2">
+                {[1, 2, 3, 4, 5].map(j => (
+                  <div key={j} className="w-[120px] aspect-[3/4] bg-[#EEE4E1] dark:bg-[#2E2620] rounded-sm" />
+                ))}
               </div>
-            ))}
-          </div>
+              <div className="h-[10px] bg-[#E7D8C9] dark:bg-[#3A302A] rounded-t-sm" />
+              <div className="h-[14px] bg-[#E7D8C9] dark:bg-[#3A302A]" />
+            </div>
+          ))}
         </div>
       </main>
     )
   }
 
+  const currentDocs = activeTab === 'reading' ? readingDocs : favDocs
+
   return (
     <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-6 pb-20 lg:pb-6">
-      {/* 타이틀 */}
-      <h1 className="text-2xl font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-5">내 서재</h1>
+      {/* 타이틀 + 뷰 토글 */}
+      <div className="flex items-center justify-between mb-5">
+        <h1 className="text-2xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">내 서재</h1>
+        <div className="flex items-center gap-1 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-lg p-0.5">
+          <button
+            onClick={() => setViewMode('shelf')}
+            className={`p-1.5 rounded-md transition-all ${
+              viewMode === 'shelf' ? 'bg-white dark:bg-[#3A302A] shadow-sm text-[#B2967D]' : 'text-[#9C8B7A] hover:text-[#B2967D]'
+            }`}
+            title="책장 보기"
+          >
+            <BookMarked className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-1.5 rounded-md transition-all ${
+              viewMode === 'grid' ? 'bg-white dark:bg-[#3A302A] shadow-sm text-[#B2967D]' : 'text-[#9C8B7A] hover:text-[#B2967D]'
+            }`}
+            title="그리드 보기"
+          >
+            <Grid className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
 
       {/* 탭 */}
       <div className="flex gap-2 mb-6">
@@ -228,93 +349,89 @@ export default function LibraryPage() {
         </button>
       </div>
 
-      {/* 이어읽기 탭 */}
-      {activeTab === 'reading' && (
-        <>
-          {readingDocs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="w-16 h-16 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full flex items-center justify-center mb-3">
-                <BookOpen className="w-8 h-8 text-[#B2967D]" />
-              </div>
-              <p className="text-[#2D2016] dark:text-[#EEE4E1] font-medium mb-1">읽고 있는 문서가 없어요</p>
-              <p className="text-sm text-[#9C8B7A] mb-4">문서를 읽기 시작하면 여기에 표시됩니다</p>
-              <Link href="/browse" className="px-5 py-2 bg-[#B2967D] hover:bg-[#a67c52] text-white rounded-full text-sm font-medium transition-colors">
-                둘러보기
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
-              {readingDocs.map(doc => {
-                const progress = doc.page_count > 0 ? Math.round((doc.current_page / doc.page_count) * 100) : 0
-                return (
-                  <Link key={doc.id} href={`/read/${doc.id}`}>
-                    <div className="group cursor-pointer transition-all duration-200 hover:-translate-y-1">
-                      <div className="relative aspect-[3/4] bg-[#EEE4E1] dark:bg-[#2E2620] rounded-xl overflow-hidden mb-2 shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06] group-hover:shadow-lg transition-shadow">
-                        {doc.thumbnail_url ? (
-                          <Image src={doc.thumbnail_url} alt={doc.title} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <BookOpen className="w-10 h-10 text-[#E7D8C9]" />
-                          </div>
-                        )}
-                        {/* 진행률 바 */}
-                        <div className="absolute bottom-0 left-0 right-0">
-                          <div className="h-1.5 bg-black/20">
-                            <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE]" style={{ width: `${progress}%` }} />
-                          </div>
+      {/* 콘텐츠 */}
+      {currentDocs.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="w-16 h-16 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full flex items-center justify-center mb-3">
+            {activeTab === 'reading' ? (
+              <BookOpen className="w-8 h-8 text-[#B2967D]" />
+            ) : (
+              <Heart className="w-8 h-8 text-[#B2967D]" />
+            )}
+          </div>
+          <p className="text-[#2D2016] dark:text-[#EEE4E1] font-medium mb-1">
+            {activeTab === 'reading' ? '읽고 있는 문서가 없어요' : '찜한 문서가 없어요'}
+          </p>
+          <p className="text-sm text-[#9C8B7A] mb-4">
+            {activeTab === 'reading' ? '문서를 읽기 시작하면 여기에 표시됩니다' : '마음에 드는 문서를 찜해보세요'}
+          </p>
+          <Link href="/home" className="px-5 py-2 bg-[#B2967D] hover:bg-[#a67c52] text-white rounded-full text-sm font-medium transition-colors">
+            둘러보기
+          </Link>
+        </div>
+      ) : viewMode === 'shelf' ? (
+        /* ━━━ 책장 보기 ━━━ */
+        <div className="bg-gradient-to-b from-[#F5EDE6] to-[#EDE3DA] dark:from-[#241E18] dark:to-[#1E1812] rounded-2xl overflow-hidden border border-[#E7D8C9] dark:border-[#3A302A] shadow-inner">
+          {/* 책장 상단 장식 */}
+          <div className="h-[8px] bg-gradient-to-b from-[#A8885C] to-[#C4A27A] dark:from-[#4A3C2C] dark:to-[#5A4835]" />
+          
+          <BookShelf docs={currentDocs} type={activeTab} />
+
+          {/* 책장 하단 */}
+          <div className="h-[12px] bg-gradient-to-t from-[#A8885C] to-[#C4A27A] dark:from-[#4A3C2C] dark:to-[#5A4835] mt-2" />
+        </div>
+      ) : (
+        /* ━━━ 그리드 보기 ━━━ */
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
+          {activeTab === 'reading' ? (
+            readingDocs.map(doc => {
+              const progress = doc.page_count > 0 ? Math.round((doc.current_page / doc.page_count) * 100) : 0
+              return (
+                <Link key={doc.id} href={`/read/${doc.id}`}>
+                  <div className="group cursor-pointer transition-all duration-200 hover:-translate-y-1">
+                    <div className="relative aspect-[3/4] bg-[#EEE4E1] dark:bg-[#2E2620] rounded-xl overflow-hidden mb-2 shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06] group-hover:shadow-lg transition-shadow">
+                      {doc.thumbnail_url ? (
+                        <Image src={doc.thumbnail_url} alt={doc.title} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <BookOpen className="w-10 h-10 text-[#E7D8C9]" />
                         </div>
-                        {/* 진행률 배지 */}
-                        <div className="absolute bottom-3 right-2">
-                          <span className="px-2 py-0.5 bg-[#B2967D] text-white text-[10px] font-bold rounded-full shadow-sm">
-                            {progress}%
-                          </span>
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0">
+                        <div className="h-1.5 bg-black/20">
+                          <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE]" style={{ width: `${progress}%` }} />
                         </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-1 group-hover:text-[#B2967D] transition-colors text-[#2D2016] dark:text-[#EEE4E1]">
-                          {doc.title}
-                        </h3>
-                        <p className="text-[11px] text-[#9C8B7A] truncate mb-1">{doc.authorName}</p>
-                        <div className="flex items-center gap-2 text-[11px] text-[#9C8B7A]">
-                          <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{getTimeAgo(doc.last_read_at)}</span>
-                        </div>
+                      <div className="absolute bottom-3 right-2">
+                        <span className="px-2 py-0.5 bg-[#B2967D] text-white text-[10px] font-bold rounded-full shadow-sm">
+                          {progress}%
+                        </span>
                       </div>
                     </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </>
-      )}
-
-      {/* 찜한 콘텐츠 탭 */}
-      {activeTab === 'favorites' && (
-        <>
-          {favDocs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="w-16 h-16 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full flex items-center justify-center mb-3">
-                <Heart className="w-8 h-8 text-[#B2967D]" />
-              </div>
-              <p className="text-[#2D2016] dark:text-[#EEE4E1] font-medium mb-1">찜한 문서가 없어요</p>
-              <p className="text-sm text-[#9C8B7A] mb-4">마음에 드는 문서를 찜해보세요</p>
-              <Link href="/browse" className="px-5 py-2 bg-[#B2967D] hover:bg-[#a67c52] text-white rounded-full text-sm font-medium transition-colors">
-                둘러보기
-              </Link>
-            </div>
+                    <div>
+                      <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-1 group-hover:text-[#B2967D] transition-colors text-[#2D2016] dark:text-[#EEE4E1]">
+                        {doc.title}
+                      </h3>
+                      <p className="text-[11px] text-[#9C8B7A] truncate mb-1">{doc.authorName}</p>
+                      <div className="flex items-center gap-2 text-[11px] text-[#9C8B7A]">
+                        <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{getTimeAgo(doc.last_read_at)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
-              {favDocs.map(doc => (
-                <DocumentCard
-                  key={doc.id}
-                  doc={doc}
-                  authorName={doc.authorName}
-                  variant="grid"
-                />
-              ))}
-            </div>
+            favDocs.map(doc => (
+              <DocumentCard
+                key={doc.id}
+                doc={doc}
+                authorName={doc.authorName}
+                variant="grid"
+              />
+            ))
           )}
-        </>
+        </div>
       )}
     </main>
   )
