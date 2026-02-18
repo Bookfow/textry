@@ -314,25 +314,25 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
   }
 
   const CommentItem = ({ comment, isReply = false, parentId }: { comment: CommentWithProfile; isReply?: boolean; parentId?: string }) => (
-    <div className={`${isReply ? 'ml-8 mt-2' : 'mb-3'} bg-white/5 p-2.5 rounded-lg`}>
+    <div className={`${isReply ? 'ml-8 mt-2' : 'mb-3'} bg-[#EEE4E1]/50 dark:bg-white/5 p-2.5 rounded-lg`}>
       <div className="flex items-start gap-2">
-        <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+        <div className="w-7 h-7 bg-[#B2967D] rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
           {(comment.profile.username || comment.profile.email)[0].toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <Link href={`/profile/${comment.profile.id}`} className="text-xs font-semibold hover:underline text-gray-200">
+            <Link href={`/profile/${comment.profile.id}`} className="text-xs font-semibold hover:underline text-[#2D2016] dark:text-[#EEE4E1]">
               {comment.profile.username || comment.profile.email}
             </Link>
-            <span className="text-[11px] text-gray-500">
+            <span className="text-[11px] text-[#9C8B7A]">
               {new Date(comment.created_at).toLocaleDateString()}
             </span>
           </div>
-          <p className="text-xs text-gray-300 mb-1.5 whitespace-pre-wrap break-words">{comment.content}</p>
+          <p className="text-xs text-[#5C4A38] dark:text-[#C4A882] mb-1.5 whitespace-pre-wrap break-words">{comment.content}</p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleLikeComment(comment.id)}
-              className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-blue-400 transition-colors"
+              className="flex items-center gap-1 text-[11px] text-[#9C8B7A] hover:text-[#B2967D] transition-colors"
             >
               <ThumbsUp className="w-3 h-3" />
               <span>{comment.likes_count}</span>
@@ -340,7 +340,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
             {!isReply && (
               <button
                 onClick={() => openReplyModal(comment)}
-                className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-blue-400 transition-colors"
+                className="flex items-center gap-1 text-[11px] text-[#9C8B7A] hover:text-[#B2967D] transition-colors"
               >
                 <MessageCircle className="w-3 h-3" />
                 답글
@@ -349,7 +349,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
             {isReply && (
               <button
                 onClick={() => openReplyModal({ ...comment, id: parentId || comment.id })}
-                className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-blue-400 transition-colors"
+                className="flex items-center gap-1 text-[11px] text-[#9C8B7A] hover:text-[#B2967D] transition-colors"
               >
                 <MessageCircle className="w-3 h-3" />
                 답글
@@ -358,7 +358,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
             {user?.id === comment.user_id && (
               <button
                 onClick={() => handleDeleteComment(comment.id, isReply, parentId)}
-                className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-red-400 transition-colors"
+                className="flex items-center gap-1 text-[11px] text-[#9C8B7A] hover:text-red-400 transition-colors"
               >
                 <Trash2 className="w-3 h-3" />
                 삭제
@@ -381,12 +381,12 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-white">댓글 {comments.length}개</h3>
+        <h3 className="text-sm font-semibold text-[#2D2016] dark:text-[#EEE4E1]">댓글 {comments.length}개</h3>
         <div className="flex gap-1">
           <button
             onClick={() => handleSortChange('recent')}
             className={`px-2 py-0.5 rounded text-[11px] transition-colors ${
-              sortBy === 'recent' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+              sortBy === 'recent' ? 'bg-[#B2967D] text-white' : 'text-[#9C8B7A] hover:text-[#2D2016] dark:hover:text-[#EEE4E1]'
             }`}
           >
             최신순
@@ -394,7 +394,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
           <button
             onClick={() => handleSortChange('popular')}
             className={`px-2 py-0.5 rounded text-[11px] transition-colors ${
-              sortBy === 'popular' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+              sortBy === 'popular' ? 'bg-[#B2967D] text-white' : 'text-[#9C8B7A] hover:text-[#2D2016] dark:hover:text-[#EEE4E1]'
             }`}
           >
             인기순
@@ -405,7 +405,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       {user ? (
         <div className="mb-3">
           <div className="flex items-start gap-2">
-            <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            <div className="w-7 h-7 bg-[#B2967D] rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
               {user.email ? user.email[0].toUpperCase() : 'U'}
             </div>
             <div className="flex-1 flex gap-1.5">
@@ -413,13 +413,13 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
                 placeholder="댓글을 입력하세요..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="flex-1 text-xs bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 min-h-[60px] resize-none"
+                className="flex-1 text-xs bg-[#EEE4E1] dark:bg-[#2E2620] border-[#E7D8C9] dark:border-[#3A302A] text-[#2D2016] dark:text-[#EEE4E1] placeholder:text-[#9C8B7A] min-h-[60px] resize-none"
                 rows={2}
               />
               <button
                 onClick={handleSubmitComment}
                 disabled={loading || !newComment.trim()}
-                className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors self-end"
+                className="p-2 rounded-lg bg-[#B2967D] text-white hover:bg-[#a67c52] disabled:opacity-40 disabled:cursor-not-allowed transition-colors self-end"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>
@@ -427,11 +427,11 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
           </div>
         </div>
       ) : (
-        <div className="mb-3 p-3 rounded-lg bg-gray-800/50 text-center">
-          <p className="text-xs text-gray-400 mb-2">댓글을 작성하려면 로그인이 필요합니다</p>
+        <div className="mb-3 p-3 rounded-lg bg-[#EEE4E1] dark:bg-[#2E2620] text-center">
+          <p className="text-xs text-[#9C8B7A] mb-2">댓글을 작성하려면 로그인이 필요합니다</p>
           <button
             onClick={() => router.push('/login')}
-            className="px-3 py-1 rounded text-xs bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            className="px-3 py-1 rounded text-xs bg-[#B2967D] text-white hover:bg-[#a67c52] transition-colors"
           >
             로그인
           </button>
@@ -439,7 +439,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
       )}
 
       {comments.length === 0 ? (
-        <div className="text-center py-6 text-xs text-gray-500">
+        <div className="text-center py-6 text-xs text-[#9C8B7A]">
           첫 댓글을 작성해보세요!
         </div>
       ) : (
@@ -452,7 +452,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
 
       {/* 신고 버튼 - 하단 */}
       {user && (
-        <div className="mt-4 pt-3 border-t border-gray-700/50 flex justify-end">
+        <div className="mt-4 pt-3 border-t border-[#E7D8C9] dark:border-[#3A302A] flex justify-end">
           <ReportButton documentId={documentId} />
         </div>
       )}
@@ -467,9 +467,9 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
           </DialogHeader>
           <div className="space-y-4 pt-4">
             {replyingTo && (
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">원본 댓글:</p>
-                <p className="text-sm">{replyingTo.content}</p>
+              <div className="bg-[#EEE4E1] dark:bg-[#2E2620] p-3 rounded-lg">
+                <p className="text-xs text-[#9C8B7A] mb-1">원본 댓글:</p>
+                <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1]">{replyingTo.content}</p>
               </div>
             )}
             <Textarea
@@ -491,6 +491,7 @@ export function CommentsSection({ documentId }: CommentsSectionProps) {
                 size="sm"
                 onClick={handleSubmitReply}
                 disabled={replyLoading || !replyContent.trim()}
+                className="bg-[#B2967D] hover:bg-[#a67c52] text-white"
               >
                 <Send className="w-3.5 h-3.5 mr-1.5" />
                 답글 작성
