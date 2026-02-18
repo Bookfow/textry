@@ -453,13 +453,15 @@ export default function PDFViewer({
     <div ref={containerRef} className="h-full w-full flex flex-col" style={{ overscrollBehavior: 'none' }}>
       <div className="flex-1 relative overflow-hidden" style={{ overscrollBehavior: 'none' }}>
 
-        {/* ━━━ 투명 터치 오버레이: 항상 터치를 캡처 ━━━ */}
-        <div
-          ref={touchOverlayRef}
-          className="absolute inset-0 z-20"
-          style={{ touchAction: 'none' }}
-          onClick={handlePageAreaClick}
-        />
+        {/* ━━━ 투명 터치 오버레이: 스크롤 모드 제외 ━━━ */}
+        {viewMode !== 'scroll' && (
+          <div
+            ref={touchOverlayRef}
+            className="absolute inset-0 z-20"
+            style={{ touchAction: 'none' }}
+            onClick={handlePageAreaClick}
+          />
+        )}
 
         {/* 페이지 모드 */}
         {viewMode === 'page' && (
