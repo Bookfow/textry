@@ -280,7 +280,7 @@ export default function HomePage() {
 
           {/* ━━━ 카테고리 탭 ━━━ */}
           <div className="mb-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-2 pb-2 min-w-max">
+            <div className="flex items-center justify-center gap-2 pb-2 min-w-max">
               <button
                 onClick={() => setActiveCategory('all')}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
