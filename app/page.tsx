@@ -149,16 +149,15 @@ export default function LandingPage() {
                 <div className="h-0.5 bg-[#2E2620]">
                   <div className="h-full w-[15%] bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] rounded-r" />
                 </div>
-                {/* 페이지 본문 — 실제 책 느낌 */}
                 <div className="p-5 min-h-[200px] bg-[#faf6f0]">
-                  <h3 className="text-[13px] font-bold text-[#2D2016] mb-3 leading-tight">제3장. 독자의 마음을 사로잡는 첫 문장</h3>
+                  <h3 className="text-[13px] font-bold text-[#2D2016] mb-3 leading-tight">Chapter 3. 첫 번째 문서 업로드하기</h3>
                   <div className="space-y-2 text-[10px] text-[#5C4A38] leading-relaxed">
-                    <p>글의 첫 문장은 독자와의 약속이다. 그 한 줄이 흥미를 끌지 못하면, 이후 아무리 좋은 내용이 있어도 독자는 페이지를 넘기지 않는다.</p>
-                    <p>좋은 첫 문장에는 세 가지 요소가 있다. 첫째, 구체적인 이미지를 떠올리게 할 것. 둘째, 궁금증을 유발할 것. 셋째, 글의 톤을 암시할 것.</p>
+                    <p>Textry에 문서를 업로드하는 것은 아주 간단합니다. 대시보드에서 &lsquo;새 문서&rsquo; 버튼을 클릭하고, PDF 또는 EPUB 파일을 드래그하세요.</p>
+                    <p>썸네일과 설명을 추가하면 독자들이 내 문서를 더 쉽게 발견할 수 있습니다. 카테고리와 태그도 잊지 마세요.</p>
                     <p className="text-[#9C8B7A] italic border-l-2 border-[#E6BEAE] pl-3">
-                      &ldquo;나는 그해 여름, 한 통의 편지로 인생이 바뀌었다.&rdquo;
+                      Tip: 첫 페이지가 곧 첫인상입니다. 표지를 신경 쓰면 조회수가 크게 올라갑니다.
                     </p>
-                    <p>위 문장이 효과적인 이유를 분석해보자. 시간(&lsquo;그해 여름&rsquo;), 사건(&lsquo;한 통의 편지&rsquo;), 결과(&lsquo;인생이 바뀌었다&rsquo;)가 모두 담겨 있다...</p>
+                    <p>업로드가 완료되면 실시간으로 조회수, 좋아요, 읽기 시간을 대시보드에서 확인할 수 있습니다.</p>
                   </div>
                 </div>
                 {/* 하단 인터랙션 바 */}
