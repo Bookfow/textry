@@ -47,73 +47,131 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Textry 팔레트 3 — Warm Cream
+   
+   ECF8F8  민트 화이트 (가장 밝은 배경)
+   EEE4E1  핑크 크림  (카드/세컨더리 배경)
+   E7D8C9  웜 베이지  (보더/뮤트)
+   E6BEAE  피치       (액센트/호버)
+   B2967D  코코아     (프라이머리/강조)
+   
+   텍스트:
+   2D2016  다크 브라운 (기본 텍스트)
+   5C4A38  미디엄 브라운 (보조 텍스트)
+   9C8B7A  라이트 브라운 (비활성/힌트)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+
+  /* 배경 */
+  --background: #ECF8F8;
+  --foreground: #2D2016;
+
+  /* 카드 */
+  --card: #FFFFFF;
+  --card-foreground: #2D2016;
+
+  /* 팝오버 */
+  --popover: #FFFFFF;
+  --popover-foreground: #2D2016;
+
+  /* 프라이머리 — 코코아 브라운 */
+  --primary: #B2967D;
+  --primary-foreground: #FFFFFF;
+
+  /* 세컨더리 — 핑크 크림 */
+  --secondary: #EEE4E1;
+  --secondary-foreground: #2D2016;
+
+  /* 뮤트 */
+  --muted: #EEE4E1;
+  --muted-foreground: #9C8B7A;
+
+  /* 액센트 — 피치 */
+  --accent: #E6BEAE;
+  --accent-foreground: #2D2016;
+
+  /* 위험 */
+  --destructive: #D4614E;
+
+  /* 보더/인풋 — 웜 베이지 */
+  --border: #E7D8C9;
+  --input: #E7D8C9;
+  --ring: #B2967D;
+
+  /* 차트 */
+  --chart-1: #B2967D;
+  --chart-2: #E6BEAE;
+  --chart-3: #6B9080;
+  --chart-4: #D4A574;
+  --chart-5: #A4C3B2;
+
+  /* 사이드바 */
+  --sidebar: #F7F2EF;
+  --sidebar-foreground: #2D2016;
+  --sidebar-primary: #B2967D;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EEE4E1;
+  --sidebar-accent-foreground: #2D2016;
+  --sidebar-border: #E7D8C9;
+  --sidebar-ring: #B2967D;
 }
 
 .dark {
-  --background: oklch(0.145 0.03 160);
-  --foreground: oklch(0.95 0.006 160);
-  --card: oklch(0.205 0.035 160);
-  --card-foreground: oklch(0.95 0.006 160);
-  --popover: oklch(0.205 0.035 160);
-  --popover-foreground: oklch(0.95 0.006 160);
-  --primary: oklch(0.65 0.17 160);
-  --primary-foreground: oklch(0.98 0.003 160);
-  --secondary: oklch(0.27 0.035 160);
-  --secondary-foreground: oklch(0.95 0.006 160);
-  --muted: oklch(0.27 0.035 160);
-  --muted-foreground: oklch(0.65 0.03 160);
-  --accent: oklch(0.27 0.035 160);
-  --accent-foreground: oklch(0.95 0.006 160);
-  --destructive: oklch(0.65 0.2 25);
-  --border: oklch(0.3 0.025 160);
-  --input: oklch(0.3 0.025 160);
-  --ring: oklch(0.65 0.17 160);
-  --chart-1: oklch(0.65 0.17 160);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.17 0.03 160);
-  --sidebar-foreground: oklch(0.95 0.006 160);
-  --sidebar-primary: oklch(0.65 0.17 160);
-  --sidebar-primary-foreground: oklch(0.98 0.003 160);
-  --sidebar-accent: oklch(0.27 0.035 160);
-  --sidebar-accent-foreground: oklch(0.95 0.006 160);
-  --sidebar-border: oklch(0.3 0.025 160);
-  --sidebar-ring: oklch(0.65 0.17 160);
+  /* 배경 — 딥 브라운 */
+  --background: #1A1410;
+  --foreground: #EEE4E1;
+
+  /* 카드 */
+  --card: #241E18;
+  --card-foreground: #EEE4E1;
+
+  /* 팝오버 */
+  --popover: #241E18;
+  --popover-foreground: #EEE4E1;
+
+  /* 프라이머리 — 밝은 코코아 */
+  --primary: #C4A882;
+  --primary-foreground: #1A1410;
+
+  /* 세컨더리 */
+  --secondary: #2E2620;
+  --secondary-foreground: #EEE4E1;
+
+  /* 뮤트 */
+  --muted: #2E2620;
+  --muted-foreground: #9C8B7A;
+
+  /* 액센트 */
+  --accent: #3A302A;
+  --accent-foreground: #EEE4E1;
+
+  /* 위험 */
+  --destructive: #D4614E;
+
+  /* 보더/인풋 */
+  --border: #3A302A;
+  --input: #3A302A;
+  --ring: #C4A882;
+
+  /* 차트 */
+  --chart-1: #C4A882;
+  --chart-2: #E6BEAE;
+  --chart-3: #6B9080;
+  --chart-4: #D4A574;
+  --chart-5: #A4C3B2;
+
+  /* 사이드바 */
+  --sidebar: #1E1812;
+  --sidebar-foreground: #EEE4E1;
+  --sidebar-primary: #C4A882;
+  --sidebar-primary-foreground: #1A1410;
+  --sidebar-accent: #2E2620;
+  --sidebar-accent-foreground: #EEE4E1;
+  --sidebar-border: #3A302A;
+  --sidebar-ring: #C4A882;
 }
 
 @layer base {
@@ -126,110 +184,111 @@
 }
 
 /* ━━━ 다크모드 글로벌 오버라이드 ━━━ */
-/* 아직 dark: 클래스가 없는 페이지(admin, dashboard, premium 등)에 자동 적용 */
-.dark .bg-gray-50 { background-color: oklch(0.145 0.03 160) !important; }
-.dark .bg-white { background-color: oklch(0.205 0.035 160) !important; }
-.dark .border-gray-200 { border-color: oklch(0.3 0.025 160) !important; }
-.dark .border-gray-100 { border-color: oklch(0.27 0.03 160) !important; }
-.dark .text-gray-900 { color: oklch(0.95 0.006 160) !important; }
-.dark .text-gray-800 { color: oklch(0.9 0.006 160) !important; }
-.dark .text-gray-700 { color: oklch(0.8 0.01 160) !important; }
-.dark .text-gray-600 { color: oklch(0.7 0.015 160) !important; }
-.dark .text-gray-500 { color: oklch(0.6 0.02 160) !important; }
-.dark .bg-gray-100 { background-color: oklch(0.25 0.025 160) !important; }
-.dark .hover\:bg-gray-100:hover { background-color: oklch(0.28 0.025 160) !important; }
-.dark .hover\:bg-gray-50:hover { background-color: oklch(0.22 0.025 160) !important; }
-.dark .border-b { border-bottom-color: oklch(0.3 0.025 160); }
-.dark .border-t { border-top-color: oklch(0.3 0.025 160); }
-.dark .divide-gray-200 > * + * { border-color: oklch(0.3 0.025 160); }
+/* gray → warm brown 매핑 */
+.dark .bg-gray-50 { background-color: #1A1410 !important; }
+.dark .bg-white { background-color: #241E18 !important; }
+.dark .border-gray-200 { border-color: #3A302A !important; }
+.dark .border-gray-100 { border-color: #2E2620 !important; }
+.dark .text-gray-900 { color: #EEE4E1 !important; }
+.dark .text-gray-800 { color: #E7D8C9 !important; }
+.dark .text-gray-700 { color: #C4A882 !important; }
+.dark .text-gray-600 { color: #B2967D !important; }
+.dark .text-gray-500 { color: #9C8B7A !important; }
+.dark .text-gray-400 { color: #8A7968 !important; }
+.dark .text-gray-300 { color: #B2967D !important; }
+.dark .text-gray-200 { color: #C4A882 !important; }
+.dark .bg-gray-100 { background-color: #2E2620 !important; }
+.dark .hover\:bg-gray-100:hover { background-color: #3A302A !important; }
+.dark .hover\:bg-gray-50:hover { background-color: #2E2620 !important; }
+.dark .border-b { border-bottom-color: #3A302A; }
+.dark .border-t { border-top-color: #3A302A; }
+.dark .divide-gray-200 > * + * { border-color: #3A302A; }
 
-/* 카드 내부 배경 */
-.dark .bg-blue-50 { background-color: oklch(0.25 0.06 160) !important; }
-.dark .bg-green-50 { background-color: oklch(0.22 0.05 160) !important; }
-.dark .bg-red-50 { background-color: oklch(0.22 0.05 25) !important; }
-.dark .bg-purple-50 { background-color: oklch(0.22 0.05 300) !important; }
-.dark .bg-amber-50 { background-color: oklch(0.25 0.05 80) !important; }
-.dark .bg-orange-50 { background-color: oklch(0.25 0.05 60) !important; }
+/* 카드 내부 배경 — 웜 톤 */
+.dark .bg-blue-50 { background-color: #2E2620 !important; }
+.dark .bg-green-50 { background-color: #2A2518 !important; }
+.dark .bg-red-50 { background-color: #2E2018 !important; }
+.dark .bg-purple-50 { background-color: #2A2028 !important; }
+.dark .bg-amber-50 { background-color: #2E2618 !important; }
+.dark .bg-orange-50 { background-color: #2E2418 !important; }
 
-/* 그래디언트 배경 (카드 썸네일 등) */
-.dark .from-blue-100 { --tw-gradient-from: oklch(0.25 0.04 160) !important; }
-.dark .to-purple-100 { --tw-gradient-to: oklch(0.23 0.04 300) !important; }
+/* 그래디언트 배경 */
+.dark .from-blue-100 { --tw-gradient-from: #2E2620 !important; }
+.dark .to-purple-100 { --tw-gradient-to: #2A2028 !important; }
 .dark .from-blue-100.to-purple-100,
 .dark .bg-gradient-to-br.from-blue-100 {
-  --tw-gradient-from: oklch(0.22 0.03 160);
-  --tw-gradient-to: oklch(0.2 0.03 300);
+  --tw-gradient-from: #2E2620;
+  --tw-gradient-to: #2A2028;
 }
 
 /* 프리미엄 카드 */
-.dark .from-amber-50 { --tw-gradient-from: oklch(0.22 0.04 80) !important; }
-.dark .to-orange-50 { --tw-gradient-to: oklch(0.2 0.04 60) !important; }
-.dark .border-amber-200 { border-color: oklch(0.4 0.08 80) !important; }
-.dark .border-amber-300 { border-color: oklch(0.45 0.1 80) !important; }
-
-/* 텍스트 보강 */
-.dark .text-gray-400 { color: oklch(0.55 0.015 160) !important; }
-.dark .text-gray-300 { color: oklch(0.7 0.01 160) !important; }
-.dark .text-gray-200 { color: oklch(0.8 0.008 160) !important; }
+.dark .from-amber-50 { --tw-gradient-from: #2E2618 !important; }
+.dark .to-orange-50 { --tw-gradient-to: #2E2418 !important; }
+.dark .border-amber-200 { border-color: #5C4A38 !important; }
+.dark .border-amber-300 { border-color: #6B5744 !important; }
 
 /* 배지 / 작은 배경 */
-.dark .bg-green-100 { background-color: oklch(0.25 0.05 160) !important; }
-.dark .bg-red-100 { background-color: oklch(0.25 0.05 25) !important; }
-.dark .bg-blue-100 { background-color: oklch(0.25 0.05 160) !important; }
-.dark .bg-purple-100 { background-color: oklch(0.25 0.05 300) !important; }
-.dark .bg-amber-100 { background-color: oklch(0.28 0.05 80) !important; }
-.dark .bg-orange-100 { background-color: oklch(0.28 0.05 60) !important; }
+.dark .bg-green-100 { background-color: #2A2518 !important; }
+.dark .bg-red-100 { background-color: #2E2018 !important; }
+.dark .bg-blue-100 { background-color: #2E2620 !important; }
+.dark .bg-purple-100 { background-color: #2A2028 !important; }
+.dark .bg-amber-100 { background-color: #2E2618 !important; }
+.dark .bg-orange-100 { background-color: #2E2418 !important; }
 
-/* Select / Textarea (Input은 shadcn 컴포넌트가 처리) */
+/* Select / Textarea */
 .dark select,
 .dark textarea {
-  background-color: oklch(0.22 0.025 160) !important;
-  color: oklch(0.95 0.006 160) !important;
-  border-color: oklch(0.3 0.025 160) !important;
+  background-color: #241E18 !important;
+  color: #EEE4E1 !important;
+  border-color: #3A302A !important;
 }
 .dark input[type="text"]::placeholder,
 .dark textarea::placeholder {
-  color: oklch(0.5 0.015 160) !important;
+  color: #8A7968 !important;
 }
 
 /* 카드 shadow */
-.dark .shadow-sm { box-shadow: 0 1px 2px 0 oklch(0 0 0 / 0.3) !important; }
+.dark .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important; }
 
 /* Dialog / Dropdown */
 .dark [data-radix-popper-content-wrapper] .bg-white,
 .dark [role="dialog"] .bg-white {
-  background-color: oklch(0.22 0.03 160) !important;
+  background-color: #241E18 !important;
 }
 .dark [data-radix-popper-content-wrapper] .border-gray-200,
 .dark [role="dialog"] .border-gray-200 {
-  border-color: oklch(0.3 0.025 160) !important;
+  border-color: #3A302A !important;
 }
 
 /* ━━━ Tailwind dark: 유틸리티 오버라이드 ━━━ */
-/* gray-800 ~ gray-950 배경 → 에메랄드 다크 */
-.dark .dark\:bg-gray-950 { background-color: oklch(0.13 0.025 160) !important; }
-.dark .dark\:bg-gray-900 { background-color: oklch(0.17 0.03 160) !important; }
-.dark .dark\:bg-gray-800 { background-color: oklch(0.22 0.03 160) !important; }
-.dark .dark\:bg-gray-700 { background-color: oklch(0.28 0.03 160) !important; }
+.dark .dark\:bg-gray-950 { background-color: #141010 !important; }
+.dark .dark\:bg-gray-900 { background-color: #1A1410 !important; }
+.dark .dark\:bg-gray-800 { background-color: #241E18 !important; }
+.dark .dark\:bg-gray-700 { background-color: #2E2620 !important; }
 
-/* gray border → 에메랄드 */
-.dark .dark\:border-gray-800 { border-color: oklch(0.25 0.025 160) !important; }
-.dark .dark\:border-gray-700 { border-color: oklch(0.3 0.025 160) !important; }
-.dark .dark\:border-gray-600 { border-color: oklch(0.35 0.025 160) !important; }
+.dark .dark\:border-gray-800 { border-color: #2E2620 !important; }
+.dark .dark\:border-gray-700 { border-color: #3A302A !important; }
+.dark .dark\:border-gray-600 { border-color: #4A3E34 !important; }
 
-/* gray text → 에메랄드 뉘앙스 */
-.dark .dark\:text-gray-100 { color: oklch(0.95 0.006 160) !important; }
-.dark .dark\:text-gray-200 { color: oklch(0.88 0.008 160) !important; }
-.dark .dark\:text-gray-300 { color: oklch(0.78 0.012 160) !important; }
-.dark .dark\:text-gray-400 { color: oklch(0.65 0.018 160) !important; }
-.dark .dark\:text-gray-500 { color: oklch(0.55 0.018 160) !important; }
+.dark .dark\:text-gray-100 { color: #EEE4E1 !important; }
+.dark .dark\:text-gray-200 { color: #E7D8C9 !important; }
+.dark .dark\:text-gray-300 { color: #C4A882 !important; }
+.dark .dark\:text-gray-400 { color: #9C8B7A !important; }
+.dark .dark\:text-gray-500 { color: #8A7968 !important; }
 
-/* hover bg 오버라이드 */
-.dark .dark\:hover\:bg-gray-800:hover { background-color: oklch(0.25 0.03 160) !important; }
-.dark .dark\:hover\:bg-gray-700:hover { background-color: oklch(0.3 0.03 160) !important; }
+.dark .dark\:hover\:bg-gray-800:hover { background-color: #2E2620 !important; }
+.dark .dark\:hover\:bg-gray-700:hover { background-color: #3A302A !important; }
 
-/* blue 액센트 → emerald 액센트 (active states) */
-.dark .dark\:bg-blue-900\/30 { background-color: oklch(0.25 0.06 160 / 0.3) !important; }
-.dark .dark\:text-blue-400 { color: oklch(0.75 0.15 160) !important; }
+/* 블루 액센트 → 코코아 액센트 */
+.dark .dark\:bg-blue-900\/30 { background-color: rgba(178, 150, 125, 0.15) !important; }
+.dark .dark\:text-blue-400 { color: #C4A882 !important; }
+
+/* ━━━ 라이트 모드 오버라이드 ━━━ */
+/* 랜딩/브라우즈 등에서 하드코딩된 amber/gold → 팔레트 3 매핑 */
+.from-amber-100\/40 { --tw-gradient-from: rgba(231, 216, 201, 0.4) !important; }
+.via-orange-50\/20 { --tw-gradient-via: rgba(238, 228, 225, 0.2) !important; }
+.dark .dark\:from-amber-900\/10 { --tw-gradient-from: rgba(178, 150, 125, 0.1) !important; }
+.dark .dark\:via-amber-950\/5 { --tw-gradient-via: rgba(90, 74, 56, 0.05) !important; }
 
 /* React-PDF 스타일 */
 .react-pdf__Page {
@@ -237,16 +296,24 @@
 }
 
 .react-pdf__Page__textContent {
-  border: 1px solid lightgray;
+  border: 1px solid #E7D8C9;
 }
 
 .react-pdf__Page__annotations {
-  border: 1px solid lightgray;
+  border: 1px solid #E7D8C9;
 }
 
-/* PDF 텍스트/어노테이션 레이어 터치 이벤트 통과 */
 .react-pdf__Page__textContent,
 .react-pdf__Page__annotations {
   pointer-events: none !important;
 }
 
+/* ━━━ 페이지 트랜지션 ━━━ */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-page-enter {
+  animation: page-enter 0.3s ease-out;
+}

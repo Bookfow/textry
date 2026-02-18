@@ -66,7 +66,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#0d9668" />
+        <meta name="theme-color" content="#B2967D" />
       </head>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-J9YDSY8L1R"
