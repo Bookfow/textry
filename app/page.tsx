@@ -53,12 +53,12 @@ export default function LandingPage() {
       {/* ━━━ 히어로 ━━━ */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
-        <p className="text-sm md:text-base tracking-widest text-[#B2967D] font-medium mb-4 uppercase">지식은 모두에게 공유되어야 한다</p>
+        <p className="text-sm md:text-base tracking-widest text-[#B2967D] font-medium mb-4 uppercase">누구나 자유롭게 읽고, 나누는</p>
           <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-[#7a5a30] via-[#c9a96e] to-[#7a5a30] dark:from-[#c9a96e] dark:via-[#f0d58c] dark:to-[#c9a96e] bg-clip-text text-transparent">
-            지식 스트리밍 플랫폼
+          지식은 모두에게 공유되어야 한다
           </h2>
           <p className="text-xl md:text-2xl text-[#2D2016] dark:text-[#EEE4E1] mb-8">
-          누구나 자유롭게 읽고, 나누는 열린 플랫폼
+          문서 스트리밍 플랫폼
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/signup">
@@ -84,7 +84,7 @@ export default function LandingPage() {
               <FileText className="w-6 h-6 text-[#B2967D]" />
             </div>
             <h4 className="text-xl font-semibold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">열린 문서 공유</h4>
-            <p className="text-[#5C4A38] dark:text-[#C4A882]">PDF를 업로드하고 전 세계 사람들과 공유하세요</p>
+            <p className="text-[#5C4A38] dark:text-[#C4A882]">자료를 업로드하고 사람들과 공유하세요</p>
           </div>
           <div className="bg-white dark:bg-[#2E2620] p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-[#E7D8C9]/50 dark:border-[#3A302A]">
             <div className="w-12 h-12 bg-[#EEE4E1] dark:bg-[#B2967D]/20 rounded-lg flex items-center justify-center mb-4">
