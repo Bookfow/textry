@@ -21,7 +21,7 @@ export default function AuthorPage() {
   const router = useRouter()
   const { user } = useAuth()
   const { toast } = useToast()
-  const authorId = params.userId as string
+  const authorId = params.authorId as string
 
   const [author, setAuthor] = useState<(Profile & { bio?: string; banner_url?: string }) | null>(null)
   const [documents, setDocuments] = useState<Document[]>([])
