@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
@@ -6,7 +6,14 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, Plus, FileText, X, Clock } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Search, Plus, FileText, X, Clock, Menu } from 'lucide-react'
 import { NotificationsBell } from '@/components/notifications-bell'
 import { ProfileMenu } from '@/components/profile-menu'
 import { useAuth } from '@/lib/auth-context'
@@ -208,8 +215,8 @@ export function MainHeader({
   return (
     <header className="sticky top-0 z-20 bg-white/80 dark:bg-[#1A1410]/80 backdrop-blur-md border-b border-[#E7D8C9] dark:border-[#3A302A]">
       <div className="px-4 md:px-6 py-3">
-      <div className="flex items-center gap-4 max-w-[1400px] mx-auto w-full">
-      {/* 로고 */}
+        <div className="flex items-center gap-4 max-w-[1400px] mx-auto w-full">
+          {/* 로고 */}
           <Link href="/home" className="flex-shrink-0">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-[#a67c52] via-[#f0d58c] to-[#a67c52] bg-clip-text text-transparent" style={{WebkitTextStroke: '0.3px #daa520', paintOrder: 'stroke fill', letterSpacing: '1px'}}>
               Textry
@@ -284,7 +291,7 @@ export function MainHeader({
           </div>
 
           {/* 우측 */}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-1.5 ml-auto">
             {user && (
               <Link href="/upload">
                 <Button variant="ghost" className="rounded-full hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] h-10 px-4 text-[#5C4A38] dark:text-[#C4A882]" title="업로드">
@@ -294,6 +301,32 @@ export function MainHeader({
               </Link>
             )}
             {user && <NotificationsBell />}
+
+            {/* 카테고리 햄버거 메뉴 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-2 rounded-full hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] transition-colors" title="전체 카테고리">
+                  <Menu className="w-5 h-5 text-[#5C4A38] dark:text-[#C4A882]" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-3 py-2 text-xs font-semibold text-[#9C8B7A]">카테고리</div>
+                <DropdownMenuItem asChild>
+                  <Link href="/browse" className="cursor-pointer font-medium">
+                    📚 전체 보기
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {CATEGORIES.map(cat => (
+                  <DropdownMenuItem key={cat.value} asChild>
+                    <Link href={`/browse?category=${cat.value}`} className="cursor-pointer">
+                      {cat.icon} {cat.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {user && <ProfileMenu />}
           </div>
         </div>
