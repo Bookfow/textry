@@ -136,7 +136,7 @@ export default function LandingPage() {
                 <div className="bg-[#241E18] px-3 py-2 flex items-center gap-2">
                   <div className="flex items-center gap-1.5">
                     <BookOpen className="w-3.5 h-3.5 text-[#C4A882]" />
-                    <span className="text-[10px] text-[#EEE4E1] font-medium truncate max-w-[120px]">창작자를 위한 글쓰기 가이드</span>
+                    <span className="text-[10px] text-[#EEE4E1] font-medium truncate max-w-[120px]">Textry 시작 가이드</span>
                   </div>
                   <div className="flex-1 flex items-center justify-center gap-2">
                     <ChevronLeft className="w-3.5 h-3.5 text-[#9C8B7A]" />
@@ -175,7 +175,7 @@ export default function LandingPage() {
                   </div>
                   <div className="ml-auto flex items-center gap-1.5">
                     <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#B2967D] to-[#E6BEAE]" />
-                    <span className="text-[10px] text-[#C4A882]">이서윤 작가</span>
+                    <span className="text-[10px] text-[#C4A882]">Textry 팀</span>
                     <span className="text-[9px] px-1.5 py-0.5 bg-[#B2967D] text-[#1A1410] rounded font-medium">구독중</span>
                   </div>
                 </div>
