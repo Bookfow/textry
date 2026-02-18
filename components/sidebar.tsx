@@ -70,7 +70,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   ]
 
   const myPageMenuItems = [
-    { icon: TrendingUp, label: '둘러보기', path: '/browse' },
     { icon: BookOpen, label: '내 서재', path: '/library' },
   ]
 
