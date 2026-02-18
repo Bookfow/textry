@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
@@ -208,8 +208,8 @@ export function MainHeader({
   return (
     <header className="sticky top-0 z-20 bg-white/80 dark:bg-[#1A1410]/80 backdrop-blur-md border-b border-[#E7D8C9] dark:border-[#3A302A]">
       <div className="px-4 md:px-6 py-3">
-        <div className="flex items-center gap-4">
-          {/* 로고 */}
+      <div className="flex items-center gap-4 max-w-[1400px] mx-auto w-full">
+      {/* 로고 */}
           <Link href="/home" className="flex-shrink-0">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-[#a67c52] via-[#f0d58c] to-[#a67c52] bg-clip-text text-transparent" style={{WebkitTextStroke: '0.3px #daa520', paintOrder: 'stroke fill', letterSpacing: '1px'}}>
               Textry
