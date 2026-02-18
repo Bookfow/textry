@@ -99,7 +99,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer relative group
           ${active
-            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold'
+            ? 'bg-[#EEE4E1] dark:bg-[#2E2620] text-[#B2967D] dark:text-[#C4A882] font-semibold'
             : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
           }
         `}
@@ -192,7 +192,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           width={isOpen ? 24 : 20} height={isOpen ? 24 : 20}
                           className={`rounded-full object-cover flex-shrink-0`} />
                       ) : (
-                        <div className={`rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center font-bold flex-shrink-0 ${isOpen ? 'w-6 h-6 text-xs' : 'w-5 h-5 text-[10px]'}`}>
+                        <div className={`rounded-full bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] text-white flex items-center justify-center font-bold flex-shrink-0 ${isOpen ? 'w-6 h-6 text-xs' : 'w-5 h-5 text-[10px]'}`}>
                           {(author.username || author.email)[0].toUpperCase()}
                         </div>
                       )}

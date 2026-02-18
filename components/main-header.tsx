@@ -146,7 +146,7 @@ export function MainHeader({
         <div>
           <div className="flex items-center justify-between px-4 py-2 bg-gray-50">
             <span className="text-xs font-medium text-gray-500">최근 검색</span>
-            <button onClick={clearRecentSearches} className="text-xs text-blue-600 hover:underline">삭제</button>
+            <button onClick={clearRecentSearches} className="text-xs text-[#B2967D] hover:underline">삭제</button>
           </div>
           {recentSearches.map((query, i) => (
             <button key={i} onClick={() => handleRecentClick(query)}
@@ -170,7 +170,7 @@ export function MainHeader({
               )}
               {suggestions.filter(s => s.type === 'document').map(result => (
                 <button key={result.id} onClick={() => handleResultClick(result)}
-                  className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-blue-50 text-left transition-colors">
+                  className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] text-left transition-colors">
                   <div className="relative w-8 h-10 rounded bg-gray-100 overflow-hidden flex-shrink-0">
                     {result.thumbnail ? (
                       <Image src={result.thumbnail} alt="" fill className="object-cover" sizes="32px" />
@@ -189,8 +189,9 @@ export function MainHeader({
               )}
               {suggestions.filter(s => s.type === 'author').map(result => (
                 <button key={result.id} onClick={() => handleResultClick(result)}
-                  className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-blue-50 text-left transition-colors">
-                  <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 overflow-hidden flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
+                className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] text-left transition-colors">
+                type C:\Users\user\textry\components\sidebar.tsx
+                  <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] overflow-hidden flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
                     {result.thumbnail ? (
                       <Image src={result.thumbnail} alt="" fill className="object-cover" sizes="32px" />
                     ) : result.title[0].toUpperCase()}
