@@ -156,9 +156,9 @@ export default function SignupPage() {
           </div>
 
           {/* 이메일 가입 */}
-          <form onSubmit={handleSignup} className="space-y-4">
+          <form onSubmit={handleSignup} className="space-y-5">
             <div>
-              <Label htmlFor="username">사용자 이름 (선택)</Label>
+              <Label htmlFor="username" className="mb-1.5 block">사용자 이름 (선택)</Label>
               <Input
                 id="username"
                 type="text"
@@ -168,7 +168,7 @@ export default function SignupPage() {
               />
             </div>
             <div>
-              <Label htmlFor="email">이메일</Label>
+              <Label htmlFor="email" className="mb-1.5 block">이메일</Label>
               <Input
                 id="email"
                 type="email"
@@ -179,7 +179,7 @@ export default function SignupPage() {
               />
             </div>
             <div>
-              <Label htmlFor="password">비밀번호</Label>
+              <Label htmlFor="password" className="mb-1.5 block">비밀번호</Label>
               <Input
                 id="password"
                 type="password"
