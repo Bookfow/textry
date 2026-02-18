@@ -1,11 +1,12 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
-import { BookOpen, Users, TrendingUp, Sparkles } from 'lucide-react'
+import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
+import { CATEGORIES } from '@/lib/categories'
 
 type DocWithAuthor = Document & { profiles?: { username: string | null; email: string; avatar_url: string | null } }
 
@@ -16,6 +17,7 @@ export default function HomePage() {
   const [popularDocs, setPopularDocs] = useState<DocWithAuthor[]>([])
   const [recentDocs, setRecentDocs] = useState<DocWithAuthor[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeCategory, setActiveCategory] = useState<string>('all')
 
   useEffect(() => {
     loadAllSections()
@@ -87,7 +89,7 @@ export default function HomePage() {
         .select('*, profiles!documents_author_id_fkey(username, email, avatar_url)')
         .eq('is_published', true)
         .order('created_at', { ascending: false })
-        .limit(12)
+        .limit(24)
       if (recent) setRecentDocs(recent)
 
     } catch (err) {
@@ -97,26 +99,102 @@ export default function HomePage() {
     }
   }
 
+  // 카테고리 필터 적용
+  const filterByCategory = (docs: DocWithAuthor[]) => {
+    if (activeCategory === 'all') return docs
+    return docs.filter(d => d.category === activeCategory)
+  }
+
+  const filteredRecent = filterByCategory(recentDocs)
+  const filteredPopular = filterByCategory(popularDocs)
+
+  // ━━━ 랭킹 섹션 ━━━
+  const RankingSection = ({ docs }: { docs: DocWithAuthor[] }) => {
+    const top5 = docs.slice(0, 5)
+    if (top5.length === 0) return null
+
+    return (
+      <div className="mb-10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Crown className="w-5 h-5 text-amber-500" />
+            <h2 className="text-lg md:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">실시간 랭킹</h2>
+            <span className="text-xs text-[#9C8B7A] ml-1">최근 7일</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {top5.map((doc, index) => (
+            <Link key={doc.id} href={`/read/${doc.id}`}>
+              <div className="group flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] hover:shadow-md hover:border-[#B2967D]/50 transition-all cursor-pointer">
+                {/* 순위 번호 */}
+                <span className={`text-2xl font-black flex-shrink-0 w-8 text-center ${
+                  index === 0 ? 'text-amber-500' :
+                  index === 1 ? 'text-[#9C8B7A]' :
+                  index === 2 ? 'text-[#B2967D]' :
+                  'text-[#E7D8C9] dark:text-[#3A302A]'
+                }`}>
+                  {index + 1}
+                </span>
+
+                {/* 썸네일 */}
+                <div className="relative w-10 h-14 rounded-md overflow-hidden flex-shrink-0 bg-[#EEE4E1] dark:bg-[#2E2620]">
+                  {doc.thumbnail_url ? (
+                    <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-lg opacity-30">📄</div>
+                  )}
+                </div>
+
+                {/* 정보 */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-semibold text-[#2D2016] dark:text-[#EEE4E1] line-clamp-1 group-hover:text-[#B2967D] transition-colors">
+                    {doc.title}
+                  </h3>
+                  <p className="text-[11px] text-[#9C8B7A] truncate">
+                    {doc.profiles?.username || doc.profiles?.email || ''}
+                  </p>
+                  <div className="flex items-center gap-2 text-[10px] text-[#9C8B7A] mt-0.5">
+                    <span>👁 {doc.view_count.toLocaleString()}</span>
+                    <span>👍 {doc.likes_count.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // ━━━ 섹션 컴포넌트 ━━━
   const ShelfSection = ({
     title,
     icon: Icon,
     docs,
+    showMore,
   }: {
     title: string
     icon: any
     docs: DocWithAuthor[]
+    showMore?: string
   }) => {
     if (docs.length === 0) return null
 
     return (
-      <div className="mb-6">
-        {/* 섹션 타이틀 */}
-        <div className="flex items-center gap-2 mb-4">
-          <Icon className="w-5 h-5 text-amber-700 dark:text-amber-400" />
-          <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
+      <div className="mb-10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Icon className="w-5 h-5 text-[#B2967D]" />
+            <h2 className="text-lg md:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">{title}</h2>
+          </div>
+          {showMore && (
+            <Link href={showMore} className="flex items-center gap-1 text-sm text-[#B2967D] hover:text-[#a67c52] transition-colors">
+              더보기 <ChevronRight className="w-4 h-4" />
+            </Link>
+          )}
         </div>
 
-        {/* 그리드 카드 */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {docs.map(doc => (
             <DocumentCard
@@ -127,22 +205,16 @@ export default function HomePage() {
             />
           ))}
         </div>
-
-        {/* 선반 바닥 */}
-        <div className="relative h-3 mt-2">
-          <div className="absolute inset-x-0 top-0 h-[6px] bg-gradient-to-b from-amber-800/20 to-amber-900/10 dark:from-amber-600/15 dark:to-amber-700/8 rounded-sm" />
-          <div className="absolute inset-x-0 top-[6px] h-[6px] bg-gradient-to-b from-amber-900/10 to-transparent dark:from-amber-600/8 dark:to-transparent" />
-        </div>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">로딩 중...</p>
+          <div className="w-10 h-10 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[#9C8B7A]">로딩 중...</p>
         </div>
       </div>
     )
@@ -154,17 +226,59 @@ export default function HomePage() {
     <div className="min-h-screen">
       <main className="p-4 md:p-6 lg:p-8">
         <div className="max-w-[1600px] mx-auto">
+
+          {/* ━━━ 카테고리 탭 ━━━ */}
+          <div className="mb-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 pb-2 min-w-max">
+              <button
+                onClick={() => setActiveCategory('all')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                  activeCategory === 'all'
+                    ? 'bg-[#B2967D] text-white shadow-sm'
+                    : 'bg-white dark:bg-[#241E18] text-[#5C4A38] dark:text-[#C4A882] border border-[#E7D8C9] dark:border-[#3A302A] hover:border-[#B2967D] hover:text-[#B2967D]'
+                }`}
+              >
+                전체
+              </button>
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat.value}
+                  onClick={() => setActiveCategory(cat.value)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                    activeCategory === cat.value
+                      ? 'bg-[#B2967D] text-white shadow-sm'
+                      : 'bg-white dark:bg-[#241E18] text-[#5C4A38] dark:text-[#C4A882] border border-[#E7D8C9] dark:border-[#3A302A] hover:border-[#B2967D] hover:text-[#B2967D]'
+                  }`}
+                >
+                  {cat.icon} {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {!hasAnyContent ? (
             <div className="text-center py-20">
-              <p className="text-gray-500 dark:text-gray-400 mb-4">추천할 문서가 없습니다</p>
-              <Link href="/browse" className="text-blue-600 hover:underline">문서 둘러보기</Link>
+              <p className="text-[#9C8B7A] mb-4">추천할 문서가 없습니다</p>
+              <Link href="/browse" className="text-[#B2967D] hover:underline">문서 둘러보기</Link>
             </div>
           ) : (
             <>
-              <ShelfSection title="인기 있는 콘텐츠" icon={TrendingUp} docs={popularDocs} />
-              <ShelfSection title="가장 최근 콘텐츠" icon={Sparkles} docs={recentDocs} />
-              <ShelfSection title="구독자의 새 콘텐츠" icon={Users} docs={subscribedDocs} />
-              <ShelfSection title="읽고 있는 콘텐츠" icon={BookOpen} docs={continueReading} />
+              {/* 이어 읽기 (카테고리 필터 무관 — 항상 표시) */}
+              {continueReading.length > 0 && (
+                <ShelfSection title="이어서 읽기" icon={BookOpen} docs={continueReading} />
+              )}
+
+              {/* 랭킹 */}
+              <RankingSection docs={filteredPopular} />
+
+              {/* 인기 콘텐츠 */}
+              <ShelfSection title="인기 있는 콘텐츠" icon={TrendingUp} docs={filteredPopular} showMore="/browse?sort=popular" />
+
+              {/* 최신 콘텐츠 */}
+              <ShelfSection title="새로운 콘텐츠" icon={Sparkles} docs={filteredRecent} showMore="/browse?sort=recent" />
+
+              {/* 구독자 콘텐츠 */}
+              <ShelfSection title="구독 작가의 새 콘텐츠" icon={Users} docs={filterByCategory(subscribedDocs)} />
             </>
           )}
         </div>
