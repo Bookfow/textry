@@ -1,37 +1,46 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Eye, ThumbsUp, TrendingUp, Heart, Search } from 'lucide-react'
-import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
+import { Eye, ThumbsUp, TrendingUp, Heart, Search, Sparkles, Filter, BookOpen } from 'lucide-react'
+import { getCategoryIcon, getCategoryLabel, CATEGORIES } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
+import { DocumentCard } from '@/components/document-card'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 24
 
 function BrowseContent() {
   const { user } = useAuth()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [documents, setDocuments] = useState<Document[]>([])
   const [authors, setAuthors] = useState<Map<string, Profile>>(new Map())
   const [loading, setLoading] = useState(true)
-  const [favSet, setFavSet] = useState<Set<string>>(new Set())
-  const [likedSet, setLikedSet] = useState<Set<string>>(new Set())
-  const [likesMap, setLikesMap] = useState<Map<string, number>>(new Map())
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
 
   const sort = searchParams.get('sort') || 'recent'
   const category = searchParams.get('category') || 'all'
-  const language = searchParams.get('language') || 'all'
+
+  // URL 파라미터 업데이트
+  const updateParams = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value === 'all' || (key === 'sort' && value === 'recent')) {
+      params.delete(key)
+    } else {
+      params.set(key, value)
+    }
+    router.push(`/browse${params.toString() ? '?' + params.toString() : ''}`)
+  }
 
   useEffect(() => {
     setHasMore(true)
     loadDocuments(true)
-  }, [sort, category, language, user])
+  }, [sort, category, user])
 
   const loadDocuments = async (isInitial = true) => {
     try {
@@ -42,22 +51,11 @@ function BrowseContent() {
         setLoadingMore(true)
       }
 
-      if (user && isInitial) {
-        const { data: favData } = await supabase
-          .from('reading_list').select('document_id').eq('user_id', user.id)
-        if (favData) setFavSet(new Set(favData.map(f => f.document_id)))
-
-        const { data: likeData } = await supabase
-          .from('reactions').select('document_id').eq('user_id', user.id).eq('type', 'like')
-        if (likeData) setLikedSet(new Set(likeData.map(l => l.document_id)))
-      }
-
       const offset = isInitial ? 0 : documents.length
 
       let query = supabase.from('documents').select('*').eq('is_published', true)
 
       if (category !== 'all') query = query.eq('category', category)
-      if (language !== 'all') query = query.eq('language', language)
 
       if (sort === 'popular') {
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
@@ -86,17 +84,8 @@ function BrowseContent() {
       if (sorted.length < PAGE_SIZE) setHasMore(false)
       else setHasMore(true)
 
-      if (isInitial) {
-        setDocuments(sorted)
-        setLikesMap(new Map(sorted.map(d => [d.id, d.likes_count])))
-      } else {
-        setDocuments(prev => [...prev, ...sorted])
-        setLikesMap(prev => {
-          const n = new Map(prev)
-          sorted.forEach(d => n.set(d.id, d.likes_count))
-          return n
-        })
-      }
+      if (isInitial) setDocuments(sorted)
+      else setDocuments(prev => [...prev, ...sorted])
 
       if (sorted.length > 0) {
         const authorIds = [...new Set(sorted.map(doc => doc.author_id))]
@@ -117,53 +106,32 @@ function BrowseContent() {
     }
   }
 
-  const toggleFav = async (e: React.MouseEvent, docId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!user) return
-    try {
-      if (favSet.has(docId)) {
-        await supabase.from('reading_list').delete().eq('user_id', user.id).eq('document_id', docId)
-        setFavSet(prev => { const n = new Set(prev); n.delete(docId); return n })
-      } else {
-        await supabase.from('reading_list').insert({ user_id: user.id, document_id: docId })
-        setFavSet(prev => new Set(prev).add(docId))
-      }
-    } catch (err) {
-      console.error('Fav toggle error:', err)
-    }
-  }
-
-  const toggleLike = async (e: React.MouseEvent, docId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!user) return
-    try {
-      const currentLikes = likesMap.get(docId) || 0
-      if (likedSet.has(docId)) {
-        await supabase.from('reactions').delete().eq('user_id', user.id).eq('document_id', docId).eq('type', 'like')
-        await supabase.from('documents').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', docId)
-        setLikedSet(prev => { const n = new Set(prev); n.delete(docId); return n })
-        setLikesMap(prev => { const n = new Map(prev); n.set(docId, Math.max(0, currentLikes - 1)); return n })
-      } else {
-        await supabase.from('reactions').delete().eq('user_id', user.id).eq('document_id', docId)
-        await supabase.from('reactions').insert({ user_id: user.id, document_id: docId, type: 'like' })
-        await supabase.from('documents').update({ likes_count: currentLikes + 1 }).eq('id', docId)
-        setLikedSet(prev => new Set(prev).add(docId))
-        setLikesMap(prev => { const n = new Map(prev); n.set(docId, currentLikes + 1); return n })
-      }
-    } catch (err) {
-      console.error('Like toggle error:', err)
-    }
-  }
+  // 정렬 옵션
+  const sortOptions = [
+    { value: 'recent', label: '최신순', icon: Sparkles },
+    { value: 'popular', label: '인기순', icon: TrendingUp },
+    { value: 'views', label: '조회수순', icon: Eye },
+  ]
 
   if (loading) {
     return (
-      <main className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-48" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5].map(i => <div key={i} className="aspect-[3/4] bg-gray-200 rounded-xl" />)}
+      <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-6">
+        <div className="animate-pulse space-y-6">
+          {/* 카테고리 탭 스켈레톤 */}
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-9 w-20 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full" />
+            ))}
+          </div>
+          {/* 카드 스켈레톤 */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+              <div key={i} className="space-y-2">
+                <div className="aspect-[3/4] bg-[#EEE4E1] dark:bg-[#2E2620] rounded-xl" />
+                <div className="h-4 bg-[#EEE4E1] dark:bg-[#2E2620] rounded w-3/4" />
+                <div className="h-3 bg-[#EEE4E1] dark:bg-[#2E2620] rounded w-1/2" />
+              </div>
+            ))}
           </div>
         </div>
       </main>
@@ -171,100 +139,112 @@ function BrowseContent() {
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-      <div className="flex items-center gap-3 mb-6">
-        <TrendingUp className="w-6 h-6 text-blue-600" />
-        <h1 className="text-2xl font-bold dark:text-white">인기 있는 콘텐츠</h1>
-        <span className="text-sm text-gray-400 dark:text-gray-500">최근 7일 · {documents.length}개</span>
+    <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-6">
+
+      {/* ━━━ 카테고리 탭 ━━━ */}
+      <div className="mb-5 -mx-4 px-4 overflow-x-auto scrollbar-hide">
+        <div className="flex items-center gap-2 pb-2 min-w-max">
+          <button
+            onClick={() => updateParams('category', 'all')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+              category === 'all'
+                ? 'bg-[#B2967D] text-white shadow-sm'
+                : 'bg-white dark:bg-[#241E18] text-[#5C4A38] dark:text-[#C4A882] border border-[#E7D8C9] dark:border-[#3A302A] hover:border-[#B2967D] hover:text-[#B2967D]'
+            }`}
+          >
+            전체
+          </button>
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat.value}
+              onClick={() => updateParams('category', cat.value)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                category === cat.value
+                  ? 'bg-[#B2967D] text-white shadow-sm'
+                  : 'bg-white dark:bg-[#241E18] text-[#5C4A38] dark:text-[#C4A882] border border-[#E7D8C9] dark:border-[#3A302A] hover:border-[#B2967D] hover:text-[#B2967D]'
+              }`}
+            >
+              {cat.icon} {cat.label}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* ━━━ 정렬 + 결과 수 ━━━ */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg md:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">
+            {category === 'all' ? '전체 문서' : `${getCategoryIcon(category)} ${getCategoryLabel(category)}`}
+          </h1>
+          <span className="text-sm text-[#9C8B7A]">{documents.length}개</span>
+        </div>
+
+        <div className="flex items-center gap-1.5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-full p-1">
+          {sortOptions.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => updateParams('sort', opt.value)}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                sort === opt.value
+                  ? 'bg-[#B2967D] text-white'
+                  : 'text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'
+              }`}
+            >
+              <opt.icon className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{opt.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ━━━ 문서 그리드 ━━━ */}
       {documents.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="relative mb-6">
-            <div className="absolute inset-0 -m-4 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full blur-xl opacity-60" />
-            <div className="relative w-20 h-20 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center">
-              <TrendingUp className="w-10 h-10 text-blue-400 dark:text-blue-300" />
+            <div className="absolute inset-0 -m-4 bg-gradient-to-br from-[#E6BEAE]/30 to-[#B2967D]/20 rounded-full blur-xl opacity-60" />
+            <div className="relative w-20 h-20 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full flex items-center justify-center">
+              <BookOpen className="w-10 h-10 text-[#B2967D]" />
             </div>
           </div>
-          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">아직 인기 콘텐츠가 없어요</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 text-center max-w-xs">최근 7일 내 등록된 문서가 없습니다.<br />새로운 문서를 검색해보세요!</p>
-          <Link href="/home" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors shadow-lg shadow-blue-600/20">
-            <Search className="w-4 h-4" />
-            문서 검색하기
-          </Link>
+          <p className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-2">문서가 없습니다</p>
+          <p className="text-sm text-[#9C8B7A] mb-6 text-center max-w-xs">
+            {category !== 'all'
+              ? `${getCategoryLabel(category)} 카테고리에 아직 문서가 없습니다.`
+              : '새로운 문서가 곧 등록될 예정입니다.'
+            }
+          </p>
+          {category !== 'all' && (
+            <button
+              onClick={() => updateParams('category', 'all')}
+              className="px-5 py-2.5 bg-[#B2967D] hover:bg-[#a67c52] text-white text-sm font-medium rounded-full transition-colors"
+            >
+              전체 보기
+            </button>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
           {documents.map(doc => {
             const author = authors.get(doc.author_id)
-            const isFav = favSet.has(doc.id)
-            const isLiked = likedSet.has(doc.id)
-            const likes = likesMap.get(doc.id) ?? doc.likes_count
             return (
-              <Link key={doc.id} href={`/read/${doc.id}`}>
-                <div className="group cursor-pointer transition-all duration-200 hover:-translate-y-1">
-                  <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-2 shadow-sm ring-1 ring-black/[0.06] dark:ring-white/[0.08] group-hover:shadow-lg group-hover:shadow-black/10 dark:group-hover:shadow-black/30 transition-shadow duration-200">
-                    {doc.thumbnail_url ? (
-                      <Image src={doc.thumbnail_url} alt={doc.title} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-5xl opacity-20">📄</div>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex flex-col justify-end">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 w-full">
-                        <p className="text-white text-[11px] leading-relaxed line-clamp-3 whitespace-pre-wrap">
-                          {doc.description || '설명이 없습니다'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      <button
-                        onClick={(e) => toggleFav(e, doc.id)}
-                        className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${isFav ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                        title={isFav ? '찜 해제' : '찜하기'}
-                      >
-                        <Heart className="w-4 h-4" fill={isFav ? 'currentColor' : 'none'} />
-                      </button>
-                      <button
-                        onClick={(e) => toggleLike(e, doc.id)}
-                        className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${isLiked ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
-                        title={isLiked ? '좋아요 취소' : '좋아요'}
-                      >
-                        <ThumbsUp className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} />
-                      </button>
-                    </div>
-                    <div className="absolute top-2 left-2">
-                      <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
-                        {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors dark:text-white">
-                      {doc.title}
-                    </h3>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mb-1">
-                      {author?.username || author?.email || '알 수 없음'}
-                    </p>
-                    <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                      <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{doc.view_count.toLocaleString()}</span>
-                      <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{likes.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+              <DocumentCard
+                key={doc.id}
+                doc={doc}
+                authorName={author?.username || author?.email}
+                variant="grid"
+              />
             )
           })}
         </div>
       )}
 
+      {/* ━━━ 더보기 ━━━ */}
       {!loading && documents.length > 0 && hasMore && (
-        <div className="flex justify-center mt-8">
+        <div className="flex justify-center mt-10">
           <button
             onClick={() => loadDocuments(false)}
             disabled={loadingMore}
-            className="px-6 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium disabled:opacity-50"
+            className="px-8 py-3 bg-white dark:bg-[#241E18] text-[#5C4A38] dark:text-[#C4A882] border border-[#E7D8C9] dark:border-[#3A302A] rounded-full hover:border-[#B2967D] hover:text-[#B2967D] transition-all text-sm font-medium disabled:opacity-50"
           >
             {loadingMore ? '로딩 중...' : '더보기'}
           </button>
@@ -277,11 +257,21 @@ function BrowseContent() {
 export default function BrowsePage() {
   return (
     <Suspense fallback={
-      <main className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-48" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5].map(i => <div key={i} className="aspect-[3/4] bg-gray-200 rounded-xl" />)}
+      <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-6">
+        <div className="animate-pulse space-y-6">
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-9 w-20 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full" />
+            ))}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+              <div key={i} className="space-y-2">
+                <div className="aspect-[3/4] bg-[#EEE4E1] dark:bg-[#2E2620] rounded-xl" />
+                <div className="h-4 bg-[#EEE4E1] dark:bg-[#2E2620] rounded w-3/4" />
+                <div className="h-3 bg-[#EEE4E1] dark:bg-[#2E2620] rounded w-1/2" />
+              </div>
+            ))}
           </div>
         </div>
       </main>
