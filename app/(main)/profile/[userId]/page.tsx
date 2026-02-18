@@ -88,7 +88,7 @@ export default function AuthorPage() {
     : false
 
   const DocumentCard = ({ doc }: { doc: Document }) => (
-    <Link href={`/read/${doc.id}`}>
+    <Link href={`/document/${doc.id}`}>
       <div className="group cursor-pointer">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden mb-3">
           {doc.thumbnail_url ? (

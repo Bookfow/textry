@@ -125,7 +125,7 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {top5.map((doc, index) => (
-            <Link key={doc.id} href={`/read/${doc.id}`}>
+            <Link key={doc.id} href={`/document/${doc.id}`}>
               <div className="group flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] hover:shadow-md hover:border-[#B2967D]/50 hover:-translate-y-1 transition-all duration-200 cursor-pointer">
                 {/* 순위 번호 */}
                 <span className={`text-2xl font-black flex-shrink-0 w-8 text-center ${

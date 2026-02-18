@@ -396,7 +396,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-3">
                   {[...documents].sort((a, b) => b.view_count - a.view_count).slice(0, 5).map((doc, i) => (
-                    <Link key={doc.id} href={`/read/${doc.id}`}>
+                    <Link key={doc.id} href={`/document/${doc.id}`}>
                       <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
                         <span className="text-lg font-bold text-gray-300 dark:text-gray-600 w-6 text-center">{i + 1}</span>
                         <div className="relative w-16 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
@@ -466,7 +466,7 @@ export default function DashboardPage() {
                   {sortedDocuments.map(doc => (
                     <div key={doc.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors items-center">
                       <div className="col-span-5 flex items-center gap-3">
-                        <Link href={`/read/${doc.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                        <Link href={`/document/${doc.id}`} className="flex items-center gap-3 flex-1 min-w-0">
                           <div className="relative w-20 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
                             {doc.thumbnail_url ? (
                               <Image src={doc.thumbnail_url} alt="" fill className="object-cover" sizes="80px" />

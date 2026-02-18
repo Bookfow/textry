@@ -206,7 +206,7 @@ export default function ContinueReadingPage() {
             const isLiked = likedSet.has(doc.id)
             const likes = likesMap.get(doc.id) ?? doc.likes_count
             return (
-              <Link key={doc.id} href={`/read/${doc.id}`}>
+              <Link key={doc.id} href={`/document/${doc.id}`}>
                 <div className="group cursor-pointer transition-all duration-200 hover:-translate-y-1">
                   <div className="relative aspect-[3/4] bg-[#EEE4E1] dark:bg-[#2E2620] rounded-xl overflow-hidden mb-2 shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06] group-hover:shadow-lg transition-shadow duration-200">
                     {doc.thumbnail_url ? (

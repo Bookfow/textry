@@ -95,7 +95,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     if (docs) {
       documentPages = docs.map((doc) => ({
-        url: `${baseUrl}/read/${doc.id}`,
+        url: `${baseUrl}/document/${doc.id}`,
         lastModified: new Date(doc.updated_at),
         changeFrequency: 'weekly' as const,
         priority: 0.8,
