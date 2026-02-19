@@ -231,6 +231,7 @@ export default function ReflowViewer({
   const [letterSpacing, setLetterSpacing] = useState(0)
   const [textAlign, setTextAlign] = useState<ReflowAlign>('left')
   const [showToc, setShowToc] = useState(false)
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | ''>('')
 
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
@@ -436,11 +437,17 @@ export default function ReflowViewer({
 
   // ━━━ 페이지 이동 ━━━
   const goToPrev = useCallback(() => {
-    if (pageNumber > 1 && onPageChange) onPageChange(pageNumber - 1, numPages)
+    if (pageNumber > 1 && onPageChange) {
+      setSlideDirection('right')
+      onPageChange(pageNumber - 1, numPages)
+    }
   }, [pageNumber, numPages, onPageChange])
 
   const goToNext = useCallback(() => {
-    if (pageNumber < numPages && onPageChange) onPageChange(pageNumber + 1, numPages)
+    if (pageNumber < numPages && onPageChange) {
+      setSlideDirection('left')
+      onPageChange(pageNumber + 1, numPages)
+    }
   }, [pageNumber, numPages, onPageChange])
 
   const goToPage = useCallback((page: number) => {
@@ -472,8 +479,24 @@ export default function ReflowViewer({
   }
 
   useEffect(() => {
-    if (contentRef.current) contentRef.current.scrollTop = 0
-  }, [pageNumber])
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0
+      if (slideDirection) {
+        const el = contentRef.current
+        el.style.transition = 'none'
+        el.style.transform = slideDirection === 'left' ? 'translateX(60px)' : 'translateX(-60px)'
+        el.style.opacity = '0'
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            el.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out'
+            el.style.transform = 'translateX(0)'
+            el.style.opacity = '1'
+          })
+        })
+        setSlideDirection('')
+      }
+    }
+  }, [pageNumber, slideDirection])
 
   const handleClick = (e: React.MouseEvent) => {
     if (showSettings) return
