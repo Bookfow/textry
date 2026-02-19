@@ -138,7 +138,8 @@ function BrowseContent() {
     <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-6">
 
       {/* ━━━ 카테고리 탭 ━━━ */}
-      <div className="mb-5 -mx-4 px-4 overflow-x-auto scrollbar-hide">
+      <div className="mb-5 -mx-4 px-4 relative">
+        <div className="overflow-x-auto scrollbar-hide">
         <div className="flex items-center gap-2 pb-2 min-w-max">
           <Link href="/"
             className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] hover:border-[#B2967D] transition-colors"
@@ -169,6 +170,8 @@ function BrowseContent() {
             </button>
           ))}
         </div>
+        </div>
+        <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-[#F7F2EF] dark:from-[#1A1410] to-transparent pointer-events-none md:hidden" />
       </div>
 
       {/* ━━━ 정렬 + 결과 수 ━━━ */}
