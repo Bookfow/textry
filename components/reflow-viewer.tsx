@@ -807,7 +807,7 @@ export default function ReflowViewer({
                   {(Object.keys(THEMES) as ReflowTheme[]).map((t) => (
                     <button key={t} onClick={() => setTheme(t)} className="flex flex-col items-center gap-1.5">
                       <div className={`w-12 h-12 rounded-xl border-2 transition-all ${theme === t ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
-                        style={{ backgroundColor: THEMES[t].bg, borderColor: THEMES[t].border, ringOffsetColor: themeStyle.bg }} />
+                        style={{ backgroundColor: THEMES[t].bg, borderColor: THEMES[t].border }} />
                       <span className="text-[10px]" style={{ color: theme === t ? '#3b82f6' : themeStyle.muted }}>
                         {t === 'light' ? '밝은' : t === 'sepia' ? '세피아' : '어두운'}
                       </span>
