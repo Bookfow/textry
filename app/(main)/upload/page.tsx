@@ -28,6 +28,7 @@ export default function UploadPage() {
   const [progress, setProgress] = useState(0)
   const [progressMessage, setProgressMessage] = useState('')
   const [copyrightAgreed, setCopyrightAgreed] = useState(false)
+  const [convertNotice, setConvertNotice] = useState<string | null>(null)
 
   if (!user) {
     return (
@@ -48,6 +49,16 @@ export default function UploadPage() {
     if (selectedFile) {
       if (selectedFile.size > 100 * 1024 * 1024) { toast.warning('파일 크기는 100MB 이하여야 합니다.'); return }
       setFile(selectedFile)
+
+      // txt/docx 변환 안내
+      const ext = selectedFile.name.split('.').pop()?.toLowerCase() || ''
+      if (ext === 'docx') {
+        setConvertNotice('docx 파일은 텍스트 위주로 변환됩니다. 표, 이미지 등 복잡한 서식은 일부 손실될 수 있습니다.')
+      } else if (ext === 'txt') {
+        setConvertNotice('txt 파일은 자동으로 EPUB 형식으로 변환되어 리플로우 뷰어로 열립니다.')
+      } else {
+        setConvertNotice(null)
+      }
     }
   }
 
@@ -140,16 +151,82 @@ export default function UploadPage() {
     return parts.join('\n\n')
   }
 
+  // ━━━ txt/docx → epub 변환 ━━━
+  async function convertFileToEpub(originalFile: File): Promise<{ epubBlob: Blob; epubData: any } | null> {
+    const ext = originalFile.name.split('.').pop()?.toLowerCase() || ''
+
+    if (ext === 'txt') {
+      setProgressMessage('TXT → EPUB 변환 중...')
+      const text = await originalFile.text()
+      if (!text.trim()) { toast.error('텍스트 파일이 비어있습니다.'); return null }
+
+      const { convertTxtToEpub } = await import('@/lib/text-to-epub')
+      const authorName = user?.email?.split('@')[0] || '작자 미상'
+      const epubBlob = await convertTxtToEpub(text, title.trim() || originalFile.name.replace(/\.txt$/i, ''), authorName)
+
+      // 변환된 epub 파싱
+      const { parseEpub } = await import('@/lib/epub-parser')
+      const arrayBuffer = await epubBlob.arrayBuffer()
+      const epubData = await parseEpub(arrayBuffer)
+
+      return { epubBlob, epubData }
+    }
+
+    if (ext === 'docx') {
+      setProgressMessage('DOCX → EPUB 변환 중...')
+      const arrayBuffer = await originalFile.arrayBuffer()
+
+      const { convertDocxToEpub } = await import('@/lib/text-to-epub')
+      const authorName = user?.email?.split('@')[0] || '작자 미상'
+      const epubBlob = await convertDocxToEpub(arrayBuffer, title.trim() || originalFile.name.replace(/\.docx$/i, ''), authorName)
+
+      // 변환된 epub 파싱
+      const { parseEpub } = await import('@/lib/epub-parser')
+      const epubArrayBuffer = await epubBlob.arrayBuffer()
+      const epubData = await parseEpub(epubArrayBuffer)
+
+      return { epubBlob, epubData }
+    }
+
+    return null
+  }
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!file || !title.trim()) { toast.warning('제목과 파일을 입력해주세요.'); return }
-    setUploading(true); setProgress(10); setProgressMessage('파일 업로드 중...')
+    setUploading(true); setProgress(10); setProgressMessage('파일 준비 중...')
     try {
       const fileExt = file.name.split('.').pop()?.toLowerCase() || ''
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`
-      setProgress(20)
-      const { error: uploadError } = await supabase.storage.from('documents').upload(fileName, file)
+      const isTxtOrDocx = fileExt === 'txt' || fileExt === 'docx'
+
+      // ━━━ txt/docx → epub 변환 ━━━
+      let uploadFile: File | Blob = file
+      let uploadFileName: string
+      let convertedEpubData: any = null
+
+      if (isTxtOrDocx) {
+        setProgress(15)
+        try {
+          const result = await convertFileToEpub(file)
+          if (!result) { setUploading(false); setProgress(0); setProgressMessage(''); return }
+          uploadFile = result.epubBlob
+          convertedEpubData = result.epubData
+          uploadFileName = `${user.id}/${Date.now()}.epub`
+          setProgress(30)
+          setProgressMessage('변환 완료! 업로드 중...')
+        } catch (convertErr: any) {
+          console.error('변환 실패:', convertErr)
+          toast.error(`파일 변환 실패: ${convertErr.message}`)
+          setUploading(false); setProgress(0); setProgressMessage(''); return
+        }
+      } else {
+        uploadFileName = `${user.id}/${Date.now()}.${fileExt}`
+      }
+
+      setProgress(20); setProgressMessage('파일 업로드 중...')
+      const { error: uploadError } = await supabase.storage.from('documents').upload(uploadFileName, uploadFile)
       if (uploadError) throw uploadError
+
       setProgress(40); setProgressMessage('썸네일 처리 중...')
       let thumbnailUrl = null
       if (thumbnail) {
@@ -161,9 +238,13 @@ export default function UploadPage() {
         thumbnailUrl = thumbUrlData.publicUrl
       }
       setProgress(50)
-      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
-      const isEpub = file.name.toLowerCase().endsWith('.epub') || file.type === 'application/epub+zip'
+
+      const isPdf = file.type === 'application/pdf' || fileExt === 'pdf'
+      const isEpub = fileExt === 'epub' || file.type === 'application/epub+zip'
+      const isConvertedEpub = isTxtOrDocx && convertedEpubData
+
       let pageCount = 0; let pdfDoc: any = null
+
       if (isPdf) {
         setProgressMessage('PDF 분석 중...')
         try {
@@ -174,6 +255,7 @@ export default function UploadPage() {
           pageCount = pdfDoc.numPages
         } catch (e) { console.warn('PDF 페이지 수 읽기 실패:', e) }
       }
+
       let epubData: any = null
       if (isEpub) {
         setProgressMessage('EPUB 분석 중...')
@@ -185,10 +267,19 @@ export default function UploadPage() {
           if (!title.trim() && epubData.title && epubData.title !== '제목 없음') setTitle(epubData.title)
         } catch (e) { console.warn('EPUB 파싱 실패:', e); toast.error('EPUB 파일 파싱에 실패했습니다.'); setUploading(false); setProgress(0); setProgressMessage(''); return }
       }
+
+      // 변환된 epub 데이터 사용
+      if (isConvertedEpub) {
+        epubData = convertedEpubData
+        pageCount = epubData.chapters.length
+      }
+
       setProgress(60); setProgressMessage('문서 정보 저장 중...')
-      const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, category, language, file_path: fileName, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: Math.floor(file.size / 1000), page_count: pageCount || null, is_published: true }).select('id').single()
+      const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, category, language, file_path: uploadFileName, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: Math.floor(file.size / 1000), page_count: pageCount || null, is_published: true }).select('id').single()
       if (dbError) throw dbError
+
       setProgress(70)
+
       if (isPdf && pdfDoc && docData?.id) {
         try {
           setProgressMessage('텍스트 추출 중...')
@@ -199,9 +290,12 @@ export default function UploadPage() {
           else { const batchSize = 10; const rows: any[] = []; for (let i = 1; i <= pageCount; i++) { try { const page = await pdfDoc.getPage(i); const textContent = await page.getTextContent(); const text = extractPageText(textContent.items as any[]); rows.push({ document_id: docData.id, page_number: i, text_content: text }); if (rows.length >= batchSize || i === pageCount) { await supabase.from('document_pages_text').insert(rows); rows.length = 0 }; setProgress(70 + Math.round((i / pageCount) * 25)); setProgressMessage(`텍스트 추출 중... ${i}/${pageCount}`) } catch (pageErr) { console.warn(`${i}페이지 실패:`, pageErr) } } }
         } catch (extractErr) { console.warn('텍스트 추출 전체 실패:', extractErr) }
       }
-      if (isEpub && epubData && docData?.id) {
-        try { setProgressMessage('EPUB 챕터 저장 중...'); const batchSize = 10; const rows: any[] = []; for (let i = 0; i < epubData.chapters.length; i++) { rows.push({ document_id: docData.id, page_number: i + 1, text_content: epubData.chapters[i].content }); if (rows.length >= batchSize || i === epubData.chapters.length - 1) { await supabase.from('document_pages_text').insert(rows); rows.length = 0 }; setProgress(70 + Math.round(((i + 1) / epubData.chapters.length) * 25)); setProgressMessage(`EPUB 챕터 저장 중... ${i + 1}/${epubData.chapters.length}`) } } catch (extractErr) { console.warn('EPUB 챕터 저장 실패:', extractErr) }
+
+      // EPUB 챕터 저장 (기존 epub + 변환된 epub 모두)
+      if ((isEpub || isConvertedEpub) && epubData && docData?.id) {
+        try { setProgressMessage('챕터 저장 중...'); const batchSize = 10; const rows: any[] = []; for (let i = 0; i < epubData.chapters.length; i++) { rows.push({ document_id: docData.id, page_number: i + 1, text_content: epubData.chapters[i].content }); if (rows.length >= batchSize || i === epubData.chapters.length - 1) { await supabase.from('document_pages_text').insert(rows); rows.length = 0 }; setProgress(70 + Math.round(((i + 1) / epubData.chapters.length) * 25)); setProgressMessage(`챕터 저장 중... ${i + 1}/${epubData.chapters.length}`) } } catch (extractErr) { console.warn('챕터 저장 실패:', extractErr) }
       }
+
       setProgress(100); setProgressMessage('완료!'); toast.success('업로드가 완료되었습니다!'); router.push('/dashboard')
     } catch (error: any) { console.error('Upload error:', error); toast.error(`업로드 실패: ${error.message}`) }
     finally { setUploading(false); setProgress(0); setProgressMessage('') }
@@ -260,9 +354,14 @@ export default function UploadPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="file" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">문서 파일 *</Label>
-                  <Input id="file" type="file" onChange={handleFileChange} disabled={uploading} accept=".pdf,.epub" required className={inputClass} />
-                  <p className="text-xs text-[#9C8B7A]">지원 형식: PDF, EPUB (최대 100MB)</p>
+                  <Input id="file" type="file" onChange={handleFileChange} disabled={uploading} accept=".pdf,.epub,.txt,.docx" required className={inputClass} />
+                  <p className="text-xs text-[#9C8B7A]">지원 형식: PDF, EPUB, TXT, DOCX (최대 100MB)</p>
                   {file && (<div className="flex items-center gap-2 text-sm text-[#5C4A38] dark:text-[#C4A882]"><FileText className="w-4 h-4" /><span>{file.name}</span><span className="text-xs">({(file.size / 1024 / 1024).toFixed(2)} MB)</span></div>)}
+                  {convertNotice && (
+                    <div className="bg-[#B2967D]/10 border border-[#B2967D]/30 rounded-lg px-3 py-2 mt-2">
+                      <p className="text-xs text-[#5C4A38] dark:text-[#C4A882]">💡 {convertNotice}</p>
+                    </div>
+                  )}
                 </div>
                 {uploading && (
                   <div className="space-y-2">
