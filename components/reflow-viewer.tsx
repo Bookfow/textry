@@ -29,9 +29,9 @@ const FONTS: Record<ReflowFont, { label: string; family: string }> = {
 }
 
 const THEMES: Record<ReflowTheme, { bg: string; text: string; muted: string; border: string; pageBg: string; headingColor: string }> = {
-  light: { bg: '#ffffff', text: '#1a1a1a', muted: '#666666', border: '#e5e5e5', pageBg: '#f5f5f5', headingColor: '#111111' },
+  light: { bg: '#FFFFFF', text: '#2D2016', muted: '#9C8B7A', border: '#E7D8C9', pageBg: '#F7F2EF', headingColor: '#2D2016' },
   sepia: { bg: '#f8f1e3', text: '#5b4636', muted: '#8b7355', border: '#d4c5a9', pageBg: '#ede4d3', headingColor: '#3d2b1f' },
-  dark: { bg: '#1a1a2e', text: '#e0e0e0', muted: '#888888', border: '#2d2d44', pageBg: '#12121f', headingColor: '#f0f0f0' },
+  dark: { bg: '#241E18', text: '#EEE4E1', muted: '#9C8B7A', border: '#3A302A', pageBg: '#1A1410', headingColor: '#EEE4E1' },
 }
 
 // ━━━ 깨진 텍스트 감지 ━━━
