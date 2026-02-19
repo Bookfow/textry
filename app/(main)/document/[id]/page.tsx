@@ -238,7 +238,7 @@ export default function DocumentDetailPage() {
         {/* 블러 배경 이미지 */}
         <div className="absolute inset-0 -inset-x-10">
           {doc.thumbnail_url ? (
-            <Image src={doc.thumbnail_url} alt="" fill className="object-cover scale-110" sizes="100vw" />
+            <Image src={doc.thumbnail_url} alt="" fill className="object-cover scale-110" sizes="100vw" priority />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-[#B2967D] to-[#E6BEAE]" />
           )}
