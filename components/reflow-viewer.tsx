@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { pdfjs } from 'react-pdf'
-import { ChevronLeft, ChevronRight, Minus, Plus, Play, Square, Volume2, List, AlignLeft, AlignJustify, Settings2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Minus, Plus, List, AlignLeft, AlignJustify, Settings2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
@@ -14,7 +14,7 @@ interface ReflowViewerProps {
   onPageChange?: (page: number, total: number) => void
   onDocumentLoad?: (numPages: number) => void
   onSwitchToPdf?: () => void
-  fileType?: 'pdf' | 'epub' // ★ 추가: 파일 타입
+  fileType?: 'pdf' | 'epub'
 }
 
 // ━━━ 리플로우 설정 ━━━
@@ -227,54 +227,14 @@ export default function ReflowViewer({
   const [theme, setTheme] = useState<ReflowTheme>('dark')
   const [showSettings, setShowSettings] = useState(false)
 
-  // ━━━ 새 설정 ━━━
-  const [marginSize, setMarginSize] = useState(2) // 1=좁게, 2=보통, 3=넓게, 4=아주넓게
-  const [letterSpacing, setLetterSpacing] = useState(0) // -1, 0, 1, 2 (px * 0.5)
+  const [marginSize, setMarginSize] = useState(2)
+  const [letterSpacing, setLetterSpacing] = useState(0)
   const [textAlign, setTextAlign] = useState<ReflowAlign>('left')
   const [showToc, setShowToc] = useState(false)
-
-  // ━━━ TTS 상태 ━━━
-  const [ttsPlaying, setTtsPlaying] = useState(false)
-  const [ttsBlockIndex, setTtsBlockIndex] = useState(-1)
-  const [ttsRate, setTtsRate] = useState(1.0)
-  const [ttsSupported, setTtsSupported] = useState(false)
-  const ttsPlayingRef = useRef(false)
-  const ttsRateRef = useRef(1.0)
-  const ttsBlockIndexRef = useRef(-1)
-  const ttsAutoNextRef = useRef(false)
 
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-  const blockRefs = useRef<Map<number, HTMLElement>>(new Map())
-
-  // ━━━ TTS 지원 체크 ━━━
-  useEffect(() => {
-    setTtsSupported(typeof window !== 'undefined' && 'speechSynthesis' in window)
-  }, [])
-
-  // ━━━ TTS 정지 ━━━
-  const stopTts = useCallback(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-    }
-    ttsPlayingRef.current = false
-    setTtsPlaying(false)
-    setTtsBlockIndex(-1)
-    ttsBlockIndexRef.current = -1
-    ttsAutoNextRef.current = false
-  }, [])
-
-  // 언마운트 시 정지
-  useEffect(() => {
-    return () => { stopTts() }
-  }, [stopTts])
-
-  // 페이지 변경 시: 자동 넘김이면 유지, 아니면 정지
-  useEffect(() => {
-    if (ttsAutoNextRef.current) return
-    stopTts()
-  }, [pageNumber, stopTts])
 
   // ━━━ localStorage 복원 ━━━
   useEffect(() => {
@@ -286,7 +246,6 @@ export default function ReflowViewer({
         if (s.lineHeight) setLineHeight(s.lineHeight)
         if (s.font) setFont(s.font)
         if (s.theme) setTheme(s.theme)
-        if (s.ttsRate) setTtsRate(s.ttsRate)
         if (s.marginSize) setMarginSize(s.marginSize)
         if (s.letterSpacing !== undefined) setLetterSpacing(s.letterSpacing)
         if (s.textAlign) setTextAlign(s.textAlign)
@@ -296,15 +255,12 @@ export default function ReflowViewer({
 
   useEffect(() => {
     try {
-      localStorage.setItem('textry_reflow_settings', JSON.stringify({ fontSize, lineHeight, font, theme, ttsRate, marginSize, letterSpacing, textAlign }))
+      localStorage.setItem('textry_reflow_settings', JSON.stringify({ fontSize, lineHeight, font, theme, marginSize, letterSpacing, textAlign }))
     } catch {}
-  }, [fontSize, lineHeight, font, theme, ttsRate, marginSize, letterSpacing, textAlign])
-
-  // showToc 외부 클릭은 오버레이로 처리됨
+  }, [fontSize, lineHeight, font, theme, marginSize, letterSpacing, textAlign])
 
   // ━━━ DB 우선 조회 → 클라이언트 추출 fallback ━━━
   useEffect(() => {
-    // EPUB은 pdfUrl이 없어도 documentId만으로 DB 조회 가능
     if (!isEpub && !pdfUrl) return
     if (isEpub && !documentId) return
     let cancelled = false
@@ -338,7 +294,6 @@ export default function ReflowViewer({
               setExtractProgress(100)
               if (onDocumentLoad) onDocumentLoad(total)
 
-              // EPUB은 unsupported 체크 불필요 (원래 텍스트 기반)
               if (!isEpub) {
                 let emptyCount = 0
                 for (const [, t] of texts) {
@@ -362,7 +317,6 @@ export default function ReflowViewer({
         }
       }
 
-      // ★ EPUB인데 DB에 데이터 없으면 → 미지원 안내
       if (isEpub) {
         if (!cancelled) {
           setExtracting(false)
@@ -385,7 +339,6 @@ export default function ReflowViewer({
         setNumPages(total)
         if (onDocumentLoad) onDocumentLoad(total)
 
-        // ★ 스캔 PDF 사전 감지: 처음 3페이지의 operatorList 체크
         let scanPageCount = 0
         const checkPages = Math.min(3, total)
         for (let i = 1; i <= checkPages; i++) {
@@ -460,9 +413,7 @@ export default function ReflowViewer({
   const currentBlocks = deserializeBlocks(pageTexts.get(pageNumber) || '')
 
   const isCurrentPageBroken = (() => {
-    // EPUB은 기본적으로 깨진 페이지 없음
     if (isEpub) return false
-
     const raw = pageTexts.get(pageNumber) || ''
     const cleaned = raw.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
     if (cleaned.length < 5) return true
@@ -482,95 +433,6 @@ export default function ReflowViewer({
     if (allText.length > 0 && allText.length < 20 && meaningfulCount < 5) return true
     return false
   })()
-
-  // ━━━ TTS: 블록 순차 읽기 (ref 기반으로 최신 상태 참조) ━━━
-  const speakBlockFromIndex = useCallback((blocks: TextBlock[], index: number) => {
-    if (!ttsPlayingRef.current) return
-
-    if (index >= blocks.length) {
-      if (pageNumber < numPages && onPageChange) {
-        ttsAutoNextRef.current = true
-        onPageChange(pageNumber + 1, numPages)
-      } else {
-        stopTts()
-      }
-      return
-    }
-
-    if (blocks[index].type === 'separator' || !blocks[index].content.trim()) {
-      setTtsBlockIndex(index)
-      ttsBlockIndexRef.current = index
-      setTimeout(() => speakBlockFromIndex(blocks, index + 1), 200)
-      return
-    }
-
-    const utterance = new SpeechSynthesisUtterance(blocks[index].content)
-    utterance.lang = 'ko-KR'
-    utterance.rate = ttsRateRef.current
-
-    const voices = window.speechSynthesis.getVoices()
-    const koVoice = voices.find(v => v.lang.startsWith('ko'))
-    if (koVoice) utterance.voice = koVoice
-
-    utterance.onstart = () => {
-      setTtsBlockIndex(index)
-      ttsBlockIndexRef.current = index
-      const el = blockRefs.current.get(index)
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-
-    utterance.onend = () => {
-      if (ttsPlayingRef.current) {
-        speakBlockFromIndex(blocks, index + 1)
-      }
-    }
-
-    utterance.onerror = (e) => {
-      if (e.error !== 'canceled' && ttsPlayingRef.current) {
-        speakBlockFromIndex(blocks, index + 1)
-      }
-    }
-
-    window.speechSynthesis.speak(utterance)
-  }, [pageNumber, numPages, onPageChange, stopTts])
-
-  // ━━━ TTS 자동 다음 페이지에서 이어 읽기 ━━━
-  useEffect(() => {
-    if (ttsAutoNextRef.current && ttsPlayingRef.current && currentBlocks.length > 0) {
-      ttsAutoNextRef.current = false
-      setTimeout(() => {
-        speakBlockFromIndex(currentBlocks, 0)
-      }, 300)
-    }
-  }, [currentBlocks, speakBlockFromIndex])
-
-  const startTts = useCallback(() => {
-    if (!ttsSupported) return
-    window.speechSynthesis.cancel()
-    ttsPlayingRef.current = true
-    setTtsPlaying(true)
-    speakBlockFromIndex(currentBlocks, 0)
-  }, [ttsSupported, currentBlocks, speakBlockFromIndex])
-
-  const toggleTts = useCallback(() => {
-    if (ttsPlaying) {
-      stopTts()
-    } else {
-      startTts()
-    }
-  }, [ttsPlaying, startTts, stopTts])
-
-  const handleRateChange = useCallback((newRate: number) => {
-    ttsRateRef.current = newRate
-    setTtsRate(newRate)
-    if (ttsPlayingRef.current) {
-      window.speechSynthesis.cancel()
-      const idx = ttsBlockIndexRef.current >= 0 ? ttsBlockIndexRef.current : 0
-      setTimeout(() => {
-        speakBlockFromIndex(currentBlocks, idx)
-      }, 100)
-    }
-  }, [currentBlocks, speakBlockFromIndex])
 
   // ━━━ 페이지 이동 ━━━
   const goToPrev = useCallback(() => {
@@ -615,7 +477,6 @@ export default function ReflowViewer({
 
   const handleClick = (e: React.MouseEvent) => {
     if (showSettings) return
-    if (ttsPlaying) return
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
     const clickX = e.clientX - rect.left
     if (clickX < rect.width / 2) goToPrev()
@@ -624,8 +485,6 @@ export default function ReflowViewer({
 
   const themeStyle = THEMES[theme]
   const fontStyle = FONTS[font]
-
-  // ★ EPUB용 페이지 라벨 (챕터)
   const pageLabel = isEpub ? '챕터' : '페이지'
 
   if (extracting) {
@@ -642,7 +501,7 @@ export default function ReflowViewer({
             }
           </p>
           {loadSource === 'client' && !isEpub && (
-            <div className="w-48 h-1.5 bg-gray-700 rounded-full mt-2 mx-auto overflow-hidden">
+            <div className="w-48 h-1.5 rounded-full mt-2 mx-auto overflow-hidden" style={{ backgroundColor: themeStyle.border }}>
               <div className="h-full bg-blue-500 rounded-full transition-all duration-300" style={{ width: `${extractProgress}%` }} />
             </div>
           )}
@@ -651,50 +510,36 @@ export default function ReflowViewer({
     )
   }
 
-  // ━━━ 블록 렌더링 (TTS 하이라이트 포함) ━━━
+  // ━━━ 블록 렌더링 ━━━
   const renderBlock = (block: TextBlock, index: number) => {
-    const isHighlighted = ttsPlaying && ttsBlockIndex === index
-    const highlightStyle = isHighlighted ? {
-      backgroundColor: theme === 'dark' ? 'rgba(59,130,246,0.15)' : theme === 'sepia' ? 'rgba(180,130,60,0.15)' : 'rgba(59,130,246,0.1)',
-      borderRadius: '4px',
-      padding: '2px 4px',
-      margin: '-2px -4px',
-      transition: 'background-color 0.3s ease',
-    } : {}
-
-    const setRef = (el: HTMLElement | null) => {
-      if (el) blockRefs.current.set(index, el)
-      else blockRefs.current.delete(index)
-    }
-
     switch (block.type) {
       case 'heading1':
         return (
-          <h2 ref={setRef} key={index} className="font-bold mt-10 mb-4"
-            style={{ fontSize: `${Math.round(fontSize * 1.6)}px`, lineHeight: 1.3, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px`, ...highlightStyle }}>
+          <h2 key={index} className="font-bold mt-10 mb-4"
+            style={{ fontSize: `${Math.round(fontSize * 1.6)}px`, lineHeight: 1.3, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px` }}>
             {block.content}
           </h2>
         )
       case 'heading2':
         return (
-          <h3 ref={setRef} key={index} className="font-bold mt-8 mb-3"
-            style={{ fontSize: `${Math.round(fontSize * 1.35)}px`, lineHeight: 1.35, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px`, ...highlightStyle }}>
+          <h3 key={index} className="font-bold mt-8 mb-3"
+            style={{ fontSize: `${Math.round(fontSize * 1.35)}px`, lineHeight: 1.35, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px` }}>
             {block.content}
           </h3>
         )
       case 'heading3':
         return (
-          <h4 ref={setRef} key={index} className="font-semibold mt-6 mb-2"
-            style={{ fontSize: `${Math.round(fontSize * 1.15)}px`, lineHeight: 1.4, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px`, ...highlightStyle }}>
+          <h4 key={index} className="font-semibold mt-6 mb-2"
+            style={{ fontSize: `${Math.round(fontSize * 1.15)}px`, lineHeight: 1.4, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px` }}>
             {block.content}
           </h4>
         )
       case 'separator':
-        return <div ref={setRef} key={index} className="my-6" style={{ borderTop: `1px solid ${themeStyle.border}` }} />
+        return <div key={index} className="my-6" style={{ borderTop: `1px solid ${themeStyle.border}` }} />
       default:
         return (
-          <p ref={setRef} key={index} className="mb-4"
-            style={{ textIndent: '1em', fontFamily: fontStyle.family, fontSize: `${fontSize}px`, lineHeight: lineHeight, color: themeStyle.text, wordBreak: 'keep-all', overflowWrap: 'break-word', letterSpacing: `${letterSpacing * 0.5}px`, textAlign: textAlign, ...highlightStyle }}>
+          <p key={index} className="mb-4"
+            style={{ textIndent: '1em', fontFamily: fontStyle.family, fontSize: `${fontSize}px`, lineHeight: lineHeight, color: themeStyle.text, wordBreak: 'keep-all', overflowWrap: 'break-word', letterSpacing: `${letterSpacing * 0.5}px`, textAlign: textAlign }}>
             {block.content}
           </p>
         )
@@ -705,14 +550,12 @@ export default function ReflowViewer({
   const tocItems = (() => {
     const items: { page: number; title: string }[] = []
     for (const [page, text] of pageTexts) {
-      // 첫 번째 heading을 챕터 제목으로 사용
       const h1Match = text.match(/<h1>(.*?)<\/h1>/)
       const h2Match = text.match(/<h2>(.*?)<\/h2>/)
       const title = h1Match?.[1] || h2Match?.[1]
       if (title && title.trim().length > 0) {
         items.push({ page, title: title.trim() })
       } else {
-        // heading이 없으면 첫 텍스트 일부를 사용
         const plainText = text.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
         if (plainText.length > 0) {
           items.push({ page, title: plainText.slice(0, 40) + (plainText.length > 40 ? '...' : '') })
@@ -730,8 +573,6 @@ export default function ReflowViewer({
     4: { maxW: '28rem', px: 'px-10 sm:px-16', label: '아주 넓게' },
   }
   const currentMargin = MARGIN_MAP[marginSize] || MARGIN_MAP[2]
-
-  const TTS_RATES = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
 
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: themeStyle.pageBg }}>
@@ -769,7 +610,7 @@ export default function ReflowViewer({
       )}
 
       {/* ━━━ 미니멀 상단 바 ━━━ */}
-      <div className="flex items-center justify-between px-4 py-2 border-b max-w-lg mx-auto w-full" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
+      <div className="flex items-center justify-between px-4 py-2 border-b max-w-lg mx-auto w-full" style={{ borderColor: themeStyle.border }}>
         <button onClick={() => setShowToc(!showToc)}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
           style={{ color: showToc ? '#3b82f6' : themeStyle.muted }}>
@@ -864,7 +705,7 @@ export default function ReflowViewer({
                   <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>줄간격</p>
                   <select value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))}
                     className="w-full text-xs rounded-lg px-2 py-2 border"
-                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+                    style={{ backgroundColor: 'transparent', color: themeStyle.text, borderColor: themeStyle.border }}>
                     <option value={1.4}>촘촘</option>
                     <option value={1.6}>보통</option>
                     <option value={1.8}>넓게</option>
@@ -875,7 +716,7 @@ export default function ReflowViewer({
                   <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>여백</p>
                   <select value={marginSize} onChange={(e) => setMarginSize(Number(e.target.value))}
                     className="w-full text-xs rounded-lg px-2 py-2 border"
-                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+                    style={{ backgroundColor: 'transparent', color: themeStyle.text, borderColor: themeStyle.border }}>
                     <option value={1}>좁게</option>
                     <option value={2}>보통</option>
                     <option value={3}>넓게</option>
@@ -886,7 +727,7 @@ export default function ReflowViewer({
                   <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>자간</p>
                   <select value={letterSpacing} onChange={(e) => setLetterSpacing(Number(e.target.value))}
                     className="w-full text-xs rounded-lg px-2 py-2 border"
-                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+                    style={{ backgroundColor: 'transparent', color: themeStyle.text, borderColor: themeStyle.border }}>
                     <option value={-1}>좁게</option>
                     <option value={0}>보통</option>
                     <option value={1}>넓게</option>
@@ -929,9 +770,7 @@ export default function ReflowViewer({
       <div ref={contentRef} className="flex-1 overflow-y-auto cursor-pointer" style={{ backgroundColor: themeStyle.bg }}
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onClick={handleClick}>
         <div style={{ maxWidth: currentMargin.maxW, margin: '0 auto' }} className={`${currentMargin.px} py-8`}>
-          
 
-          {/* 전체 문서 미지원 안내 */}
           {unsupported && !isEpub && (
             <div className="mb-6 rounded-xl p-5 text-center" style={{
               backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
@@ -956,7 +795,6 @@ export default function ReflowViewer({
             </div>
           )}
 
-          {/* ★ EPUB DB 데이터 없음 안내 */}
           {unsupported && isEpub && (
             <div className="mb-6 rounded-xl p-5 text-center" style={{
               backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
@@ -973,7 +811,6 @@ export default function ReflowViewer({
             </div>
           )}
 
-          {/* 현재 페이지 텍스트 없음 안내 (PDF 전용) */}
           {isCurrentPageBroken && !unsupported && !isEpub && (
             <div className="mb-6 rounded-lg p-4 text-center" style={{
               backgroundColor: theme === 'dark' ? '#1e1e3a' : theme === 'sepia' ? '#f0e6cc' : '#f0f4ff',
@@ -1001,15 +838,13 @@ export default function ReflowViewer({
             ) : null}
           </div>
 
-          {/* 하단 여백 (고정 바와 겹치지 않게) */}
           <div className="h-16" />
         </div>
       </div>
 
       {/* ━━━ 하단 고정 바: 진행률 슬라이더 + 페이지 네비 ━━━ */}
       {numPages > 0 && (
-        <div className="border-t px-4 py-2" style={{ borderColor: themeStyle.border }}>
-          {/* 슬라이더 */}
+        <div className="border-t px-4 py-2 max-w-lg mx-auto w-full" style={{ borderColor: themeStyle.border }}>
           <div className="flex items-center gap-3">
             <button onClick={(e) => { e.stopPropagation(); goToPrev() }} disabled={pageNumber <= 1}
               className="p-1 rounded transition-opacity disabled:opacity-30" style={{ color: themeStyle.muted }}>
@@ -1024,13 +859,10 @@ export default function ReflowViewer({
                 const targetPage = Math.max(1, Math.round(ratio * numPages))
                 goToPage(targetPage)
               }}>
-              {/* 배경 트랙 */}
-              <div className="h-1.5 rounded-full cursor-pointer" style={{ backgroundColor: theme === 'dark' ? '#2d2d44' : theme === 'sepia' ? '#d4c5a9' : '#e5e5e5' }}>
-                {/* 진행 바 */}
+              <div className="h-1.5 rounded-full cursor-pointer" style={{ backgroundColor: themeStyle.border }}>
                 <div className="h-full rounded-full transition-all duration-200"
                   style={{ width: `${numPages > 1 ? ((pageNumber - 1) / (numPages - 1)) * 100 : 0}%`, backgroundColor: '#3b82f6' }} />
               </div>
-              {/* 드래그 핸들 (thumb) */}
               <input type="range" min={1} max={numPages} value={pageNumber}
                 onChange={(e) => { e.stopPropagation(); goToPage(Number(e.target.value)) }}
                 onClick={(e) => e.stopPropagation()}
@@ -1043,7 +875,6 @@ export default function ReflowViewer({
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-          {/* 페이지 표시 */}
           <div className="flex justify-between mt-1">
             <span className="text-[10px]" style={{ color: themeStyle.muted }}>{pageNumber} / {numPages} {pageLabel}</span>
             <span className="text-[10px]" style={{ color: themeStyle.muted }}>{numPages > 1 ? Math.round(((pageNumber - 1) / (numPages - 1)) * 100) : 0}%</span>
@@ -1051,7 +882,6 @@ export default function ReflowViewer({
         </div>
       )}
 
-    
     </div>
   )
 }
