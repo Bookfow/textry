@@ -144,6 +144,20 @@ function BrowseContent() {
       {/* ━━━ 카테고리 탭 ━━━ */}
       <div className="mb-5 -mx-4 px-4 overflow-x-auto scrollbar-hide">
         <div className="flex items-center gap-2 pb-2 min-w-max">
+        <Link href="/"
+            className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] hover:border-[#B2967D] transition-colors"
+          >
+            🏠
+          </Link>
+```
+
+그리고 상단 import에 `Link`가 이미 있으니 추가 import 필요 없어.
+
+---
+
+배포:
+```
+cd C:\Users\user\textry && git add . && git commit -m "feat: 브라우즈 카테고리 바에 홈 버튼 추가" && git push
           <button
             onClick={() => updateParams('category', 'all')}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
