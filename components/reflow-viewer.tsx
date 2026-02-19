@@ -793,8 +793,8 @@ export default function ReflowViewer({
       {showSettings && (
         <>
           <div className="fixed inset-0 z-[55] bg-black/30" onClick={() => setShowSettings(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[56] rounded-t-2xl shadow-2xl max-h-[70vh] overflow-y-auto"
-            style={{ backgroundColor: themeStyle.bg, borderTop: `1px solid ${themeStyle.border}` }}>
+          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[56] rounded-t-2xl shadow-2xl max-h-[70vh] overflow-y-auto w-full max-w-lg"
+            style={{ backgroundColor: `${themeStyle.bg}e6`, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: `1px solid ${themeStyle.border}` }}>
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 rounded-full" style={{ backgroundColor: themeStyle.border }} />
             </div>
