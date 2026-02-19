@@ -1051,49 +1051,7 @@ export default function ReflowViewer({
         </div>
       )}
 
-      {/* ━━━ TTS 플레이어 바 (성능 개선 후 활성화 예정) ━━━
-      {ttsSupported && !unsupported && !isCurrentPageBroken && currentBlocks.length > 0 && (
-        <div className="flex items-center justify-center gap-4 px-4 py-2.5 border-t" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
-          ...전체 내용...
-        </div>
-      )}
-      */}
-        <div className="flex items-center justify-center gap-4 px-4 py-2.5 border-t" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); toggleTts() }}
-            className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
-            style={{ backgroundColor: ttsPlaying ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: ttsPlaying ? '#ef4444' : '#3b82f6' }}
-          >
-            {ttsPlaying ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
-          </button>
-
-          <div className="flex items-center gap-1.5">
-            {ttsPlaying && (
-              <>
-                <Volume2 className="w-3.5 h-3.5" style={{ color: '#3b82f6' }} />
-                <span className="text-xs" style={{ color: themeStyle.muted }}>
-                  읽는 중 {ttsBlockIndex + 1}/{currentBlocks.filter(b => b.type !== 'separator').length}
-                </span>
-              </>
-            )}
-            {!ttsPlaying && (
-              <span className="text-xs" style={{ color: themeStyle.muted }}>듣기</span>
-            )}
-          </div>
-
-          <select
-            value={ttsRate}
-            onChange={(e) => { e.stopPropagation(); handleRateChange(Number(e.target.value)) }}
-            className="text-xs rounded px-1.5 py-1 border"
-            style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {TTS_RATES.map(r => (
-              <option key={r} value={r}>{r}x</option>
-            ))}
-          </select>
-        </div>
-      )}
+    
     </div>
   )
 }
