@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
-import { Eye, ThumbsUp, Clock, BookOpen, ChevronRight, FileText } from 'lucide-react'
+import { Eye, ThumbsUp, Clock, BookOpen, ChevronRight, FileText, Users } from 'lucide-react'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
 import { SubscribeButton } from '@/components/subscribe-button'
 import { ShareButton } from '@/components/share-button'
@@ -25,10 +25,13 @@ export default function DocumentDetailPage() {
   const [doc, setDoc] = useState<Document | null>(null)
   const [author, setAuthor] = useState<Profile | null>(null)
   const [moreDocs, setMoreDocs] = useState<Document[]>([])
+  const [alsoReadDocs, setAlsoReadDocs] = useState<Document[]>([])
   const [seriesDocs, setSeriesDocs] = useState<SeriesDoc[]>([])
   const [seriesTitle, setSeriesTitle] = useState('')
   const [loading, setLoading] = useState(true)
   const [progress, setProgress] = useState<number | null>(null)
+  const [readerCount, setReaderCount] = useState(0)
+  const [completionRate, setCompletionRate] = useState<number | null>(null)
 
   useEffect(() => {
     loadDocument()
@@ -61,6 +64,35 @@ export default function DocumentDetailPage() {
         .limit(6)
       if (otherDocs) setMoreDocs(otherDocs)
 
+      // ━━━ 독자 수 & 완독률 ━━━
+      try {
+        const { data: readers } = await supabase
+          .from('reading_sessions')
+          .select('reader_id, current_page')
+          .eq('document_id', documentId)
+
+        if (readers && readers.length > 0) {
+          const uniqueReaders = new Set(readers.map(r => r.reader_id))
+          setReaderCount(uniqueReaders.size)
+
+          if (docData.page_count > 0) {
+            const readerMaxPages = new Map<string, number>()
+            readers.forEach(r => {
+              const prev = readerMaxPages.get(r.reader_id) || 0
+              if (r.current_page > prev) readerMaxPages.set(r.reader_id, r.current_page)
+            })
+            let completedCount = 0
+            readerMaxPages.forEach((maxPage) => {
+              if (maxPage >= docData.page_count * 0.9) completedCount++
+            })
+            if (uniqueReaders.size > 0) {
+              setCompletionRate(Math.round((completedCount / uniqueReaders.size) * 100))
+            }
+          }
+        }
+      } catch {}
+
+      // ━━━ 시리즈 ━━━
       const { data: seriesDoc } = await supabase
         .from('series_documents')
         .select('series_id, position')
@@ -99,6 +131,7 @@ export default function DocumentDetailPage() {
         }
       }
 
+      // ━━━ 읽기 진행도 (로그인 사용자) ━━━
       if (user) {
         const { data: session } = await supabase
           .from('reading_sessions')
@@ -113,6 +146,53 @@ export default function DocumentDetailPage() {
           setProgress(Math.round((session.current_page / docData.page_count) * 100))
         }
       }
+
+      // ━━━ 이 문서를 읽은 사람이 본 다른 문서 ━━━
+      try {
+        const { data: otherReaders } = await supabase
+          .from('reading_sessions')
+          .select('reader_id')
+          .eq('document_id', documentId)
+          .limit(50)
+
+        if (otherReaders && otherReaders.length > 0) {
+          const otherUserIds = [...new Set(otherReaders.map(r => r.reader_id))].slice(0, 20)
+
+          const { data: otherReadDocs } = await supabase
+            .from('reading_sessions')
+            .select('document_id')
+            .in('reader_id', otherUserIds)
+            .neq('document_id', documentId)
+            .limit(100)
+
+          if (otherReadDocs && otherReadDocs.length > 0) {
+            const docFreq: Record<string, number> = {}
+            otherReadDocs.forEach(r => {
+              docFreq[r.document_id] = (docFreq[r.document_id] || 0) + 1
+            })
+            const topDocIds = Object.entries(docFreq)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 6)
+              .map(([id]) => id)
+
+            if (topDocIds.length > 0) {
+              const { data: alsoDocs } = await supabase
+                .from('documents')
+                .select('*, profiles!documents_author_id_fkey(username, email, avatar_url)')
+                .in('id', topDocIds)
+                .eq('is_published', true)
+
+              if (alsoDocs) {
+                const sorted = topDocIds
+                  .map(id => alsoDocs.find((d: any) => d.id === id))
+                  .filter(Boolean) as Document[]
+                setAlsoReadDocs(sorted)
+              }
+            }
+          }
+        }
+      } catch {}
+
     } catch (err) {
       console.error('Error loading document:', err)
     } finally {
@@ -151,104 +231,142 @@ export default function DocumentDetailPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-10">
+    <div className="min-h-screen pb-24 lg:pb-8">
 
-        {/* ━━━ 상단: 표지 + 정보 ━━━ */}
-        <div className="flex flex-col sm:flex-row gap-6 md:gap-8 mb-8">
+      {/* ━━━ 블러 배경 히어로 ━━━ */}
+      <div className="relative overflow-hidden">
+        {/* 블러 배경 이미지 */}
+        <div className="absolute inset-0 -inset-x-10">
+          {doc.thumbnail_url ? (
+            <Image src={doc.thumbnail_url} alt="" fill className="object-cover scale-110" sizes="100vw" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-[#B2967D] to-[#E6BEAE]" />
+          )}
+          <div className="absolute inset-0 backdrop-blur-3xl" />
+          <div className="absolute inset-0 bg-[#F7F2EF]/70 dark:bg-[#1A1410]/80" />
+        </div>
 
-          {/* 표지 */}
-          <div className="flex-shrink-0 mx-auto sm:mx-0">
-            <div className="relative w-[200px] md:w-[240px] aspect-[3/4] rounded-xl overflow-hidden shadow-lg bg-[#EEE4E1] dark:bg-[#2E2620]">
-              {doc.thumbnail_url ? (
-                <Image src={doc.thumbnail_url} alt={doc.title} fill className="object-cover" sizes="240px" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <BookOpen className="w-16 h-16 text-[#E7D8C9] dark:text-[#3A302A]" />
-                </div>
-              )}
-              {progress !== null && progress > 0 && (
-                <div className="absolute bottom-0 left-0 right-0">
-                  <div className="h-1.5 bg-black/20">
-                    <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE]" style={{ width: `${progress}%` }} />
+        {/* 히어로 콘텐츠 */}
+        <div className="relative max-w-4xl mx-auto px-4 md:px-6 pt-6 md:pt-10 pb-8 md:pb-12">
+          <div className="flex flex-col sm:flex-row gap-6 md:gap-8">
+
+            {/* 표지 */}
+            <div className="flex-shrink-0 mx-auto sm:mx-0">
+              <div className="relative w-[180px] md:w-[220px] aspect-[3/4] rounded-xl overflow-hidden shadow-2xl shadow-black/20 bg-[#EEE4E1] dark:bg-[#2E2620] ring-1 ring-white/10">
+                {doc.thumbnail_url ? (
+                  <Image src={doc.thumbnail_url} alt={doc.title} fill className="object-cover" sizes="220px" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <BookOpen className="w-16 h-16 text-[#E7D8C9] dark:text-[#3A302A]" />
                   </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 정보 */}
-          <div className="flex-1 min-w-0">
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EEE4E1] dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-full mb-3">
-              {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
-            </span>
-
-            <h1 className="text-2xl md:text-3xl font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-3 leading-tight">
-              {doc.title}
-            </h1>
-
-            {author && (
-              <div className="flex items-center justify-between mb-4">
-                <Link href={`/author/${author.id}`}>
-                  <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                    {author.avatar_url ? (
-                      <Image src={author.avatar_url} alt="" width={36} height={36} className="rounded-full object-cover" />
-                    ) : (
-                      <div className="w-9 h-9 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-sm">
-                        {(author.username || author.email)[0].toUpperCase()}
-                      </div>
-                    )}
-                    <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">
-                      {author.username || author.email}
-                    </span>
+                )}
+                {progress !== null && progress > 0 && (
+                  <div className="absolute bottom-0 left-0 right-0">
+                    <div className="h-1.5 bg-black/20">
+                      <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE]" style={{ width: `${progress}%` }} />
+                    </div>
                   </div>
-                </Link>
-                {user && user.id !== author.id && (
-                  <SubscribeButton
-                    authorId={author.id}
-                    authorName={author.username || author.email}
-                    initialSubscribersCount={author.subscribers_count}
-                  />
                 )}
               </div>
-            )}
-
-            <div className="flex items-center gap-4 text-sm text-[#9C8B7A] mb-5">
-              <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {doc.view_count.toLocaleString()}</span>
-              <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> {doc.likes_count.toLocaleString()}</span>
-              {doc.page_count > 0 && (
-                <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {doc.page_count}p</span>
-              )}
-              {doc.total_reading_time > 0 && (
-                <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatReadingTime(doc.total_reading_time)}</span>
-              )}
             </div>
 
-            {/* CTA 버튼 */}
-            <div className="flex items-center gap-3">
-              <Link
-                href={`/read/${doc.id}`}
-                className="flex-1 sm:flex-none px-8 py-3 bg-[#B2967D] hover:bg-[#a67c52] text-white font-semibold rounded-full transition-colors shadow-md shadow-[#B2967D]/20 text-base text-center"
-              >
-                {progress !== null && progress > 0 ? `이어서 읽기 (${progress}%)` : '바로 읽기'}
-              </Link>
-              <ReadingListButton documentId={documentId} />
-              <ShareButton documentId={documentId} title={doc.title} />
+            {/* 정보 */}
+            <div className="flex-1 min-w-0 text-center sm:text-left">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/60 dark:bg-[#2E2620]/60 backdrop-blur-sm text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-full mb-3">
+                {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
+              </span>
+
+              <h1 className="text-2xl md:text-3xl font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-3 leading-tight">
+                {doc.title}
+              </h1>
+
+              {author && (
+                <div className="flex items-center justify-center sm:justify-between mb-4 gap-3">
+                  <Link href={`/author/${author.id}`}>
+                    <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                      {author.avatar_url ? (
+                        <Image src={author.avatar_url} alt="" width={36} height={36} className="rounded-full object-cover" />
+                      ) : (
+                        <div className="w-9 h-9 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-sm">
+                          {(author.username || author.email)[0].toUpperCase()}
+                        </div>
+                      )}
+                      <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">
+                        {author.username || author.email}
+                      </span>
+                    </div>
+                  </Link>
+                  {user && user.id !== author.id && (
+                    <div className="hidden sm:block">
+                      <SubscribeButton
+                        authorId={author.id}
+                        authorName={author.username || author.email}
+                        initialSubscribersCount={author.subscribers_count}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 통계 */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-sm text-[#9C8B7A] mb-5">
+                <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {doc.view_count.toLocaleString()}</span>
+                <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> {doc.likes_count.toLocaleString()}</span>
+                {doc.page_count > 0 && (
+                  <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {doc.page_count}p</span>
+                )}
+                {doc.total_reading_time > 0 && (
+                  <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatReadingTime(doc.total_reading_time)}</span>
+                )}
+                {readerCount > 0 && (
+                  <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {readerCount}명 읽는 중</span>
+                )}
+              </div>
+
+              {/* 완독률 바 */}
+              {completionRate !== null && readerCount >= 3 && (
+                <div className="mb-5">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs text-[#9C8B7A]">완독률</span>
+                    <span className="text-xs font-semibold text-[#5C4A38] dark:text-[#C4A882]">{completionRate}%</span>
+                  </div>
+                  <div className="h-2 bg-[#EEE4E1]/60 dark:bg-[#2E2620]/60 rounded-full overflow-hidden backdrop-blur-sm">
+                    <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] rounded-full transition-all duration-500"
+                      style={{ width: `${completionRate}%` }} />
+                  </div>
+                </div>
+              )}
+
+              {/* 데스크톱 CTA */}
+              <div className="hidden sm:flex items-center gap-3">
+                <Link
+                  href={`/read/${doc.id}`}
+                  className="px-8 py-3 bg-[#B2967D] hover:bg-[#a67c52] text-white font-semibold rounded-full transition-colors shadow-lg shadow-[#B2967D]/25 text-base text-center"
+                >
+                  {progress !== null && progress > 0 ? `이어서 읽기 (${progress}%)` : '바로 읽기'}
+                </Link>
+                <ReadingListButton documentId={documentId} />
+                <ShareButton documentId={documentId} title={doc.title} />
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ━━━ 소개 ━━━ */}
+      {/* ━━━ 본문 영역 ━━━ */}
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
+
+        {/* 소개 */}
         {doc.description && (
-          <div className="mb-8 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
+          <div className="mb-6 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
             <h2 className="text-sm font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-2">소개</h2>
             <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{doc.description}</p>
           </div>
         )}
 
-        {/* ━━━ 시리즈 ━━━ */}
+        {/* 시리즈 */}
         {seriesDocs.length > 0 && (
-          <div className="mb-8 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
+          <div className="mb-6 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
             <h2 className="text-sm font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-3">📚 {seriesTitle}</h2>
             <div className="space-y-1">
               {seriesDocs.map((sd, i) => (
@@ -275,14 +393,33 @@ export default function DocumentDetailPage() {
           </div>
         )}
 
-        {/* ━━━ 댓글 ━━━ */}
-        <div className="mb-8 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
+        {/* 댓글 */}
+        <div className="mb-6 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
           <CommentsSection documentId={documentId} />
         </div>
 
-        {/* ━━━ 이 작가의 다른 문서 ━━━ */}
+        {/* 이 문서를 읽은 사람이 본 */}
+        {alsoReadDocs.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-4">
+              이 문서를 읽은 사람이 본
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {alsoReadDocs.map(d => (
+                <DocumentCard
+                  key={d.id}
+                  doc={d}
+                  authorName={(d as any).profiles?.username || (d as any).profiles?.email}
+                  variant="grid"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 이 작가의 다른 문서 */}
         {moreDocs.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#2D2016] dark:text-[#EEE4E1]">
                 {author?.username || '작가'}의 다른 문서
@@ -298,8 +435,24 @@ export default function DocumentDetailPage() {
             </div>
           </div>
         )}
-
       </div>
+
+      {/* ━━━ 모바일 하단 고정 CTA ━━━ */}
+      <div className="fixed bottom-16 left-0 right-0 z-30 sm:hidden">
+        <div className="bg-white/90 dark:bg-[#241E18]/90 backdrop-blur-md border-t border-[#E7D8C9] dark:border-[#3A302A] px-4 py-3">
+          <div className="flex items-center gap-3">
+            <ReadingListButton documentId={documentId} />
+            <ShareButton documentId={documentId} title={doc.title} />
+            <Link
+              href={`/read/${doc.id}`}
+              className="flex-1 py-3 bg-[#B2967D] hover:bg-[#a67c52] text-white font-semibold rounded-full transition-colors shadow-md shadow-[#B2967D]/20 text-sm text-center"
+            >
+              {progress !== null && progress > 0 ? `이어서 읽기 (${progress}%)` : '바로 읽기'}
+            </Link>
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }
