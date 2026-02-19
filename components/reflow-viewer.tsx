@@ -792,7 +792,7 @@ export default function ReflowViewer({
       {/* ━━━ 설정 바텀 시트 ━━━ */}
       {showSettings && (
         <>
-          <div className="fixed inset-0 z-[55] bg-black/30" onClick={() => setShowSettings(false)} />
+          <div className="fixed inset-0 z-[55]" onClick={() => setShowSettings(false)} />
           <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[56] rounded-t-2xl shadow-2xl max-h-[70vh] overflow-y-auto w-full max-w-lg"
             style={{ backgroundColor: theme === 'dark' ? 'rgba(36,30,24,0.7)' : theme === 'sepia' ? 'rgba(248,241,227,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: `1px solid ${themeStyle.border}` }}>
             <div className="flex justify-center pt-3 pb-1">
@@ -1008,7 +1008,7 @@ export default function ReflowViewer({
 
       {/* ━━━ 하단 고정 바: 진행률 슬라이더 + 페이지 네비 ━━━ */}
       {numPages > 0 && (
-        <div className="border-t px-4 py-2" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
+        <div className="border-t px-4 py-2" style={{ borderColor: themeStyle.border }}>
           {/* 슬라이더 */}
           <div className="flex items-center gap-3">
             <button onClick={(e) => { e.stopPropagation(); goToPrev() }} disabled={pageNumber <= 1}
