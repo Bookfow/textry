@@ -768,137 +768,168 @@ export default function ReflowViewer({
         </div>
       )}
 
-      {/* ━━━ 설정 바 ━━━ */}
-      <div className="border-b" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
-        {/* 메인 행 */}
-        <div className="flex items-center justify-center gap-2 px-3 py-2 flex-wrap">
-          {/* 목차 버튼 */}
-          <button onClick={() => setShowToc(!showToc)}
-            className={`p-1.5 rounded-lg transition-opacity ${showToc ? 'opacity-100' : 'hover:opacity-70'}`}
-            style={{ color: showToc ? '#3b82f6' : themeStyle.muted }} title="목차">
-            <List className="w-4 h-4" />
-          </button>
+      {/* ━━━ 미니멀 상단 바 ━━━ */}
+      <div className="flex items-center justify-between px-4 py-2 border-b" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
+        <button onClick={() => setShowToc(!showToc)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
+          style={{ color: showToc ? '#3b82f6' : themeStyle.muted }}>
+          <List className="w-4 h-4" />
+          <span className="text-xs">목차</span>
+        </button>
 
-          <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
+        <span className="text-xs font-medium" style={{ color: themeStyle.muted }}>
+          {pageNumber} / {numPages} {pageLabel}
+        </span>
 
-          {/* 글자 크기 */}
-          <button onClick={() => setFontSize(s => Math.max(12, s - 1))}
-            className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ color: themeStyle.muted }}>
-            <Minus className="w-4 h-4" />
-          </button>
-          <span className="text-xs font-mono min-w-[32px] text-center" style={{ color: themeStyle.text }}>{fontSize}</span>
-          <button onClick={() => setFontSize(s => Math.min(32, s + 1))}
-            className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ color: themeStyle.muted }}>
-            <Plus className="w-4 h-4" />
-          </button>
-
-          <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
-
-          {/* 글꼴 */}
-          {(Object.keys(FONTS) as ReflowFont[]).map((f) => (
-            <button key={f} onClick={() => setFont(f)}
-              className={`px-2 py-1 rounded text-xs transition-all ${font === f ? 'ring-2 ring-blue-500' : 'hover:opacity-70'}`}
-              style={{ backgroundColor: font === f ? 'rgba(59,130,246,0.15)' : 'transparent', color: font === f ? '#3b82f6' : themeStyle.muted, fontFamily: FONTS[f].family }}>
-              {FONTS[f].label}
-            </button>
-          ))}
-
-          <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
-
-          {/* 테마 */}
-          <div className="flex gap-1">
-            {(Object.keys(THEMES) as ReflowTheme[]).map((t) => (
-              <button key={t} onClick={() => setTheme(t)}
-                className={`w-6 h-6 rounded-full border-2 transition-all ${theme === t ? 'ring-2 ring-blue-500 ring-offset-1' : ''}`}
-                style={{ backgroundColor: THEMES[t].bg, borderColor: THEMES[t].border }}
-                title={t === 'light' ? '밝은' : t === 'sepia' ? '세피아' : '어두운'} />
-            ))}
-          </div>
-
-          <div className="w-px h-4 mx-0.5" style={{ backgroundColor: themeStyle.border }} />
-
-          {/* 상세 설정 토글 */}
-          <button onClick={() => setShowSettings(!showSettings)}
-            className={`p-1.5 rounded-lg transition-opacity ${showSettings ? 'opacity-100' : 'hover:opacity-70'}`}
-            style={{ color: showSettings ? '#3b82f6' : themeStyle.muted }} title="상세 설정">
-            <Settings2 className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* 상세 설정 행 (토글) */}
-        {showSettings && (
-          <div className="flex items-center justify-center gap-3 px-3 py-2 border-t flex-wrap" style={{ borderColor: themeStyle.border }}>
-            {/* 줄 간격 */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px]" style={{ color: themeStyle.muted }}>줄간격</span>
-              <select value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))}
-                className="text-xs rounded px-1 py-0.5 border"
-                style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
-                <option value={1.4}>촘촘</option>
-                <option value={1.6}>보통</option>
-                <option value={1.8}>넓게</option>
-                <option value={2.0}>아주 넓게</option>
-              </select>
-            </div>
-
-            <div className="w-px h-4" style={{ backgroundColor: themeStyle.border }} />
-
-            {/* 여백/문단 너비 */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px]" style={{ color: themeStyle.muted }}>여백</span>
-              <select value={marginSize} onChange={(e) => setMarginSize(Number(e.target.value))}
-                className="text-xs rounded px-1 py-0.5 border"
-                style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
-                <option value={1}>좁게</option>
-                <option value={2}>보통</option>
-                <option value={3}>넓게</option>
-                <option value={4}>아주 넓게</option>
-              </select>
-            </div>
-
-            <div className="w-px h-4" style={{ backgroundColor: themeStyle.border }} />
-
-            {/* 자간 */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px]" style={{ color: themeStyle.muted }}>자간</span>
-              <select value={letterSpacing} onChange={(e) => setLetterSpacing(Number(e.target.value))}
-                className="text-xs rounded px-1 py-0.5 border"
-                style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
-                <option value={-1}>좁게</option>
-                <option value={0}>보통</option>
-                <option value={1}>넓게</option>
-                <option value={2}>아주 넓게</option>
-              </select>
-            </div>
-
-            <div className="w-px h-4" style={{ backgroundColor: themeStyle.border }} />
-
-            {/* 정렬 */}
-            <div className="flex items-center gap-1">
-              <button onClick={() => setTextAlign('left')}
-                className={`p-1.5 rounded transition-all ${textAlign === 'left' ? 'ring-2 ring-blue-500 bg-blue-500/10' : 'hover:opacity-70'}`}
-                style={{ color: textAlign === 'left' ? '#3b82f6' : themeStyle.muted }} title="왼쪽 정렬">
-                <AlignLeft className="w-3.5 h-3.5" />
-              </button>
-              <button onClick={() => setTextAlign('justify')}
-                className={`p-1.5 rounded transition-all ${textAlign === 'justify' ? 'ring-2 ring-blue-500 bg-blue-500/10' : 'hover:opacity-70'}`}
-                style={{ color: textAlign === 'justify' ? '#3b82f6' : themeStyle.muted }} title="양쪽 정렬">
-                <AlignJustify className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        )}
+        <button onClick={() => setShowSettings(!showSettings)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
+          style={{ color: showSettings ? '#3b82f6' : themeStyle.muted }}>
+          <Settings2 className="w-4 h-4" />
+          <span className="text-xs">설정</span>
+        </button>
       </div>
+
+      {/* ━━━ 설정 바텀 시트 ━━━ */}
+      {showSettings && (
+        <>
+          <div className="fixed inset-0 z-[55] bg-black/30" onClick={() => setShowSettings(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-[56] rounded-t-2xl shadow-2xl max-h-[70vh] overflow-y-auto"
+            style={{ backgroundColor: themeStyle.bg, borderTop: `1px solid ${themeStyle.border}` }}>
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full" style={{ backgroundColor: themeStyle.border }} />
+            </div>
+            <div className="px-5 pb-6 space-y-5">
+
+              {/* 배경 테마 */}
+              <div>
+                <p className="text-xs font-medium mb-3" style={{ color: themeStyle.muted }}>배경 테마</p>
+                <div className="flex gap-3 justify-center">
+                  {(Object.keys(THEMES) as ReflowTheme[]).map((t) => (
+                    <button key={t} onClick={() => setTheme(t)} className="flex flex-col items-center gap-1.5">
+                      <div className={`w-12 h-12 rounded-xl border-2 transition-all ${theme === t ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+                        style={{ backgroundColor: THEMES[t].bg, borderColor: THEMES[t].border, ringOffsetColor: themeStyle.bg }} />
+                      <span className="text-[10px]" style={{ color: theme === t ? '#3b82f6' : themeStyle.muted }}>
+                        {t === 'light' ? '밝은' : t === 'sepia' ? '세피아' : '어두운'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 글꼴 */}
+              <div>
+                <p className="text-xs font-medium mb-3" style={{ color: themeStyle.muted }}>글꼴</p>
+                <div className="flex gap-2">
+                  {(Object.keys(FONTS) as ReflowFont[]).map((f) => (
+                    <button key={f} onClick={() => setFont(f)}
+                      className={`flex-1 py-2 rounded-xl text-sm transition-all border ${font === f ? 'border-blue-500' : ''}`}
+                      style={{
+                        backgroundColor: font === f ? 'rgba(59,130,246,0.1)' : 'transparent',
+                        borderColor: font === f ? '#3b82f6' : themeStyle.border,
+                        color: font === f ? '#3b82f6' : themeStyle.text,
+                        fontFamily: FONTS[f].family,
+                      }}>
+                      {FONTS[f].label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 글자 크기 */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-medium" style={{ color: themeStyle.muted }}>글자 크기</p>
+                  <span className="text-xs font-mono" style={{ color: themeStyle.text }}>{fontSize}px</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setFontSize(s => Math.max(12, s - 1))}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center border transition-colors"
+                    style={{ borderColor: themeStyle.border, color: themeStyle.muted }}>
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <input type="range" min={12} max={32} value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))}
+                    className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500"
+                    style={{ backgroundColor: themeStyle.border }} />
+                  <button onClick={() => setFontSize(s => Math.min(32, s + 1))}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center border transition-colors"
+                    style={{ borderColor: themeStyle.border, color: themeStyle.muted }}>
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* 줄간격 · 여백 · 자간 */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>줄간격</p>
+                  <select value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))}
+                    className="w-full text-xs rounded-lg px-2 py-2 border"
+                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+                    <option value={1.4}>촘촘</option>
+                    <option value={1.6}>보통</option>
+                    <option value={1.8}>넓게</option>
+                    <option value={2.0}>아주 넓게</option>
+                  </select>
+                </div>
+                <div>
+                  <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>여백</p>
+                  <select value={marginSize} onChange={(e) => setMarginSize(Number(e.target.value))}
+                    className="w-full text-xs rounded-lg px-2 py-2 border"
+                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+                    <option value={1}>좁게</option>
+                    <option value={2}>보통</option>
+                    <option value={3}>넓게</option>
+                    <option value={4}>아주 넓게</option>
+                  </select>
+                </div>
+                <div>
+                  <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>자간</p>
+                  <select value={letterSpacing} onChange={(e) => setLetterSpacing(Number(e.target.value))}
+                    className="w-full text-xs rounded-lg px-2 py-2 border"
+                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+                    <option value={-1}>좁게</option>
+                    <option value={0}>보통</option>
+                    <option value={1}>넓게</option>
+                    <option value={2}>아주 넓게</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* 정렬 */}
+              <div>
+                <p className="text-xs font-medium mb-3" style={{ color: themeStyle.muted }}>정렬</p>
+                <div className="flex gap-2">
+                  <button onClick={() => setTextAlign('left')}
+                    className={`flex-1 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border transition-all ${textAlign === 'left' ? 'border-blue-500' : ''}`}
+                    style={{
+                      backgroundColor: textAlign === 'left' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                      borderColor: textAlign === 'left' ? '#3b82f6' : themeStyle.border,
+                      color: textAlign === 'left' ? '#3b82f6' : themeStyle.text,
+                    }}>
+                    <AlignLeft className="w-4 h-4" /> 왼쪽
+                  </button>
+                  <button onClick={() => setTextAlign('justify')}
+                    className={`flex-1 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border transition-all ${textAlign === 'justify' ? 'border-blue-500' : ''}`}
+                    style={{
+                      backgroundColor: textAlign === 'justify' ? 'rgba(59,130,246,0.1)' : 'transparent',
+                      borderColor: textAlign === 'justify' ? '#3b82f6' : themeStyle.border,
+                      color: textAlign === 'justify' ? '#3b82f6' : themeStyle.text,
+                    }}>
+                    <AlignJustify className="w-4 h-4" /> 양쪽
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ━━━ 텍스트 본문 ━━━ */}
       <div ref={contentRef} className="flex-1 overflow-y-auto cursor-pointer" style={{ backgroundColor: themeStyle.bg }}
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onClick={handleClick}>
         <div style={{ maxWidth: currentMargin.maxW, margin: '0 auto' }} className={`${currentMargin.px} py-8`}>
-          <div className="mb-6 pb-3 border-b" style={{ borderColor: themeStyle.border }}>
-            <span className="text-xs font-medium" style={{ color: themeStyle.muted }}>
-              {pageNumber} / {numPages} {pageLabel}
-            </span>
-          </div>
+          
 
           {/* 전체 문서 미지원 안내 */}
           {unsupported && !isEpub && (
@@ -1020,8 +1051,13 @@ export default function ReflowViewer({
         </div>
       )}
 
-      {/* ━━━ TTS 플레이어 바 ━━━ */}
+      {/* ━━━ TTS 플레이어 바 (성능 개선 후 활성화 예정) ━━━
       {ttsSupported && !unsupported && !isCurrentPageBroken && currentBlocks.length > 0 && (
+        <div className="flex items-center justify-center gap-4 px-4 py-2.5 border-t" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
+          ...전체 내용...
+        </div>
+      )}
+      */}
         <div className="flex items-center justify-center gap-4 px-4 py-2.5 border-t" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
           <button
             onClick={(e) => { e.stopPropagation(); toggleTts() }}
