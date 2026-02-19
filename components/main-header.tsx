@@ -271,13 +271,14 @@ export function MainHeader({
 
           {/* 태블릿 검색 */}
           <div className="hidden md:flex lg:hidden flex-1">
-            <div className="relative w-full">
+            <div className="relative w-full" ref={dropdownRef}>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
               <input
                 type="text"
                 placeholder="문서 또는 작가 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowDropdown(true)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit() }}
                 className="w-full h-10 pl-10 pr-10 rounded-full bg-[#EEE4E1] dark:bg-[#2E2620] text-[#2D2016] dark:text-[#EEE4E1] border-none outline-none text-sm placeholder:text-[#9C8B7A]"
               />
@@ -287,6 +288,7 @@ export function MainHeader({
                   <X className="w-4 h-4" />
                 </button>
               )}
+              {dropdownContent}
             </div>
           </div>
 
@@ -333,13 +335,14 @@ export function MainHeader({
 
         {/* 모바일 검색 */}
         <div className="md:hidden mt-3">
-          <div className="relative">
+          <div className="relative" ref={dropdownRef}>
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
             <input
               type="text"
               placeholder="문서 또는 작가 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setShowDropdown(true)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit() }}
               className="w-full h-10 pl-10 pr-10 rounded-full bg-[#EEE4E1] dark:bg-[#2E2620] text-[#2D2016] dark:text-[#EEE4E1] border-none outline-none text-sm placeholder:text-[#9C8B7A]"
             />
@@ -349,6 +352,7 @@ export function MainHeader({
                 <X className="w-4 h-4" />
               </button>
             )}
+            {dropdownContent}
           </div>
         </div>
       </div>

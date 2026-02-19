@@ -947,6 +947,11 @@ useEffect(() => {
           </div>
         </div>
 
+        {/* ━━━ 사이드 패널 오버레이 (배경 클릭으로 닫기) ━━━ */}
+        {showSidePanel && (
+          <div className="fixed inset-0 z-30 bg-black/40 sm:bg-black/20 transition-opacity" onClick={() => setShowSidePanel(false)} />
+        )}
+
         {/* ━━━ 사이드 패널 ━━━ */}
         <div className={`fixed right-0 top-0 bottom-0 z-40 bg-[#241E18] border-l border-[#3A302A]
           transition-all duration-300 ease-in-out flex flex-col
