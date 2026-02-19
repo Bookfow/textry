@@ -359,7 +359,7 @@ export default function UploadPage() {
                   {file && (<div className="flex items-center gap-2 text-sm text-[#5C4A38] dark:text-[#C4A882]"><FileText className="w-4 h-4" /><span>{file.name}</span><span className="text-xs">({(file.size / 1024 / 1024).toFixed(2)} MB)</span></div>)}
                   {convertNotice && (
                     <div className="bg-[#B2967D]/10 border border-[#B2967D]/30 rounded-lg px-3 py-2 mt-2">
-                      <p className="text-xs text-[#5C4A38] dark:text-[#C4A882]">💡 {convertNotice}</p>
+                      <p className={`text-xs ${convertNotice?.includes('docx') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-[#5C4A38] dark:text-[#C4A882]'}`}>💡 {convertNotice}</p>
                     </div>
                   )}
                 </div>
