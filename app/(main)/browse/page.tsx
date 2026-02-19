@@ -26,7 +26,6 @@ function BrowseContent() {
   const sort = searchParams.get('sort') || 'recent'
   const category = searchParams.get('category') || 'all'
 
-  // URL 파라미터 업데이트
   const updateParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (value === 'all' || (key === 'sort' && value === 'recent')) {
@@ -106,7 +105,6 @@ function BrowseContent() {
     }
   }
 
-  // 정렬 옵션
   const sortOptions = [
     { value: 'recent', label: '최신순', icon: Sparkles },
     { value: 'popular', label: '인기순', icon: TrendingUp },
@@ -117,13 +115,11 @@ function BrowseContent() {
     return (
       <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-6">
         <div className="animate-pulse space-y-6">
-          {/* 카테고리 탭 스켈레톤 */}
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} className="h-9 w-20 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full" />
             ))}
           </div>
-          {/* 카드 스켈레톤 */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
               <div key={i} className="space-y-2">
@@ -144,7 +140,7 @@ function BrowseContent() {
       {/* ━━━ 카테고리 탭 ━━━ */}
       <div className="mb-5 -mx-4 px-4 overflow-x-auto scrollbar-hide">
         <div className="flex items-center gap-2 pb-2 min-w-max">
-        <Link href="/"
+          <Link href="/"
             className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] hover:border-[#B2967D] transition-colors"
           >
             🏠
