@@ -769,7 +769,7 @@ export default function ReflowViewer({
       )}
 
       {/* ━━━ 미니멀 상단 바 ━━━ */}
-      <div className="flex items-center justify-between px-4 py-2 border-b" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
+      <div className="flex items-center justify-between px-4 py-2 border-b max-w-lg mx-auto w-full" style={{ backgroundColor: themeStyle.bg, borderColor: themeStyle.border }}>
         <button onClick={() => setShowToc(!showToc)}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
           style={{ color: showToc ? '#3b82f6' : themeStyle.muted }}>
@@ -794,7 +794,7 @@ export default function ReflowViewer({
         <>
           <div className="fixed inset-0 z-[55] bg-black/30" onClick={() => setShowSettings(false)} />
           <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[56] rounded-t-2xl shadow-2xl max-h-[70vh] overflow-y-auto w-full max-w-lg"
-            style={{ backgroundColor: `${themeStyle.bg}e6`, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: `1px solid ${themeStyle.border}` }}>
+            style={{ backgroundColor: `${themeStyle.bg}b3`, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: `1px solid ${themeStyle.border}` }}>
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 rounded-full" style={{ backgroundColor: themeStyle.border }} />
             </div>
