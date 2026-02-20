@@ -176,7 +176,7 @@ export default function LibraryPage() {
               <div className="h-[14px] bg-gradient-to-b from-[#A8885C] to-[#8B7049] dark:from-[#5A4835] dark:to-[#4A3C2C]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.05) 60px, rgba(0,0,0,0.05) 61px)' }} />
             </div>
             {/* 책들 */}
-            <div className="flex items-end gap-3 sm:gap-4 px-4 sm:px-6 pt-6 pb-0 overflow-x-auto scrollbar-hide">
+            <div className="flex items-end gap-3 sm:gap-4 px-4 sm:px-6 pt-6 pb-16 overflow-x-auto scrollbar-hide">
               {shelf.map(doc => {
                 const progress = type === 'reading' && 'current_page' in doc
                   ? doc.page_count > 0 ? Math.round((doc.current_page / doc.page_count) * 100) : 0
@@ -237,7 +237,6 @@ export default function LibraryPage() {
             {/* 하단 선반 (뒤집은 모양) */}
             <div className="relative mt-1">
               <div className="h-[14px] bg-gradient-to-b from-[#8B7049] to-[#A8885C] dark:from-[#4A3C2C] dark:to-[#5A4835]"
-                style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.05) 60px, rgba(0,0,0,0.05) 61px)' }}
               />
               <div className="h-[10px] bg-gradient-to-b from-[#A8885C] to-[#C4A27A] dark:from-[#5A4835] dark:to-[#6B5740] rounded-b-sm shadow-inner" />
             </div>
