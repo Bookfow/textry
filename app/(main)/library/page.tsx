@@ -236,8 +236,6 @@ export default function LibraryPage() {
 
             {/* 하단 선반 (뒤집은 모양) */}
             <div className="relative mt-1">
-              <div className="h-[14px] bg-gradient-to-b from-[#8B7049] to-[#A8885C] dark:from-[#4A3C2C] dark:to-[#5A4835]"
-              />
               <div className="h-[3px] bg-[#A8885C] dark:bg-[#5A4835]" />
             </div>
           </div>
