@@ -404,7 +404,7 @@ export default function DocumentDetailPage() {
             <h2 className="text-lg font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-4">
               이 문서를 읽은 사람이 본
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
               {alsoReadDocs.map(d => (
                 <DocumentCard
                   key={d.id}
