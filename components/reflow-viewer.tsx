@@ -728,7 +728,8 @@ export default function ReflowViewer({
                   <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>줄간격</p>
                   <select value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))}
                     className="w-full text-xs rounded-lg px-2 py-2 border"
-                    style={{ backgroundColor: 'transparent', color: themeStyle.text, borderColor: themeStyle.border }}>
+                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+cd C:\Users\user\textry && git add . && git commit -m "fix: 리플로우 설정 드롭다운 어두운 테마 배경색 수정" && git push
                     <option value={1.4}>촘촘</option>
                     <option value={1.6}>보통</option>
                     <option value={1.8}>넓게</option>
@@ -739,7 +740,8 @@ export default function ReflowViewer({
                   <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>여백</p>
                   <select value={marginSize} onChange={(e) => setMarginSize(Number(e.target.value))}
                     className="w-full text-xs rounded-lg px-2 py-2 border"
-                    style={{ backgroundColor: 'transparent', color: themeStyle.text, borderColor: themeStyle.border }}>
+                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+cd C:\Users\user\textry && git add . && git commit -m "fix: 리플로우 설정 드롭다운 어두운 테마 배경색 수정" && git push
                     <option value={1}>좁게</option>
                     <option value={2}>보통</option>
                     <option value={3}>넓게</option>
@@ -750,7 +752,8 @@ export default function ReflowViewer({
                   <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>자간</p>
                   <select value={letterSpacing} onChange={(e) => setLetterSpacing(Number(e.target.value))}
                     className="w-full text-xs rounded-lg px-2 py-2 border"
-                    style={{ backgroundColor: 'transparent', color: themeStyle.text, borderColor: themeStyle.border }}>
+                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+cd C:\Users\user\textry && git add . && git commit -m "fix: 리플로우 설정 드롭다운 어두운 테마 배경색 수정" && git push
                     <option value={-1}>좁게</option>
                     <option value={0}>보통</option>
                     <option value={1}>넓게</option>
