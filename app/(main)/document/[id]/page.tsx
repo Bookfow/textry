@@ -78,7 +78,7 @@ export default function DocumentDetailPage() {
         // heading이 없으면 페이지 첫 줄에서 챕터/장/편 패턴 추출
         if (items.filter(i => i.pageNumber === row.page_number).length === 0) {
           const clean = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-          const lines = clean.split(/[.!?\n]/).map(l => l.trim()).filter(l => l.length > 0)
+          const lines = clean.split(/[.!?\n]/).map((l: string) => l.trim()).filter((l: string) => l.length > 0)
           if (lines.length > 0) {
             const firstLine = lines[0]
             // 패턴: "제1장", "Chapter 1", "1장", "제1편", "PART 1", "목차", "서론", "결론" 등
