@@ -15,6 +15,7 @@ import { CommentsSection } from '@/components/comments-section'
 import { DocumentCard } from '@/components/document-card'
 
 type SeriesDoc = { documentId: string; position: number; title: string }
+type TocItem = { title: string; pageNumber: number; level: number }
 
 export default function DocumentDetailPage() {
   const params = useParams()
@@ -33,9 +34,78 @@ export default function DocumentDetailPage() {
   const [readerCount, setReaderCount] = useState(0)
   const [completionRate, setCompletionRate] = useState<number | null>(null)
 
+  // ━━━ 탭 상태 ━━━
+  const [activeTab, setActiveTab] = useState<'intro' | 'info' | 'author' | 'toc'>('intro')
+  const [toc, setToc] = useState<TocItem[]>([])
+  const [tocLoading, setTocLoading] = useState(false)
+  const [tocLoaded, setTocLoaded] = useState(false)
+
   useEffect(() => {
     loadDocument()
   }, [documentId])
+
+  // ━━━ 목차 자동 추출 ━━━
+  const loadToc = async () => {
+    if (tocLoaded) return
+    setTocLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('document_pages_text')
+        .select('page_number, text_content')
+        .eq('document_id', documentId)
+        .order('page_number', { ascending: true })
+
+      if (error || !data) { setTocLoaded(true); return }
+
+      const items: TocItem[] = []
+      const seenTitles = new Set<string>()
+
+      for (const row of data) {
+        const text = row.text_content || ''
+
+        // HTML heading 태그에서 추출
+        const headingRegex = /<h([1-3])[^>]*>(.*?)<\/h[1-3]>/gi
+        let match
+        while ((match = headingRegex.exec(text)) !== null) {
+          const level = parseInt(match[1])
+          const title = match[2].replace(/<[^>]+>/g, '').trim()
+          if (title && title.length > 1 && title.length < 100 && !seenTitles.has(title)) {
+            seenTitles.add(title)
+            items.push({ title, pageNumber: row.page_number, level })
+          }
+        }
+
+        // heading이 없으면 페이지 첫 줄에서 챕터/장/편 패턴 추출
+        if (items.filter(i => i.pageNumber === row.page_number).length === 0) {
+          const clean = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+          const lines = clean.split(/[.!?\n]/).map(l => l.trim()).filter(l => l.length > 0)
+          if (lines.length > 0) {
+            const firstLine = lines[0]
+            // 패턴: "제1장", "Chapter 1", "1장", "제1편", "PART 1", "목차", "서론", "결론" 등
+            const chapterPattern = /^(제?\s*\d+\s*[장절편부화회]|chapter\s*\d+|part\s*\d+|서론|결론|에필로그|프롤로그|머리말|맺음말|들어가며|나가며|\d+\.\s+\S)/i
+            if (chapterPattern.test(firstLine) && firstLine.length < 80 && !seenTitles.has(firstLine)) {
+              seenTitles.add(firstLine)
+              items.push({ title: firstLine, pageNumber: row.page_number, level: 2 })
+            }
+          }
+        }
+      }
+
+      setToc(items)
+    } catch (err) {
+      console.error('Error loading TOC:', err)
+    } finally {
+      setTocLoading(false)
+      setTocLoaded(true)
+    }
+  }
+
+  // 목차 탭 클릭 시 로드
+  useEffect(() => {
+    if (activeTab === 'toc' && !tocLoaded) {
+      loadToc()
+    }
+  }, [activeTab])
 
   const loadDocument = async () => {
     try {
@@ -208,6 +278,17 @@ export default function DocumentDetailPage() {
     return `${hours}시간 ${mins % 60}분`
   }
 
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes}B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
+  }
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr)
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -356,13 +437,223 @@ export default function DocumentDetailPage() {
       {/* ━━━ 본문 영역 ━━━ */}
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
 
-        {/* 소개 */}
-        {doc.description && (
-          <div className="mb-6 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
-            <h2 className="text-sm font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-2">소개</h2>
-            <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{doc.description}</p>
-          </div>
-        )}
+        {/* ━━━ 탭 네비게이션 ━━━ */}
+        <div className="flex border-b border-[#E7D8C9] dark:border-[#3A302A] mb-5 gap-1 overflow-x-auto scrollbar-hide">
+          {[
+            { key: 'intro' as const, label: '소개' },
+            { key: 'info' as const, label: '도서정보' },
+            { key: 'author' as const, label: '저자소개' },
+            { key: 'toc' as const, label: '목차' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors relative ${
+                activeTab === tab.key
+                  ? 'text-[#B2967D]'
+                  : 'text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'
+              }`}
+            >
+              {tab.label}
+              {activeTab === tab.key && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#B2967D] rounded-full" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* ━━━ 탭 콘텐츠 ━━━ */}
+        <div className="mb-6 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl min-h-[120px]">
+
+          {/* 소개 탭 */}
+          {activeTab === 'intro' && (
+            <div>
+              {doc.description ? (
+                <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{doc.description}</p>
+              ) : (
+                <p className="text-sm text-[#9C8B7A] italic">소개가 등록되지 않았습니다.</p>
+              )}
+            </div>
+          )}
+
+          {/* 도서정보 탭 */}
+          {activeTab === 'info' && (
+            <div>
+              <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                <div>
+                  <p className="text-xs text-[#9C8B7A] mb-1">카테고리</p>
+                  <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">
+                    {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
+                  </p>
+                </div>
+                {doc.page_count > 0 && (
+                  <div>
+                    <p className="text-xs text-[#9C8B7A] mb-1">페이지</p>
+                    <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{doc.page_count}페이지</p>
+                  </div>
+                )}
+                {doc.file_size > 0 && (
+                  <div>
+                    <p className="text-xs text-[#9C8B7A] mb-1">파일 크기</p>
+                    <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{formatFileSize(doc.file_size)}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs text-[#9C8B7A] mb-1">언어</p>
+                  <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">
+                    {doc.language === 'ko' ? '한국어' : doc.language === 'en' ? 'English' : doc.language}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#9C8B7A] mb-1">등록일</p>
+                  <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{formatDate(doc.created_at)}</p>
+                </div>
+                {doc.updated_at !== doc.created_at && (
+                  <div>
+                    <p className="text-xs text-[#9C8B7A] mb-1">최종 수정</p>
+                    <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{formatDate(doc.updated_at)}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs text-[#9C8B7A] mb-1">조회수</p>
+                  <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{doc.view_count.toLocaleString()}회</p>
+                </div>
+                {doc.total_reading_time > 0 && (
+                  <div>
+                    <p className="text-xs text-[#9C8B7A] mb-1">총 읽기 시간</p>
+                    <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{formatReadingTime(doc.total_reading_time)}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 파일 형식 */}
+              <div className="mt-5 pt-4 border-t border-[#E7D8C9] dark:border-[#3A302A]">
+                <p className="text-xs text-[#9C8B7A] mb-2">지원 형식</p>
+                <div className="flex gap-2">
+                  <span className="px-2.5 py-1 bg-[#EEE4E1] dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-md font-medium">
+                    {doc.file_path?.endsWith('.epub') ? 'EPUB' : 'PDF'}
+                  </span>
+                  <span className="px-2.5 py-1 bg-[#EEE4E1] dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-md font-medium">
+                    리플로우
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 저자소개 탭 */}
+          {activeTab === 'author' && author && (
+            <div>
+              <div className="flex items-center gap-4 mb-4">
+                <Link href={`/author/${author.id}`}>
+                  {author.avatar_url ? (
+                    <Image src={author.avatar_url} alt="" width={56} height={56} className="rounded-full object-cover" />
+                  ) : (
+                    <div className="w-14 h-14 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-lg">
+                      {(author.username || author.email)[0].toUpperCase()}
+                    </div>
+                  )}
+                </Link>
+                <div className="flex-1">
+                  <Link href={`/author/${author.id}`}>
+                    <p className="text-base font-semibold text-[#2D2016] dark:text-[#EEE4E1] hover:underline">
+                      {author.username || author.email}
+                    </p>
+                  </Link>
+                  <p className="text-xs text-[#9C8B7A] mt-0.5">
+                    구독자 {author.subscribers_count.toLocaleString()}명
+                  </p>
+                </div>
+                {user && user.id !== author.id && (
+                  <SubscribeButton
+                    authorId={author.id}
+                    authorName={author.username || author.email}
+                    initialSubscribersCount={author.subscribers_count}
+                  />
+                )}
+              </div>
+
+              {author.bio ? (
+                <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{author.bio}</p>
+              ) : (
+                <p className="text-sm text-[#9C8B7A] italic">저자 소개가 등록되지 않았습니다.</p>
+              )}
+
+              {/* 이 저자의 다른 도서 미니 목록 */}
+              {moreDocs.length > 0 && (
+                <div className="mt-5 pt-4 border-t border-[#E7D8C9] dark:border-[#3A302A]">
+                  <p className="text-xs text-[#9C8B7A] mb-3">이 저자의 다른 도서 ({moreDocs.length})</p>
+                  <div className="space-y-2">
+                    {moreDocs.slice(0, 4).map(d => (
+                      <div
+                        key={d.id}
+                        onClick={() => router.push(`/document/${d.id}`)}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer transition-colors"
+                      >
+                        <div className="w-8 h-10 flex-shrink-0 rounded overflow-hidden bg-[#EEE4E1] dark:bg-[#2E2620]">
+                          {d.thumbnail_url ? (
+                            <Image src={d.thumbnail_url} alt="" width={32} height={40} className="object-cover w-full h-full" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <BookOpen className="w-3 h-3 text-[#9C8B7A]" />
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] truncate flex-1">{d.title}</span>
+                        <ChevronRight className="w-4 h-4 text-[#E7D8C9] dark:text-[#3A302A] flex-shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                  {moreDocs.length > 4 && (
+                    <Link href={`/author/${author.id}`} className="block mt-3 text-center text-xs text-[#B2967D] hover:underline">
+                      전체 보기 →
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 목차 탭 */}
+          {activeTab === 'toc' && (
+            <div>
+              {tocLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin mr-3" />
+                  <span className="text-sm text-[#9C8B7A]">목차를 추출하는 중...</span>
+                </div>
+              ) : toc.length > 0 ? (
+                <div className="space-y-1">
+                  {toc.map((item, i) => (
+                    <div
+                      key={i}
+                      onClick={() => router.push(`/read/${documentId}`)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer transition-colors"
+                      style={{ paddingLeft: `${(item.level - 1) * 16 + 12}px` }}
+                    >
+                      <span className="text-xs text-[#9C8B7A] flex-shrink-0 w-8 text-right tabular-nums">{item.pageNumber}p</span>
+                      <span className={`text-sm truncate ${
+                        item.level === 1
+                          ? 'text-[#2D2016] dark:text-[#EEE4E1] font-semibold'
+                          : item.level === 2
+                            ? 'text-[#5C4A38] dark:text-[#C4A882] font-medium'
+                            : 'text-[#9C8B7A]'
+                      }`}>
+                        {item.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="w-8 h-8 text-[#E7D8C9] dark:text-[#3A302A] mx-auto mb-3" />
+                  <p className="text-sm text-[#9C8B7A]">자동 추출된 목차가 없습니다.</p>
+                  <p className="text-xs text-[#9C8B7A]/60 mt-1">문서에 챕터/장 구분이 포함된 경우 자동으로 표시됩니다.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* 시리즈 */}
         {seriesDocs.length > 0 && (
@@ -456,4 +747,3 @@ export default function DocumentDetailPage() {
     </div>
   )
 }
- 
