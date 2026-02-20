@@ -236,7 +236,6 @@ export default function LibraryPage() {
 
             {/* 하단 선반 (뒤집은 모양) */}
             <div className="relative mt-1">
-              <div className="h-[6px] bg-gradient-to-b from-transparent to-[#8B7049]/60 dark:to-[#3A302A]/60" />
               <div className="h-[14px] bg-gradient-to-b from-[#8B7049] to-[#A8885C] dark:from-[#4A3C2C] dark:to-[#5A4835]"
                 style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.05) 60px, rgba(0,0,0,0.05) 61px)' }}
               />
