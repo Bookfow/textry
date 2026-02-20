@@ -234,18 +234,13 @@ export default function LibraryPage() {
               })}
             </div>
 
-            {/* 나무 선반 */}
+            {/* 하단 선반 (뒤집은 모양) */}
             <div className="relative mt-1">
-              {/* 선반 상단면 */}
-              <div className="h-[10px] bg-gradient-to-b from-[#C4A27A] to-[#A8885C] dark:from-[#6B5740] dark:to-[#5A4835] rounded-t-sm shadow-inner" />
-              {/* 선반 정면 */}
-              <div className="h-[14px] bg-gradient-to-b from-[#A8885C] to-[#8B7049] dark:from-[#5A4835] dark:to-[#4A3C2C]" 
-                style={{ 
-                  backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.05) 60px, rgba(0,0,0,0.05) 61px)',
-                }} 
+              <div className="h-[6px] bg-gradient-to-b from-transparent to-[#8B7049]/60 dark:to-[#3A302A]/60" />
+              <div className="h-[14px] bg-gradient-to-b from-[#8B7049] to-[#A8885C] dark:from-[#4A3C2C] dark:to-[#5A4835]"
+                style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.05) 60px, rgba(0,0,0,0.05) 61px)' }}
               />
-              {/* 선반 하단 그림자 */}
-              <div className="h-[6px] bg-gradient-to-b from-[#8B7049]/60 to-transparent dark:from-[#3A302A]/60" />
+              <div className="h-[10px] bg-gradient-to-b from-[#A8885C] to-[#C4A27A] dark:from-[#5A4835] dark:to-[#6B5740] rounded-b-sm shadow-inner" />
             </div>
           </div>
         ))}
