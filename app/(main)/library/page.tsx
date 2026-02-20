@@ -170,6 +170,11 @@ export default function LibraryPage() {
       <div className="space-y-0">
         {shelves.map((shelf, shelfIndex) => (
           <div key={shelfIndex} className="relative">
+            {/* 상단 선반 */}
+            <div className="relative">
+              <div className="h-[10px] bg-gradient-to-b from-[#C4A27A] to-[#A8885C] dark:from-[#6B5740] dark:to-[#5A4835] rounded-t-sm shadow-inner" />
+              <div className="h-[14px] bg-gradient-to-b from-[#A8885C] to-[#8B7049] dark:from-[#5A4835] dark:to-[#4A3C2C]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.05) 60px, rgba(0,0,0,0.05) 61px)' }} />
+            </div>
             {/* 책들 */}
             <div className="flex items-end gap-3 sm:gap-4 px-4 sm:px-6 pt-6 pb-0 overflow-x-auto scrollbar-hide">
               {shelf.map(doc => {
@@ -371,14 +376,9 @@ export default function LibraryPage() {
       ) : viewMode === 'shelf' ? (
         /* ━━━ 책장 보기 ━━━ */
         <div className="bg-gradient-to-b from-[#F5EDE6] to-[#EDE3DA] dark:from-[#241E18] dark:to-[#1E1812] rounded-2xl overflow-hidden border border-[#E7D8C9] dark:border-[#3A302A] shadow-inner">
-          {/* 책장 상단 장식 */}
-          <div className="h-[8px] bg-gradient-to-b from-[#A8885C] to-[#C4A27A] dark:from-[#4A3C2C] dark:to-[#5A4835]" />
-          
           <BookShelf docs={currentDocs} type={activeTab} />
 
-          {/* 책장 하단 */}
-          <div className="h-[12px] bg-gradient-to-t from-[#A8885C] to-[#C4A27A] dark:from-[#4A3C2C] dark:to-[#5A4835] mt-2" />
-        </div>
+          </div>
       ) : (
         /* ━━━ 그리드 보기 ━━━ */
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
