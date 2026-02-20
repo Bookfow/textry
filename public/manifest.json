@@ -1,11 +1,11 @@
 {
   "name": "Textry",
   "short_name": "Textry",
-  "description": "PDF 문서를 읽고 공유하는 플랫폼",
+  "description": "지식을 스트리밍하다",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d9668",
-  "theme_color": "#0d9668",
+  "background_color": "#1A1410",
+  "theme_color": "#B2967D",
   "icons": [
     {
       "src": "/icon-192x192.png",
