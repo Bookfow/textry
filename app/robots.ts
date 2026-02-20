@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin', '/dashboard', '/settings', '/api/', '/auth/'],
+        disallow: ['/api/', '/read/'],
       },
     ],
     sitemap: 'https://textry-v1.vercel.app/sitemap.xml',

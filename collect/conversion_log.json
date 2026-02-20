@@ -1,0 +1,236 @@
+{
+  "timestamp": "2026-02-20T13:36:46.331481",
+  "total": 38,
+  "success": 38,
+  "failed": 0,
+  "results": [
+    {
+      "title": "마인",
+      "author": "김내성",
+      "epub": "epub_output\\김내성_마인.epub",
+      "status": "ok"
+    },
+    {
+      "title": "광염소나타",
+      "author": "김동인",
+      "epub": "epub_output\\김동인_광염소나타.epub",
+      "status": "ok"
+    },
+    {
+      "title": "발가락이 닮았다",
+      "author": "김동인",
+      "epub": "epub_output\\김동인_발가락이_닮았다.epub",
+      "status": "ok"
+    },
+    {
+      "title": "배따라기",
+      "author": "김동인",
+      "epub": "epub_output\\김동인_배따라기.epub",
+      "status": "ok"
+    },
+    {
+      "title": "산유화",
+      "author": "김소월",
+      "epub": "epub_output\\김소월_산유화.epub",
+      "status": "ok"
+    },
+    {
+      "title": "진달래꽃",
+      "author": "김소월",
+      "epub": "epub_output\\김소월_진달래꽃.epub",
+      "status": "ok"
+    },
+    {
+      "title": "초혼",
+      "author": "김소월",
+      "epub": "epub_output\\김소월_초혼.epub",
+      "status": "ok"
+    },
+    {
+      "title": "금 따는 콩밭",
+      "author": "김유정",
+      "epub": "epub_output\\김유정_금_따는_콩밭.epub",
+      "status": "ok"
+    },
+    {
+      "title": "동백꽃",
+      "author": "김유정",
+      "epub": "epub_output\\김유정_동백꽃.epub",
+      "status": "ok"
+    },
+    {
+      "title": "만무방",
+      "author": "김유정",
+      "epub": "epub_output\\김유정_만무방.epub",
+      "status": "ok"
+    },
+    {
+      "title": "봄봄",
+      "author": "김유정",
+      "epub": "epub_output\\김유정_봄봄.epub",
+      "status": "ok"
+    },
+    {
+      "title": "산골 나그네",
+      "author": "김유정",
+      "epub": "epub_output\\김유정_산골_나그네.epub",
+      "status": "ok"
+    },
+    {
+      "title": "벙어리 삼룡이",
+      "author": "나도향",
+      "epub": "epub_output\\나도향_벙어리_삼룡이.epub",
+      "status": "ok"
+    },
+    {
+      "title": "뽕",
+      "author": "나도향",
+      "epub": "epub_output\\나도향_뽕.epub",
+      "status": "ok"
+    },
+    {
+      "title": "금수회의록",
+      "author": "안국선",
+      "epub": "epub_output\\안국선_금수회의록.epub",
+      "status": "ok"
+    },
+    {
+      "title": "별 헤는 밤",
+      "author": "윤동주",
+      "epub": "epub_output\\윤동주_별_헤는_밤.epub",
+      "status": "ok"
+    },
+    {
+      "title": "서시",
+      "author": "윤동주",
+      "epub": "epub_output\\윤동주_서시.epub",
+      "status": "ok"
+    },
+    {
+      "title": "자화상",
+      "author": "윤동주",
+      "epub": "epub_output\\윤동주_자화상.epub",
+      "status": "ok"
+    },
+    {
+      "title": "봉별기",
+      "author": "이상",
+      "epub": "epub_output\\이상_봉별기.epub",
+      "status": "ok"
+    },
+    {
+      "title": "종생기",
+      "author": "이상",
+      "epub": "epub_output\\이상_종생기.epub",
+      "status": "ok"
+    },
+    {
+      "title": "광야",
+      "author": "이육사",
+      "epub": "epub_output\\이육사_광야.epub",
+      "status": "ok"
+    },
+    {
+      "title": "절정",
+      "author": "이육사",
+      "epub": "epub_output\\이육사_절정.epub",
+      "status": "ok"
+    },
+    {
+      "title": "청포도",
+      "author": "이육사",
+      "epub": "epub_output\\이육사_청포도.epub",
+      "status": "ok"
+    },
+    {
+      "title": "돈",
+      "author": "이효석",
+      "epub": "epub_output\\이효석_돈.epub",
+      "status": "ok"
+    },
+    {
+      "title": "메밀꽃 필 무렵",
+      "author": "이효석",
+      "epub": "epub_output\\이효석_메밀꽃_필_무렵.epub",
+      "status": "ok"
+    },
+    {
+      "title": "산",
+      "author": "이효석",
+      "epub": "epub_output\\이효석_산.epub",
+      "status": "ok"
+    },
+    {
+      "title": "레디메이드 인생",
+      "author": "채만식",
+      "epub": "epub_output\\채만식_레디메이드_인생.epub",
+      "status": "ok"
+    },
+    {
+      "title": "치숙",
+      "author": "채만식",
+      "epub": "epub_output\\채만식_치숙.epub",
+      "status": "ok"
+    },
+    {
+      "title": "탁류",
+      "author": "채만식",
+      "epub": "epub_output\\채만식_탁류.epub",
+      "status": "ok"
+    },
+    {
+      "title": "태평천하",
+      "author": "채만식",
+      "epub": "epub_output\\채만식_태평천하.epub",
+      "status": "ok"
+    },
+    {
+      "title": "탈출기",
+      "author": "최서해",
+      "epub": "epub_output\\최서해_탈출기.epub",
+      "status": "ok"
+    },
+    {
+      "title": "홍염",
+      "author": "최서해",
+      "epub": "epub_output\\최서해_홍염.epub",
+      "status": "ok"
+    },
+    {
+      "title": "님의 침묵",
+      "author": "한용운",
+      "epub": "epub_output\\한용운_님의_침묵.epub",
+      "status": "ok"
+    },
+    {
+      "title": "B사감과 러브레터",
+      "author": "현진건",
+      "epub": "epub_output\\현진건_B사감과_러브레터.epub",
+      "status": "ok"
+    },
+    {
+      "title": "고향",
+      "author": "현진건",
+      "epub": "epub_output\\현진건_고향.epub",
+      "status": "ok"
+    },
+    {
+      "title": "빈처",
+      "author": "현진건",
+      "epub": "epub_output\\현진건_빈처.epub",
+      "status": "ok"
+    },
+    {
+      "title": "술 권하는 사회",
+      "author": "현진건",
+      "epub": "epub_output\\현진건_술_권하는_사회.epub",
+      "status": "ok"
+    },
+    {
+      "title": "운수 좋은 날",
+      "author": "현진건",
+      "epub": "epub_output\\현진건_운수_좋은_날.epub",
+      "status": "ok"
+    }
+  ]
+}
