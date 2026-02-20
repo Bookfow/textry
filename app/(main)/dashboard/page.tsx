@@ -66,6 +66,8 @@ export default function DashboardPage() {
   const [newDescription, setNewDescription] = useState('')
   const [newTitle, setNewTitle] = useState('')
   const [savingDescription, setSavingDescription] = useState(false)
+  const [newAuthorName, setNewAuthorName] = useState('')
+  const [newAuthorBio, setNewAuthorBio] = useState('')
   const [sortBy, setSortBy] = useState<'views' | 'time' | 'revenue' | 'date'>('date')
 
   useEffect(() => {
@@ -186,7 +188,7 @@ export default function DashboardPage() {
     try {
       const { error } = await supabase
         .from('documents')
-        .update({ title: newTitle.trim(), description: newDescription.trim() || null })
+        .update({ title: newTitle.trim(), description: newDescription.trim() || null, author_name: newAuthorName.trim() || null, author_bio: newAuthorBio.trim() || null })
         .eq('id', docId)
       if (error) throw error
       toast.success('문서가 수정되었습니다.')
@@ -500,7 +502,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="col-span-2 flex items-center justify-center gap-2">
                         <button
-                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || '') }}
+                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || ''); setNewAuthorName((doc as any).author_name || ''); setNewAuthorBio((doc as any).author_bio || '') }}
                           className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-colors"
                           title="수정"
                         >
@@ -843,7 +845,7 @@ export default function DashboardPage() {
 
       {/* ━━━ 문서 수정 다이얼로그 ━━━ */}
       <Dialog open={!!editingDescription} onOpenChange={() => {
-        setEditingDescription(null); setNewTitle(''); setNewDescription('')
+        setEditingDescription(null); setNewTitle(''); setNewDescription(''); setNewAuthorName(''); setNewAuthorBio('')
       }}>
         <DialogContent>
           <DialogHeader><DialogTitle>문서 수정</DialogTitle></DialogHeader>
@@ -876,8 +878,29 @@ export default function DashboardPage() {
                     />
                     <p className="text-xs text-gray-400 dark:text-gray-500 text-right">{newDescription.length}/50</p>
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-author-name">저자명</Label>
+                    <input
+                      id="edit-author-name"
+                      value={newAuthorName}
+                      onChange={(e) => setNewAuthorName(e.target.value)}
+                      placeholder="원저자 이름 (비워두면 업로더 이름 사용)"
+                      className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-author-bio">저자 소개</Label>
+                    <textarea
+                      id="edit-author-bio"
+                      value={newAuthorBio}
+                      onChange={(e) => setNewAuthorBio(e.target.value)}
+                      placeholder="저자에 대한 소개 (비워두면 업로더 프로필 소개 사용)"
+                      rows={3}
+                      className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
+                  </div>
                   <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => { setEditingDescription(null); setNewTitle(''); setNewDescription('') }}>취소</Button>
+                    <Button variant="outline" onClick={() => { setEditingDescription(null); setNewTitle(''); setNewDescription(''); setNewAuthorName(''); setNewAuthorBio('') }}>취소</Button>
                     <Button onClick={() => handleUpdateDocument(descDoc.id)} disabled={savingDescription || !newTitle.trim()}>
                       {savingDescription ? '저장 중...' : '저장'}
                     </Button>

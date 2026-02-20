@@ -36,6 +36,8 @@ export type Document = {
   is_published: boolean
   created_at: string
   updated_at: string
+  author_name: string | null
+  author_bio: string | null
 }
 export type Comment = {
   id: string

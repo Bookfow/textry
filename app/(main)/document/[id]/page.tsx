@@ -557,7 +557,7 @@ export default function DocumentDetailPage() {
                 <div className="flex-1">
                   <Link href={`/author/${author.id}`}>
                     <p className="text-base font-semibold text-[#2D2016] dark:text-[#EEE4E1] hover:underline">
-                      {author.username || author.email}
+                      {(doc as any).author_name || author.username || author.email}
                     </p>
                   </Link>
                   <p className="text-xs text-[#9C8B7A] mt-0.5">
@@ -573,8 +573,8 @@ export default function DocumentDetailPage() {
                 )}
               </div>
 
-              {author.bio ? (
-                <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{author.bio}</p>
+              {((doc as any).author_bio || author.bio) ? (
+                <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{(doc as any).author_bio || author.bio}</p>
               ) : (
                 <p className="text-sm text-[#9C8B7A] italic">저자 소개가 등록되지 않았습니다.</p>
               )}
