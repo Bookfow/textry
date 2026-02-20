@@ -167,7 +167,7 @@ export default function LibraryPage() {
     }
 
     return (
-      <div className="space-y-0">
+      <div className="space-y-4">
         {shelves.map((shelf, shelfIndex) => (
           <div key={shelfIndex} className="relative">
             {/* 상단 선반 */}
