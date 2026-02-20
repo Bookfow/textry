@@ -176,7 +176,7 @@ export default function LibraryPage() {
               <div className="h-[14px] bg-gradient-to-b from-[#A8885C] to-[#8B7049] dark:from-[#5A4835] dark:to-[#4A3C2C]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.05) 60px, rgba(0,0,0,0.05) 61px)' }} />
             </div>
             {/* 책들 */}
-            <div className="flex items-end gap-3 sm:gap-4 px-4 sm:px-6 pt-4 pb-8 overflow-x-auto scrollbar-hide">
+            <div className="flex items-end gap-3 sm:gap-4 px-4 sm:px-6 pt-4 pb-4 overflow-x-auto scrollbar-hide">
               {shelf.map(doc => {
                 const progress = type === 'reading' && 'current_page' in doc
                   ? doc.page_count > 0 ? Math.round((doc.current_page / doc.page_count) * 100) : 0
