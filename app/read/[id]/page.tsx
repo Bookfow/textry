@@ -25,6 +25,9 @@ import {
   Trash2,
   AlignLeft,
   LogIn,
+  Search,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react'
 import { AdBanner } from '@/components/ad-banner'
 import { AdOverlay } from '@/components/ad-overlay'
@@ -113,6 +116,13 @@ const BG_THEMES: Record<BgTheme, { label: string; previewColor: string; bgColor:
   dark: { label: '다크', previewColor: '#121212', bgColor: '#121212' },
 }
 
+// ─── 검색 결과 타입 ───
+type SearchResult = {
+  pageNumber: number
+  snippet: string
+  matchIndex: number
+}
+
 export default function ReadPage() {
   const params = useParams()
   const router = useRouter()
@@ -163,6 +173,16 @@ export default function ReadPage() {
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([])
   const [bookmarkLoading, setBookmarkLoading] = useState(false)
 
+  // ━━━ 본문 검색 ━━━
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [searchIndex, setSearchIndex] = useState(0)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [pageTextsCache, setPageTextsCache] = useState<Map<number, string> | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
+
   // 시리즈 상태
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null)
 
@@ -173,26 +193,28 @@ export default function ReadPage() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const viewerRef = useRef<HTMLDivElement>(null)
   const pageInputRef = useRef<HTMLInputElement>(null)
-// ★ 마지막 읽은 페이지 복원
-useEffect(() => {
-  if (!user || !documentId || loading) return
-  const restorePosition = async () => {
-    try {
-      const { data } = await supabase
-        .from('reading_sessions')
-        .select('current_page')
-        .eq('document_id', documentId)
-        .eq('reader_id', user.id)
-        .order('last_read_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      if (data?.current_page && data.current_page > 1) {
-        setPageNumber(data.current_page)
-      }
-    } catch {}
-  }
-  restorePosition()
-}, [user, documentId, loading])
+
+  // ★ 마지막 읽은 페이지 복원
+  useEffect(() => {
+    if (!user || !documentId || loading) return
+    const restorePosition = async () => {
+      try {
+        const { data } = await supabase
+          .from('reading_sessions')
+          .select('current_page')
+          .eq('document_id', documentId)
+          .eq('reader_id', user.id)
+          .order('last_read_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (data?.current_page && data.current_page > 1) {
+          setPageNumber(data.current_page)
+        }
+      } catch {}
+    }
+    restorePosition()
+  }, [user, documentId, loading])
+
   // ─── 광고 상태 ───
   const [showAdOverlay, setShowAdOverlay] = useState(false)
   const [adType, setAdType] = useState<'start' | 'middle' | 'end'>('middle')
@@ -216,6 +238,108 @@ useEffect(() => {
     setLoginPromptMessage(actionName)
     setShowLoginPrompt(true)
     return false
+  }
+
+  // ━━━ 본문 검색: 텍스트 캐시 로드 ━━━
+  const loadPageTexts = useCallback(async () => {
+    if (pageTextsCache) return pageTextsCache
+    try {
+      const { data, error } = await supabase
+        .from('document_pages_text')
+        .select('page_number, text_content')
+        .eq('document_id', documentId)
+        .order('page_number', { ascending: true })
+      if (error || !data) return null
+      const map = new Map<number, string>()
+      for (const row of data) {
+        // HTML 태그 제거해서 순수 텍스트만
+        const clean = (row.text_content || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+        map.set(row.page_number, clean)
+      }
+      setPageTextsCache(map)
+      return map
+    } catch {
+      return null
+    }
+  }, [documentId, pageTextsCache])
+
+  // ━━━ 본문 검색: 실행 ━━━
+  const executeSearch = useCallback(async (query: string) => {
+    if (!query.trim() || query.trim().length < 2) {
+      setSearchResults([])
+      setSearchIndex(0)
+      return
+    }
+    setSearchLoading(true)
+    try {
+      const texts = await loadPageTexts()
+      if (!texts) { setSearchResults([]); return }
+
+      const results: SearchResult[] = []
+      const lowerQuery = query.toLowerCase()
+
+      for (const [pageNum, text] of texts) {
+        const lowerText = text.toLowerCase()
+        let startIdx = 0
+        while (true) {
+          const idx = lowerText.indexOf(lowerQuery, startIdx)
+          if (idx === -1) break
+          // 앞뒤 30자 스니펫 생성
+          const snippetStart = Math.max(0, idx - 30)
+          const snippetEnd = Math.min(text.length, idx + query.length + 30)
+          const snippet = (snippetStart > 0 ? '...' : '') +
+            text.slice(snippetStart, idx) +
+            '【' + text.slice(idx, idx + query.length) + '】' +
+            text.slice(idx + query.length, snippetEnd) +
+            (snippetEnd < text.length ? '...' : '')
+          results.push({ pageNumber: pageNum, snippet, matchIndex: results.length })
+          startIdx = idx + 1
+          // 한 페이지에서 최대 3개까지
+          const pageResults = results.filter(r => r.pageNumber === pageNum)
+          if (pageResults.length >= 3) break
+        }
+      }
+      setSearchResults(results)
+      setSearchIndex(0)
+      // 첫 결과로 이동
+      if (results.length > 0) {
+        setPageNumber(results[0].pageNumber)
+      }
+    } finally {
+      setSearchLoading(false)
+    }
+  }, [loadPageTexts])
+
+  // ━━━ 본문 검색: 디바운스 ━━━
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    if (!showSearch) return
+    searchDebounceRef.current = setTimeout(() => {
+      executeSearch(searchQuery)
+    }, 300)
+    return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current) }
+  }, [searchQuery, showSearch, executeSearch])
+
+  // ━━━ 검색: 이전/다음 결과로 이동 ━━━
+  const goToSearchResult = (index: number) => {
+    if (searchResults.length === 0) return
+    const newIndex = ((index % searchResults.length) + searchResults.length) % searchResults.length
+    setSearchIndex(newIndex)
+    setPageNumber(searchResults[newIndex].pageNumber)
+  }
+
+  // ━━━ 검색 열기/닫기 ━━━
+  const toggleSearch = () => {
+    setShowSearch(prev => {
+      if (!prev) {
+        setTimeout(() => searchInputRef.current?.focus(), 100)
+      } else {
+        setSearchQuery('')
+        setSearchResults([])
+        setSearchIndex(0)
+      }
+      return !prev
+    })
   }
 
   // ━━━ 배경 테마/밝기: localStorage 복원 & 저장 ━━━
@@ -272,11 +396,11 @@ useEffect(() => {
     setShowControls(true)
     if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
     controlsTimerRef.current = setTimeout(() => {
-      if (!showSidePanel && !showPageInput && !showThemePopup) {
+      if (!showSidePanel && !showPageInput && !showThemePopup && !showSearch) {
         setShowControls(false)
       }
     }, 3000)
-  }, [showSidePanel, showPageInput, showThemePopup])
+  }, [showSidePanel, showPageInput, showThemePopup, showSearch])
 
   useEffect(() => {
     const handleActivity = () => resetControlsTimer()
@@ -293,8 +417,8 @@ useEffect(() => {
   }, [resetControlsTimer])
 
   useEffect(() => {
-    if (showSidePanel || showPageInput || showThemePopup) setShowControls(true)
-  }, [showSidePanel, showPageInput, showThemePopup])
+    if (showSidePanel || showPageInput || showThemePopup || showSearch) setShowControls(true)
+  }, [showSidePanel, showPageInput, showThemePopup, showSearch])
 
   const handleScaleChange = useCallback((newScale: number) => {
     setScale(newScale)
@@ -442,6 +566,30 @@ useEffect(() => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (showPageInput || showAdOverlay) return
+
+      // 검색 단축키
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault()
+        toggleSearch()
+        return
+      }
+      if (e.key === 'Escape' && showSearch) {
+        setShowSearch(false)
+        setSearchQuery('')
+        setSearchResults([])
+        setSearchIndex(0)
+        return
+      }
+      // 검색 중 Enter로 다음/이전 결과
+      if (showSearch && e.key === 'Enter') {
+        e.preventDefault()
+        if (e.shiftKey) goToSearchResult(searchIndex - 1)
+        else goToSearchResult(searchIndex + 1)
+        return
+      }
+
+      if (showSearch) return // 검색 입력 중이면 다른 키보드 무시
+
       const tag = (e.target as HTMLElement)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return
 
@@ -486,7 +634,7 @@ useEffect(() => {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [viewMode, numPages, pageNumber, isFullscreen, showSidePanel, showPageInput, showAdOverlay, isEpub, showLoginPrompt])
+  }, [viewMode, numPages, pageNumber, isFullscreen, showSidePanel, showPageInput, showAdOverlay, isEpub, showLoginPrompt, showSearch, searchIndex, searchResults])
 
   useEffect(() => {
     if (showPageInput && pageInputRef.current) pageInputRef.current.focus()
@@ -675,8 +823,6 @@ useEffect(() => {
 
   const viewerBgColor = viewMode === 'reflow' ? 'transparent' : BG_THEMES[bgTheme].bgColor
 
-  // ★ 비로그인 차단 제거 — 이제 누구나 읽기 가능
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#1A1410]">
@@ -768,6 +914,81 @@ useEffect(() => {
             <span>흐리게</span>
             <button onClick={() => setContrast(100)} className="hover:text-[#EEE4E1] transition-colors">초기화</button>
             <span>선명하게</span>
+          </div>
+        </div>
+      )}
+
+      {/* ━━━ 본문 검색 바 ━━━ */}
+      {showSearch && (
+        <div className="fixed top-[62px] left-1/2 -translate-x-1/2 z-[9998] w-full max-w-md px-3">
+          <div className="bg-[#241E18] border border-[#3A302A] rounded-xl shadow-2xl overflow-hidden">
+            {/* 검색 입력 */}
+            <div className="flex items-center gap-2 px-3 py-2">
+              <Search className="w-4 h-4 text-[#9C8B7A] flex-shrink-0" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="본문에서 검색..."
+                className="flex-1 bg-transparent text-sm text-[#EEE4E1] placeholder-[#5C4A38] outline-none"
+                autoComplete="off"
+              />
+              {searchLoading && (
+                <div className="w-4 h-4 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin flex-shrink-0" />
+              )}
+              {searchResults.length > 0 && (
+                <span className="text-[11px] text-[#9C8B7A] flex-shrink-0 tabular-nums">
+                  {searchIndex + 1}/{searchResults.length}
+                </span>
+              )}
+              <div className="flex items-center gap-0.5 flex-shrink-0">
+                <button onClick={() => goToSearchResult(searchIndex - 1)} disabled={searchResults.length === 0}
+                  className="p-1 rounded hover:bg-[#2E2620] text-[#9C8B7A] hover:text-[#EEE4E1] disabled:opacity-30 transition-colors">
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button onClick={() => goToSearchResult(searchIndex + 1)} disabled={searchResults.length === 0}
+                  className="p-1 rounded hover:bg-[#2E2620] text-[#9C8B7A] hover:text-[#EEE4E1] disabled:opacity-30 transition-colors">
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+              <button onClick={toggleSearch}
+                className="p-1 rounded hover:bg-[#2E2620] text-[#9C8B7A] hover:text-[#EEE4E1] transition-colors flex-shrink-0">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 검색 결과 리스트 */}
+            {searchResults.length > 0 && (
+              <div className="border-t border-[#3A302A] max-h-[240px] overflow-y-auto">
+                {searchResults.map((result, i) => (
+                  <button
+                    key={`${result.pageNumber}-${i}`}
+                    onClick={() => { setSearchIndex(i); setPageNumber(result.pageNumber) }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors border-b border-[#3A302A]/50 last:border-b-0 ${
+                      i === searchIndex ? 'bg-[#B2967D]/15' : 'hover:bg-[#2E2620]'
+                    }`}
+                  >
+                    <span className="text-[#B2967D] font-medium mr-2">{result.pageNumber}{isEpub ? '챕터' : 'p'}</span>
+                    <span className="text-[#C4A882]">{result.snippet}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 결과 없음 */}
+            {searchQuery.trim().length >= 2 && !searchLoading && searchResults.length === 0 && (
+              <div className="border-t border-[#3A302A] px-3 py-3 text-center text-xs text-[#9C8B7A]">
+                검색 결과가 없습니다
+              </div>
+            )}
+
+            {/* 안내 */}
+            {searchQuery.trim().length < 2 && (
+              <div className="border-t border-[#3A302A] px-3 py-2 text-center text-[10px] text-[#5C4A38]">
+                2글자 이상 입력 · Enter 다음 결과 · Shift+Enter 이전 결과 · Esc 닫기
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -895,6 +1116,12 @@ useEffect(() => {
             )}
 
             <div className="flex items-center gap-1 flex-shrink-0">
+              {/* ━━━ 검색 버튼 ━━━ */}
+              <button onClick={toggleSearch}
+                className={`p-2 rounded-lg transition-colors ${showSearch ? 'bg-[#B2967D] text-[#1A1410]' : 'hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1]'}`}
+                title="본문 검색 (Ctrl+F)">
+                <Search className="w-5 h-5" />
+              </button>
               <button onClick={toggleBookmark}
                 className={`p-2 rounded-lg transition-colors ${isCurrentPageBookmarked ? 'text-amber-400 hover:text-amber-300' : 'text-[#C4A882] hover:text-[#EEE4E1]'} hover:bg-[#2E2620]`}
                 title={isCurrentPageBookmarked ? '북마크 제거' : '이 페이지 북마크'}>
