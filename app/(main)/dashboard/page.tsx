@@ -393,7 +393,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-gray-900 dark:text-white">인기 문서 TOP 5</h3>
                   <button onClick={() => setActiveTab('content')} className="text-sm text-blue-600 hover:underline flex items-center gap-1">
-                    전체보기 <ChevronRight className="w-4 h-4" />
+                    전체보기 및 수정 <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="space-y-3">
