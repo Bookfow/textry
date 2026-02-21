@@ -81,6 +81,16 @@ export default function LoginPage() {
             </svg>
             Google로 시작하기
           </button>
+          <button
+            type="button"
+            onClick={() => window.location.href = '/api/auth/naver'}
+            className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-[#E7D8C9] dark:border-[#3A302A] bg-[#03C75A] hover:bg-[#02b351] text-white font-medium text-sm transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+              <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"/>
+            </svg>
+            네이버로 시작하기
+          </button>
         </div>
 
         {/* 구분선 */}
