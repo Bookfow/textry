@@ -365,11 +365,11 @@ export default function DocumentDetailPage() {
                 <div className="flex items-center justify-center sm:justify-between mb-4 gap-3">
                   <Link href={`/author/${author.id}`}>
                     <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                      {author.avatar_url ? (
+                      {author.avatar_url && !(doc as any).author_name ? (
                         <Image src={author.avatar_url} alt="" width={36} height={36} className="rounded-full object-cover" />
                       ) : (
                         <div className="w-9 h-9 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-sm">
-                          {(author.username || author.email)[0].toUpperCase()}
+                          {((doc as any).author_name || author.username || author.email)[0].toUpperCase()}
                         </div>
                       )}
                       <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">
@@ -550,7 +550,7 @@ export default function DocumentDetailPage() {
                     <Image src={author.avatar_url} alt="" width={56} height={56} className="rounded-full object-cover" />
                   ) : (
                     <div className="w-14 h-14 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-lg">
-                      {(author.username || author.email)[0].toUpperCase()}
+                      {((doc as any).author_name || author.username || author.email)[0].toUpperCase()}
                     </div>
                   )}
                 </Link>
