@@ -373,7 +373,7 @@ export default function DocumentDetailPage() {
                         </div>
                       )}
                       <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">
-                        {author.username || author.email}
+                        {(doc as any).author_name || author.username || author.email}
                       </span>
                     </div>
                   </Link>
@@ -381,7 +381,7 @@ export default function DocumentDetailPage() {
                     <div className="hidden sm:block">
                       <SubscribeButton
                         authorId={author.id}
-                        authorName={author.username || author.email}
+                        authorName={(doc as any).author_name || author.username || author.email}
                         initialSubscribersCount={author.subscribers_count}
                       />
                     </div>
@@ -567,7 +567,7 @@ export default function DocumentDetailPage() {
                 {user && user.id !== author.id && (
                   <SubscribeButton
                     authorId={author.id}
-                    authorName={author.username || author.email}
+                    authorName={(doc as any).author_name || author.username || author.email}
                     initialSubscribersCount={author.subscribers_count}
                   />
                 )}
@@ -700,7 +700,7 @@ export default function DocumentDetailPage() {
                 <DocumentCard
                   key={d.id}
                   doc={d}
-                  authorName={(d as any).profiles?.username || (d as any).profiles?.email}
+                  authorName={(d as any).author_name || (d as any).profiles?.username || (d as any).profiles?.email}
                   variant="grid"
                 />
               ))}
@@ -713,7 +713,7 @@ export default function DocumentDetailPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#2D2016] dark:text-[#EEE4E1]">
-                {author?.username || '작가'}의 다른 문서
+                {(doc as any).author_name || author?.username || '작가'}의 다른 문서
               </h2>
               <Link href={`/author/${author?.id}`} className="flex items-center gap-1 text-sm text-[#B2967D] hover:text-[#a67c52]">
                 전체보기 <ChevronRight className="w-4 h-4" />
@@ -721,7 +721,7 @@ export default function DocumentDetailPage() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {moreDocs.map(d => (
-                <DocumentCard key={d.id} doc={d} authorName={author?.username || author?.email} variant="grid" />
+                <DocumentCard key={d.id} doc={d} authorName={(doc as any).author_name || author?.username || author?.email} variant="grid" />
               ))}
             </div>
           </div>
