@@ -249,7 +249,7 @@ export default function HomePage() {
               <div key={doc.id} className="flex-shrink-0 w-[155px] sm:w-[170px] md:w-[200px] lg:w-[210px] xl:w-[220px]">
                 <DocumentCard
                   doc={doc}
-                  authorName={doc.profiles?.username || doc.profiles?.email}
+                  authorName={doc.author_name || doc.profiles?.username || doc.profiles?.email}
                   variant="grid"
                 />
               </div>
