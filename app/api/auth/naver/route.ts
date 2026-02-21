@@ -15,5 +15,5 @@ export async function GET(request: Request) {
     + '&redirect_uri=' + encodeURIComponent(redirectUri)
     + '&state=' + state
 
-  return NextResponse.json({ clientId: clientId, redirectUri, url })
+  return NextResponse.redirect(url)
 }
