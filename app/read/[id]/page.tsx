@@ -391,6 +391,26 @@ export default function ReadPage() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [viewMode])
 
+  // ━━━ 모바일: 첫 터치 시 전체화면 요청 ━━━
+  const requestedFullscreenRef = useRef(false)
+  useEffect(() => {
+    if (!isMobile) return
+    const requestFullscreenOnce = () => {
+      if (requestedFullscreenRef.current) return
+      requestedFullscreenRef.current = true
+      try {
+        const el = document.documentElement as any
+        const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen
+        if (rfs && !document.fullscreenElement) {
+          rfs.call(el).catch(() => {})
+        }
+      } catch {}
+      window.removeEventListener('touchstart', requestFullscreenOnce)
+    }
+    window.addEventListener('touchstart', requestFullscreenOnce, { once: true })
+    return () => window.removeEventListener('touchstart', requestFullscreenOnce)
+  }, [isMobile])
+
   // ━━━ 컨트롤바 auto-hide ━━━
   const resetControlsTimer = useCallback(() => {
     setShowControls(true)
