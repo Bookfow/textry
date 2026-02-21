@@ -399,9 +399,9 @@ export default function ReadPage() {
       if (requestedFullscreenRef.current) return
       requestedFullscreenRef.current = true
       try {
-        const el = document.documentElement as any
+        const el = window.document.documentElement as any
         const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen
-        if (rfs && !document.fullscreenElement) {
+        if (rfs && !window.document.fullscreenElement) {
           rfs.call(el).catch(() => {})
         }
       } catch {}
