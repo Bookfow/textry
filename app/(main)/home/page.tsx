@@ -146,7 +146,7 @@ export default function HomePage() {
                     {doc.title}
                   </h3>
                   <p className="text-[11px] text-[#9C8B7A] truncate">
-                    {doc.profiles?.username || doc.profiles?.email || ''}
+                    {doc.author_name || doc.profiles?.username || doc.profiles?.email || ''}
                   </p>
                   <div className="flex items-center gap-2 text-[10px] text-[#9C8B7A] mt-0.5">
                     <span>👁 {doc.view_count.toLocaleString()}</span>
