@@ -329,7 +329,7 @@ export default function HomePage() {
               <CarouselSection title="새로운 콘텐츠" icon={Sparkles} docs={filteredRecent} showMore="/browse?sort=recent" />
 
               {/* 구독자 콘텐츠 */}
-              <CarouselSection title="구독 작가의 새 콘텐츠" icon={Users} docs={filterByCategory(subscribedDocs)} />
+              <CarouselSection title="구독 중인 새 콘텐츠" icon={Users} docs={filterByCategory(subscribedDocs)} />
             </>
           )}
         </div>
