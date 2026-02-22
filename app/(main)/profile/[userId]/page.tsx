@@ -498,7 +498,7 @@ export default function AuthorPage() {
           <div className="flex gap-0 border-b border-[#E7D8C9] dark:border-[#3A302A] overflow-x-auto scrollbar-hide">
             <button onClick={() => setActiveTab('documents')}
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'documents' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
-              문서
+              콘텐츠
             </button>
             {(isMyProfile || seriesList.length > 0) && (
               <button onClick={() => { setActiveTab('series'); setManagingSeries(null) }}
@@ -526,7 +526,7 @@ export default function AuthorPage() {
           {activeTab === 'documents' && (
             <>
               <div className="flex items-center justify-between mb-5">
-                <p className="text-sm text-[#9C8B7A]">총 {documents.length}개</p>
+                <p className="text-sm text-[#9C8B7A]">총 {documents.length}개의 콘텐츠</p>
                 <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
                   className="text-sm border border-[#E7D8C9] dark:border-[#3A302A] rounded-lg px-3 py-1.5 bg-white dark:bg-[#241E18] text-[#2D2016] dark:text-[#EEE4E1]">
                   <option value="recent">최신순</option>
@@ -537,7 +537,7 @@ export default function AuthorPage() {
               {documents.length === 0 ? (
                 <div className="text-center py-20">
                   <FileText className="w-12 h-12 text-[#E7D8C9] dark:text-[#3A302A] mx-auto mb-3" />
-                  <p className="text-[#9C8B7A]">아직 업로드한 문서가 없습니다</p>
+                  <p className="text-[#9C8B7A]">아직 업로드한 콘텐츠가 없습니다</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
