@@ -151,13 +151,7 @@ export function DocumentCard({
               </div>
             )}
 
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex flex-col justify-end">
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 w-full">
-                <p className="text-white text-[11px] leading-relaxed line-clamp-3 whitespace-pre-wrap">
-                  {doc.description || '설명이 없습니다'}
-                </p>
-              </div>
-            </div>
+
 
             <div className="absolute top-2 right-2 flex gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
               <button onClick={handleToggleList}
@@ -219,13 +213,7 @@ export function DocumentCard({
             </div>
           )}
 
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex flex-col justify-end">
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity p-3 w-full">
-              <p className="text-white text-[11px] leading-relaxed line-clamp-3 whitespace-pre-wrap">
-                {doc.description || '설명이 없습니다'}
-              </p>
-            </div>
-          </div>
+
 
           <div className="absolute top-2 right-2 flex gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
             <button onClick={handleToggleList}
