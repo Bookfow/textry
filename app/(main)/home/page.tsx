@@ -374,7 +374,7 @@ export default function HomePage() {
             <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#B2967D]/10 via-[#E6BEAE]/10 to-[#B2967D]/10 dark:from-[#B2967D]/5 dark:via-[#E6BEAE]/5 dark:to-[#B2967D]/5 border border-[#E7D8C9]/50 dark:border-[#3A302A]">
               <div className="flex items-center gap-2 mb-3">
                 <BarChart3 className="w-4 h-4 text-[#B2967D]" />
-                <span className="text-sm font-medium text-[#5C4A38] dark:text-[#C4A882]">이번 주 Textry</span>
+                <span className="text-sm font-medium text-[#5C4A38] dark:text-[#C4A882]">이번 주 Textry에서는</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="text-center">
