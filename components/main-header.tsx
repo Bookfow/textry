@@ -30,7 +30,7 @@ interface MainHeaderProps {
 }
 
 type SearchResult = {
-  type: 'document' | 'author'
+  type: 'document' | 'author' | 'writer'
   id: string
   title: string
   subtitle: string
@@ -90,14 +90,27 @@ export function MainHeader({
           .from('documents')
           .select('id, title, description, thumbnail_url, author_name')
           .eq('is_published', true)
-          .or(`title.ilike.%${query}%,author_name.ilike.%${query}%`)
+          .ilike('title', `%${query}%`)
           .limit(5)
+        // 저자명 검색 (중복 제거)
+        const { data: authorDocs } = await supabase
+          .from('documents')
+          .select('author_name')
+          .eq('is_published', true)
+          .not('author_name', 'is', null)
+          .ilike('author_name', `%${query}%`)
+          .limit(10)
+        const uniqueWriters = [...new Set((authorDocs || []).map(d => d.author_name).filter(Boolean))]
         const { data: authors } = await supabase
           .from('profiles')
           .select('id, username, email, avatar_url')
           .ilike('username', `%${query}%`)
           .limit(3)
         const results: SearchResult[] = [
+          ...uniqueWriters.map(name => ({
+            type: 'writer' as const, id: name, title: name,
+            subtitle: '저자', thumbnail: null,
+          })),
           ...(docs || []).map(d => ({
             type: 'document' as const, id: d.id, title: d.title,
             subtitle: d.author_name ? `${d.author_name} · ${d.description || ''}` : (d.description || ''),
@@ -131,7 +144,7 @@ export function MainHeader({
   const handleResultClick = (result: SearchResult) => {
     setShowDropdown(false)
     saveRecentSearch(result.title)
-    router.push(result.type === 'document' ? `/document/${result.id}` : `/profile/${result.id}`)
+    router.push(result.type === 'document' ? `/document/${result.id}` : result.type === 'writer' ? `/browse?author=${encodeURIComponent(result.id)}` : `/profile/${result.id}`)
   }
 
   const handleSearchSubmit = () => {
@@ -192,6 +205,21 @@ export function MainHeader({
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1] truncate">{result.title}</p>
                     <p className="text-xs text-[#9C8B7A] truncate">{result.subtitle}</p>
+                  </div>
+                </button>
+              ))}
+              {suggestions.filter(s => s.type === 'writer').length > 0 && (
+                <div className="px-4 py-2 bg-gray-50 dark:bg-[#2E2620] text-xs font-medium text-[#9C8B7A]">저자</div>
+              )}
+              {suggestions.filter(s => s.type === 'writer').map(result => (
+                <button key={result.id} onClick={() => handleResultClick(result)}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] text-left transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#5C4A38] to-[#8B7049] flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
+                    {result.title[0].toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1] truncate">{result.title}</p>
+                    <p className="text-xs text-[#9C8B7A]">저자 · 작품 보기</p>
                   </div>
                 </button>
               ))}
