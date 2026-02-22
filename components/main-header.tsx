@@ -236,7 +236,7 @@ export function MainHeader({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
               <input
                 type="text"
-                placeholder="문서 또는 큐레이터 검색..."
+                placeholder="콘텐츠, 큐레이터 또는 저자 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setShowDropdown(true)}
@@ -282,7 +282,7 @@ export function MainHeader({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
               <input
                 type="text"
-                placeholder="문서 또는 큐레이터 검색..."
+                placeholder="콘텐츠, 큐레이터 또는 저자 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setShowDropdown(true)}
@@ -346,7 +346,7 @@ export function MainHeader({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
             <input
               type="text"
-              placeholder="문서 또는 큐레이터 검색..."
+              placeholder="콘텐츠, 큐레이터 또는 저자 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setShowDropdown(true)}
