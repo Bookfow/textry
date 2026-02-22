@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
-import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft } from 'lucide-react'
+import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft, Clock } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
 import { PageAdBanner } from '@/components/page-ad-banner'
 import { CATEGORIES } from '@/lib/categories'
@@ -18,6 +18,7 @@ export default function HomePage() {
   const [popularDocs, setPopularDocs] = useState<DocWithAuthor[]>([])
   const [recentDocs, setRecentDocs] = useState<DocWithAuthor[]>([])
   const [loading, setLoading] = useState(true)
+  const [sessionContinue, setSessionContinue] = useState<DocWithAuthor[]>([])
   const [activeCategory, setActiveCategory] = useState<string>('all')
 
   useEffect(() => {
@@ -92,6 +93,46 @@ export default function HomePage() {
         .order('created_at', { ascending: false })
         .limit(24)
       if (recent) setRecentDocs(recent)
+
+      // ━━━ reading_sessions 기반 이어서 읽을 콘텐츠 ━━━
+      if (user) {
+        const { data: sessions } = await supabase
+          .from('reading_sessions')
+          .select('document_id, current_page, last_read_at')
+          .eq('reader_id', user.id)
+          .order('last_read_at', { ascending: false })
+          .limit(30)
+
+        if (sessions && sessions.length > 0) {
+          // 문서별 가장 최근 세션만 유지
+          const latestByDoc = new Map<string, { document_id: string; current_page: number; last_read_at: string }>()
+          for (const s of sessions) {
+            if (!latestByDoc.has(s.document_id)) latestByDoc.set(s.document_id, s)
+          }
+
+          const docIds = [...latestByDoc.keys()]
+          const { data: sessionDocs } = await supabase
+            .from('documents')
+            .select('*, profiles!documents_author_id_fkey(username, email, avatar_url)')
+            .in('id', docIds)
+            .eq('is_published', true)
+
+          if (sessionDocs) {
+            // 완독(current_page >= page_count) 제외, 최근 읽은 순 정렬
+            const incomplete = docIds
+              .map(id => {
+                const doc = sessionDocs.find(d => d.id === id)
+                const session = latestByDoc.get(id)
+                if (!doc || !session) return null
+                if (doc.page_count && session.current_page >= doc.page_count) return null
+                if (session.current_page <= 1) return null
+                return doc
+              })
+              .filter(Boolean) as DocWithAuthor[]
+            setSessionContinue(incomplete.slice(0, 12))
+          }
+        }
+      }
 
     } catch (err) {
       console.error('Error loading home:', err)
@@ -280,7 +321,7 @@ export default function HomePage() {
     )
   }
 
-  const hasAnyContent = continueReading.length > 0 || subscribedDocs.length > 0 || popularDocs.length > 0 || recentDocs.length > 0
+  const hasAnyContent = continueReading.length > 0 || sessionContinue.length > 0 || subscribedDocs.length > 0 || popularDocs.length > 0 || recentDocs.length > 0
 
   return (
     <div className="min-h-screen">
@@ -341,6 +382,11 @@ export default function HomePage() {
 
               {/* 최신 콘텐츠 */}
               <CarouselSection title="새로운 콘텐츠" icon={Sparkles} docs={filteredRecent} showMore="/browse?sort=recent" />
+
+              {/* 이어서 읽을 콘텐츠 (reading_sessions 기반) */}
+              {sessionContinue.length > 0 && (
+                <CarouselSection title="이어서 읽을 콘텐츠" icon={Clock} docs={sessionContinue} showMore="/continue-reading" />
+              )}
 
               {/* 구독자 콘텐츠 */}
               <CarouselSection title="구독 중인 새 콘텐츠" icon={Users} docs={filterByCategory(subscribedDocs)} />
