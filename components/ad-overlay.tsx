@@ -110,7 +110,15 @@ export function AdOverlay({
           ) : (
             <div className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white/70 text-sm">
               {type === 'reward' ? (
-                <span>🎬 {countdown}초 시청하면 1시간 무광고!</span>
+                <div className="flex items-center gap-3">
+                  <span>🎬 {countdown}초 시청하면 1시간 무광고!</span>
+                  <button
+                    onClick={() => { if (confirm('광고 시청을 취소하시겠습니까?\n무광고 보상이 취소됩니다.')) onClose() }}
+                    className="px-2 py-0.5 text-xs bg-white/10 hover:bg-white/20 rounded border border-white/20 transition-colors"
+                  >
+                    취소
+                  </button>
+                </div>
               ) : (
                 <span>{countdown}초 후 건너뛰기 가능</span>
               )}
