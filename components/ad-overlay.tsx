@@ -8,12 +8,13 @@ interface AdOverlayProps {
   isVisible: boolean
   onClose: () => void
   skipDelay?: number
-  type?: 'start' | 'middle' | 'end'
+  type?: 'start' | 'middle' | 'end' | 'reward'
   documentId?: string
   authorId?: string
   viewerId?: string | null
   pageNumber?: number
   sessionId?: string | null
+  onRewardComplete?: () => void
 }
 
 export function AdOverlay({
@@ -26,7 +27,15 @@ export function AdOverlay({
   viewerId,
   pageNumber,
   sessionId,
+  onRewardComplete,
 }: AdOverlayProps) {
+  // 보상형 광고 완료 시 호출
+  const handleClose = () => {
+    if (type === 'reward' && canSkip && onRewardComplete) {
+      onRewardComplete()
+    }
+    onClose()
+  }
   const [countdown, setCountdown] = useState(skipDelay)
   const [canSkip, setCanSkip] = useState(false)
 
@@ -48,16 +57,20 @@ export function AdOverlay({
 
   useEffect(() => {
     if (!isVisible) {
-      setCountdown(skipDelay)
+      const delay = type === 'reward' ? 30 : skipDelay
+      setCountdown(delay)
       setCanSkip(false)
       return
     }
 
     // 광고 노출 로그 기록
-    if (documentId && authorId) {
+    if (documentId) {
       logAdImpression()
     }
 
+    const actualDelay = type === 'reward' ? 30 : skipDelay
+    setCountdown(actualDelay)
+    
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -74,10 +87,11 @@ export function AdOverlay({
 
   if (!isVisible) return null
 
-  const titles = {
+  const titles: Record<string, string> = {
     start: '잠시 후 문서가 시작됩니다',
     middle: '광고',
     end: '다 읽으셨습니다!',
+    reward: '🎬 광고 시청 중 — 1시간 무광고 보상!',
   }
 
   return (
@@ -87,15 +101,19 @@ export function AdOverlay({
         <div className="absolute -top-12 right-0">
           {canSkip ? (
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-white text-sm font-medium transition-all"
             >
-              {type === 'end' ? '닫기' : '광고 건너뛰기'}
+              {type === 'reward' ? '🎉 1시간 무광고 시작!' : type === 'end' ? '닫기' : '광고 건너뛰기'}
               <X className="w-4 h-4" />
             </button>
           ) : (
             <div className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white/70 text-sm">
-              {countdown}초 후 건너뛰기 가능
+              {type === 'reward' ? (
+                <span>🎬 {countdown}초 시청하면 1시간 무광고!</span>
+              ) : (
+                <span>{countdown}초 후 건너뛰기 가능</span>
+              )}
             </div>
           )}
         </div>
@@ -121,13 +139,15 @@ export function AdOverlay({
           {/* 하단 안내 */}
           <div className="px-4 py-2 bg-gray-800/30 border-t border-gray-700 text-center">
             <p className="text-[11px] text-gray-500">
-              광고 수익은 작가님에게 돌아갑니다
+              {type === 'reward'
+                ? '이 광고를 끝까지 시청하면 1시간 동안 광고 없이 읽을 수 있습니다'
+                : '광고 수익은 작가님에게 돌아갑니다'}
             </p>
           </div>
         </div>
 
         {/* 끝 광고일 때 추천 문서 영역 */}
-        {type === 'end' && (
+        {(type === 'end') && (
           <div className="mt-4 bg-gray-900 border border-gray-700 rounded-xl p-4">
             <p className="text-sm font-medium text-white mb-3">이런 문서도 있어요</p>
             <div className="space-y-2">

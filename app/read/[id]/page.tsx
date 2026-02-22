@@ -28,6 +28,7 @@ import {
   Search,
   ChevronUp,
   ChevronDown,
+  Play,
 } from 'lucide-react'
 import { AdBanner } from '@/components/ad-banner'
 import { AdOverlay } from '@/components/ad-overlay'
@@ -237,7 +238,45 @@ export default function ReadPage() {
   const [endAdShown, setEndAdShown] = useState(false)
   const [restoredFromComplete, setRestoredFromComplete] = useState(false)
   const [documentReady, setDocumentReady] = useState(false)
+  const [isRewardAdFree, setIsRewardAdFree] = useState(false)
+  const [rewardExpiresAt, setRewardExpiresAt] = useState<number>(0)
+  const [showRewardAd, setShowRewardAd] = useState(false)
   const prevPageRef = useRef<number>(1)
+
+  // ━━━ 보상형 무광고 체크 ━━━
+  useEffect(() => {
+    try {
+      const expires = Number(localStorage.getItem('textry_reward_expires') || '0')
+      if (expires > Date.now()) {
+        setIsRewardAdFree(true)
+        setRewardExpiresAt(expires)
+      }
+    } catch {}
+  }, [])
+
+  // 보상형 무광고 타이머 (만료 시 자동 해제)
+  useEffect(() => {
+    if (!isRewardAdFree || !rewardExpiresAt) return
+    const remaining = rewardExpiresAt - Date.now()
+    if (remaining <= 0) { setIsRewardAdFree(false); return }
+    const timer = setTimeout(() => setIsRewardAdFree(false), remaining)
+    return () => clearTimeout(timer)
+  }, [isRewardAdFree, rewardExpiresAt])
+
+  // 보상형 광고 완료 핸들러
+  const handleRewardComplete = () => {
+    const expires = Date.now() + 60 * 60 * 1000 // 1시간
+    try { localStorage.setItem('textry_reward_expires', String(expires)) } catch {}
+    setIsRewardAdFree(true)
+    setRewardExpiresAt(expires)
+    setShowRewardAd(false)
+  }
+
+  // 보상형 남은 시간 포맷
+  const getRewardRemainingMin = () => {
+    if (!isRewardAdFree || !rewardExpiresAt) return 0
+    return Math.max(0, Math.ceil((rewardExpiresAt - Date.now()) / 60000))
+  }
 
   const tier = numPages > 0 ? getAdTier(numPages) : 'micro'
   const tierConfig = getTierConfig(tier)
@@ -518,7 +557,7 @@ export default function ReadPage() {
 
   // ─── 광고 ───
   useEffect(() => {
-    if (isPremium) return
+    if (isPremium || isRewardAdFree) return
     if (documentReady && numPages > 0 && !startAdShown) {
       const config = getTierConfig(getAdTier(numPages))
       if (config.showStartAd) {
@@ -532,7 +571,7 @@ export default function ReadPage() {
   }, [documentReady, numPages, startAdShown])
 
   useEffect(() => {
-    if (isPremium) return
+    if (isPremium || isRewardAdFree) return
     if (numPages === 0 || showAdOverlay || !documentReady) return
 
     const prevPage = prevPageRef.current
@@ -905,6 +944,7 @@ export default function ReadPage() {
       )}
 
       {/* ━━━ 광고 오버레이 ━━━ */}
+      {/* ━━━ 일반 광고 오버레이 ━━━ */}
       <AdOverlay
         isVisible={showAdOverlay}
         onClose={handleAdClose}
@@ -915,6 +955,20 @@ export default function ReadPage() {
         viewerId={user?.id || null}
         pageNumber={pageNumber}
         sessionId={sessionId}
+      />
+
+      {/* ━━━ 보상형 광고 오버레이 ━━━ */}
+      <AdOverlay
+        isVisible={showRewardAd}
+        onClose={() => setShowRewardAd(false)}
+        skipDelay={30}
+        type="reward"
+        documentId={documentId}
+        authorId={document?.author_id}
+        viewerId={user?.id || null}
+        pageNumber={pageNumber}
+        sessionId={sessionId}
+        onRewardComplete={handleRewardComplete}
       />
 
       {/* ━━━ 배경/밝기 팝업 (PDF 모드에서만, EPUB 제외) ━━━ */}
@@ -1145,7 +1199,7 @@ export default function ReadPage() {
               )}
             </div>
 
-            {!isPremium && (
+            {!isPremium && !isRewardAdFree && (
               <div className="hidden md:flex items-center flex-shrink-0">
                 <div className="h-[50px] w-[200px] lg:w-[300px] overflow-hidden rounded opacity-70 hover:opacity-100 transition-opacity">
                   <AdBanner position="bottom" documentId={documentId} authorId={document?.author_id} />
@@ -1154,6 +1208,24 @@ export default function ReadPage() {
             )}
 
             <div className="flex items-center gap-1 flex-shrink-0">
+              {/* ━━━ 보상형 광고 버튼 ━━━ */}
+              {!isPremium && !isRewardAdFree && (
+                <button
+                  onClick={() => setShowRewardAd(true)}
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-gradient-to-r from-amber-600/80 to-amber-500/80 hover:from-amber-500 hover:to-amber-400 text-white text-[11px] font-medium transition-all shadow-lg shadow-amber-900/20"
+                  title="30초 광고를 시청하면 1시간 동안 광고 없이 읽을 수 있습니다"
+                >
+                  <Play className="w-3.5 h-3.5" fill="currentColor" />
+                  <span className="hidden sm:inline">무광고</span>
+                </button>
+              )}
+              {isRewardAdFree && (
+                <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-green-800/50 border border-green-600/30 text-green-400 text-[11px]"
+                  title={'무광고 ' + getRewardRemainingMin() + '분 남음'}>
+                  <span>✓</span>
+                  <span className="hidden sm:inline">{getRewardRemainingMin()}분</span>
+                </div>
+              )}
               {/* ━━━ 검색 버튼 ━━━ */}
               <button onClick={toggleSearch}
                 className={`p-2 rounded-lg transition-colors ${showSearch ? 'bg-[#B2967D] text-[#1A1410]' : 'hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1]'}`}
@@ -1179,7 +1251,7 @@ export default function ReadPage() {
           </div>
         </div>
         </div>
-      ) : !isPremium ? (
+      ) : !isPremium && !isRewardAdFree ? (
         <div className="absolute top-0 left-0 right-0 z-50 bg-[#241E18]/90 backdrop-blur-sm border-b border-[#3A302A] px-2 py-1 flex items-center justify-center cursor-pointer"
           onClick={() => resetControlsTimer()}>
           <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
@@ -1375,7 +1447,7 @@ export default function ReadPage() {
               <CommentsSection documentId={documentId} />
             </div>
 
-            {!isPremium && (
+            {!isPremium && !isRewardAdFree && (
               <div className="p-4">
                 <AdBanner position="sidebar" documentId={documentId} authorId={document?.author_id} />
               </div>
