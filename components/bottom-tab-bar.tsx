@@ -1,22 +1,25 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/auth-context'
 import { Home, BookOpen, Upload, User } from 'lucide-react'
-
-const tabs = [
-  { label: '홈', icon: Home, path: '/home' },
-  { label: '내 서재', icon: BookOpen, path: '/library' },
-  { label: '업로드', icon: Upload, path: '/upload' },
-  { label: '마이', icon: User, path: '/settings' },
-]
 
 export function BottomTabBar() {
   const pathname = usePathname()
   const router = useRouter()
+  const { user } = useAuth()
+
+  const tabs = [
+    { label: '홈', icon: Home, path: '/home' },
+    { label: '내 서재', icon: BookOpen, path: '/library' },
+    { label: '업로드', icon: Upload, path: '/upload' },
+    { label: '마이', icon: User, path: user ? `/profile/${user.id}` : '/login' },
+  ]
 
   const isActive = (path: string) => {
     if (path === '/browse?focus=search') return false
     if (path === '/browse') return pathname === '/browse'
+    if (path.startsWith('/profile/')) return pathname.startsWith('/profile/')
     return pathname.startsWith(path)
   }
 
