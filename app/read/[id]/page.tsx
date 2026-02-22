@@ -199,6 +199,13 @@ export default function ReadPage() {
     if (!user || !documentId || loading) return
     const restorePosition = async () => {
       try {
+        // 문서의 page_count 가져오기
+        const { data: docInfo } = await supabase
+          .from('documents')
+          .select('page_count')
+          .eq('id', documentId)
+          .single()
+
         const { data } = await supabase
           .from('reading_sessions')
           .select('current_page')
@@ -208,7 +215,12 @@ export default function ReadPage() {
           .limit(1)
           .maybeSingle()
         if (data?.current_page && data.current_page > 1) {
-          setPageNumber(data.current_page)
+          // 완독 상태(마지막 페이지)면 처음부터 다시
+          if (docInfo?.page_count && data.current_page >= docInfo.page_count) {
+            setPageNumber(1)
+          } else {
+            setPageNumber(data.current_page)
+          }
         }
       } catch {}
     }
