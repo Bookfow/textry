@@ -13,6 +13,7 @@ import { ShareButton } from '@/components/share-button'
 import { ReadingListButton } from '@/components/reading-list-button'
 import { CommentsSection } from '@/components/comments-section'
 import { DocumentCard } from '@/components/document-card'
+import { PageAdBanner } from '@/components/page-ad-banner'
 
 type SeriesDoc = { documentId: string; position: number; title: string }
 type TocItem = { title: string; pageNumber: number; level: number }
@@ -684,10 +685,22 @@ export default function DocumentDetailPage() {
           </div>
         )}
 
+        {/* 광고 배너 */}
+        <div className="mb-6">
+          <PageAdBanner position="detail_page" documentId={documentId} authorId={doc?.author_id} />
+        </div>
+
         {/* 댓글 */}
         <div className="mb-6 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
           <CommentsSection documentId={documentId} />
         </div>
+
+        {/* 추천 영역 광고 */}
+        {alsoReadDocs.length > 0 && (
+          <div className="mb-6">
+            <PageAdBanner position="detail_page" documentId={documentId} authorId={doc?.author_id} />
+          </div>
+        )}
 
         {/* 이 문서를 읽은 사람이 본 */}
         {alsoReadDocs.length > 0 && (

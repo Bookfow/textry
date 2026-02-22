@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
@@ -10,6 +10,7 @@ import { Eye, ThumbsUp, TrendingUp, Heart, Search, Sparkles, Filter, BookOpen } 
 import { getCategoryIcon, getCategoryLabel, CATEGORIES } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 import { DocumentCard } from '@/components/document-card'
+import { PageAdBanner } from '@/components/page-ad-banner'
 
 const PAGE_SIZE = 24
 
@@ -189,6 +190,11 @@ function BrowseContent() {
         <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-[#F7F2EF] dark:from-[#1A1410] to-transparent pointer-events-none md:hidden" />
       </div>
 
+      {/* ━━━ 광고 배너 ━━━ */}
+      <div className="mb-5">
+        <PageAdBanner position="browse_page" />
+      </div>
+
       {/* ━━━ 정렬 + 결과 수 ━━━ */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
@@ -243,15 +249,21 @@ function BrowseContent() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
-          {documents.map(doc => {
+          {documents.map((doc, idx) => {
             const author = authors.get(doc.author_id)
             return (
-              <DocumentCard
-                key={doc.id}
-                doc={doc}
-                authorName={(doc as any).author_name || author?.username || author?.email}
-                variant="grid"
-              />
+              <React.Fragment key={doc.id}>
+                <DocumentCard
+                  doc={doc}
+                  authorName={(doc as any).author_name || author?.username || author?.email}
+                  variant="grid"
+                />
+                {idx === 11 && (
+                  <div className="col-span-full">
+                    <PageAdBanner position="browse_inline" />
+                  </div>
+                )}
+              </React.Fragment>
             )
           })}
         </div>

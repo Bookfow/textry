@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
 import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
+import { PageAdBanner } from '@/components/page-ad-banner'
 import { CATEGORIES } from '@/lib/categories'
 
 type DocWithAuthor = Document & { profiles?: { username: string | null; email: string; avatar_url: string | null } }
@@ -245,14 +246,17 @@ export default function HomePage() {
             ref={scrollRef}
             className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
           >
-            {docs.map(doc => (
-              <div key={doc.id} className="flex-shrink-0 w-[155px] sm:w-[170px] md:w-[200px] lg:w-[210px] xl:w-[220px]">
-                <DocumentCard
-                  doc={doc}
-                  authorName={doc.author_name || doc.profiles?.username || doc.profiles?.email}
-                  variant="grid"
-                />
-              </div>
+            {docs.map((doc, idx) => (
+              <React.Fragment key={doc.id}>
+                <div className="flex-shrink-0 w-[155px] sm:w-[170px] md:w-[200px] lg:w-[210px] xl:w-[220px]">
+                  <DocumentCard
+                    doc={doc}
+                    authorName={doc.author_name || doc.profiles?.username || doc.profiles?.email}
+                    variant="grid"
+                  />
+                </div>
+                {idx === 5 && <PageAdBanner position="home_feed" variant="card" />}
+              </React.Fragment>
             ))}
           </div>
         </div>
@@ -321,6 +325,11 @@ export default function HomePage() {
 
               {/* 랭킹 */}
               <RankingSection docs={filteredPopular} />
+
+              {/* 피드 광고 배너 */}
+              <div className="mb-10">
+                <PageAdBanner position="home_feed" />
+              </div>
 
               {/* 인기 콘텐츠 */}
               <CarouselSection title="인기 있는 콘텐츠" icon={TrendingUp} docs={filteredPopular} showMore="/browse?sort=popular" />
