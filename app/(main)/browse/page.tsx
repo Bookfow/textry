@@ -22,10 +22,12 @@ function BrowseContent() {
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [authorIdName, setAuthorIdName] = useState('')
 
   const sort = searchParams.get('sort') || 'recent'
   const category = searchParams.get('category') || 'all'
   const authorFilter = searchParams.get('author') || ''
+  const authorIdFilter = searchParams.get('author_id') || ''
 
   const updateParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -40,7 +42,7 @@ function BrowseContent() {
   useEffect(() => {
     setHasMore(true)
     loadDocuments(true)
-  }, [sort, category, authorFilter, user])
+  }, [sort, category, authorFilter, authorIdFilter, user])
 
   const loadDocuments = async (isInitial = true) => {
     try {
@@ -58,6 +60,8 @@ function BrowseContent() {
       if (category !== 'all') query = query.eq('category', category)
 
       if (authorFilter) query = query.eq('author_name', authorFilter)
+
+      if (authorIdFilter) query = query.eq('author_id', authorIdFilter)
 
       if (sort === 'popular') {
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
@@ -98,6 +102,12 @@ function BrowseContent() {
             profilesData.forEach(p => newMap.set(p.id, p))
             return newMap
           })
+          if (authorIdFilter && isInitial) {
+            const uploaderProfile = profilesData.find(p => p.id === authorIdFilter)
+            if (uploaderProfile) {
+              setAuthorIdName(uploaderProfile.username || uploaderProfile.email || '')
+            }
+          }
         }
       }
     } catch (err) {
@@ -181,7 +191,7 @@ function BrowseContent() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <h1 className="text-lg md:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">
-            {authorFilter ? `${authorFilter}의 문서` : category === 'all' ? '전체 문서' : `${getCategoryIcon(category)} ${getCategoryLabel(category)}`}
+            {authorFilter ? `${authorFilter}의 문서` : authorIdFilter ? `${authorIdName || '작가'}의 문서` : category === 'all' ? '전체 문서' : `${getCategoryIcon(category)} ${getCategoryLabel(category)}`}
           </h1>
           <span className="text-sm text-[#9C8B7A]">{documents.length}개</span>
         </div>

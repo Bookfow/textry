@@ -363,7 +363,7 @@ export default function DocumentDetailPage() {
 
               {author && (
                 <div className="flex items-center justify-center sm:justify-between mb-4 gap-3">
-                  <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name || author.username || author.email)}`}>
+                  <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author.id}`}`}>
                     <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                       {author.avatar_url && !(doc as any).author_name ? (
                         <Image src={author.avatar_url} alt="" width={36} height={36} className="rounded-full object-cover" />
@@ -545,7 +545,7 @@ export default function DocumentDetailPage() {
           {activeTab === 'author' && author && (
             <div>
               <div className="flex items-center gap-4 mb-4">
-                <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name || author.username || author.email)}`}>
+                <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author.id}`}`}>
                   {author.avatar_url ? (
                     <Image src={author.avatar_url} alt="" width={56} height={56} className="rounded-full object-cover" />
                   ) : (
@@ -555,7 +555,7 @@ export default function DocumentDetailPage() {
                   )}
                 </Link>
                 <div className="flex-1">
-                  <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name || author.username || author.email)}`}>
+                  <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author.id}`}`}>
                     <p className="text-base font-semibold text-[#2D2016] dark:text-[#EEE4E1] hover:underline">
                       {(doc as any).author_name || author.username || author.email}
                     </p>
@@ -605,7 +605,7 @@ export default function DocumentDetailPage() {
                     ))}
                   </div>
                   {moreDocs.length > 4 && (
-                    <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name || author?.username || author?.email)}`} className="block mt-3 text-center text-xs text-[#B2967D] hover:underline">
+                    <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author?.id}`}`} className="block mt-3 text-center text-xs text-[#B2967D] hover:underline">
                       전체 보기 →
                     </Link>
                   )}
@@ -715,7 +715,7 @@ export default function DocumentDetailPage() {
               <h2 className="text-lg font-bold text-[#2D2016] dark:text-[#EEE4E1]">
                 {(doc as any).author_name || author?.username || '작가'}의 다른 문서
               </h2>
-              <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name || author?.username || author?.email)}`} className="flex items-center gap-1 text-sm text-[#B2967D] hover:text-[#a67c52]">
+              <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author?.id}`}`} className="flex items-center gap-1 text-sm text-[#B2967D] hover:text-[#a67c52]">
                 전체보기 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
