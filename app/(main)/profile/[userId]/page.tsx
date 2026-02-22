@@ -60,7 +60,7 @@ export default function AuthorPage() {
   const [seriesDocs, setSeriesDocs] = useState<any[]>([])
   const [showAddDocDialog, setShowAddDocDialog] = useState(false)
 
-  // 구독 작가 (팔로잉)
+  // 구독 작가
   const [subscribedAuthors, setSubscribedAuthors] = useState<any[]>([])
 
   const isMyProfile = user?.id === authorId
@@ -124,7 +124,7 @@ export default function AuthorPage() {
         }
       }
 
-      // 팔로잉 수
+      // 구독 수
       const { count: followCount } = await supabase
         .from('subscriptions').select('*', { count: 'exact', head: true }).eq('subscriber_id', authorId)
       setFollowingCount(followCount || 0)
@@ -411,9 +411,9 @@ export default function AuthorPage() {
                 <span>·</span>
                 <span>구독자 {author.subscribers_count?.toLocaleString() || 0}명</span>
                 <span>·</span>
-                <span>문서 {documents.length}개</span>
+                <span>콘텐츠 {documents.length}개</span>
                 <span>·</span>
-                <span>팔로잉 {followingCount}명</span>
+                <span>구독 {followingCount}명</span>
               </div>
 
               {isEditing ? (
@@ -508,7 +508,7 @@ export default function AuthorPage() {
             )}
             <button onClick={() => setActiveTab('following')}
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'following' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
-              팔로잉 {subscribedAuthors.length > 0 && `(${subscribedAuthors.length})`}
+              구독 {subscribedAuthors.length > 0 && `(${subscribedAuthors.length})`}
             </button>
             <button onClick={() => setActiveTab('about')}
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'about' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
