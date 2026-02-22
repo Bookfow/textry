@@ -23,10 +23,12 @@ function BrowseContent() {
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [authorIdName, setAuthorIdName] = useState('')
+  const [authorIdName, setAuthorIdName] = useState('')
 
   const sort = searchParams.get('sort') || 'recent'
   const category = searchParams.get('category') || 'all'
   const authorFilter = searchParams.get('author') || ''
+  const authorIdFilter = searchParams.get('author_id') || ''
   const authorIdFilter = searchParams.get('author_id') || ''
 
   const updateParams = (key: string, value: string) => {
@@ -60,6 +62,8 @@ function BrowseContent() {
       if (category !== 'all') query = query.eq('category', category)
 
       if (authorFilter) query = query.eq('author_name', authorFilter)
+
+      if (authorIdFilter) query = query.eq('author_id', authorIdFilter)
 
       if (authorIdFilter) query = query.eq('author_id', authorIdFilter)
 
