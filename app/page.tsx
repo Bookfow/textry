@@ -112,10 +112,10 @@ export default function LandingPage() {
           90% { transform: translate(-1%, 7%); }
         }
 
-        .animate-fadeInUp { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-fadeInLeft { animation: fadeInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-fadeInRight { animation: fadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-scaleIn { animation: scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fadeInUp { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; opacity: 0; }
+        .animate-fadeInLeft { animation: fadeInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; opacity: 0; }
+        .animate-fadeInRight { animation: fadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; opacity: 0; }
+        .animate-scaleIn { animation: scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; opacity: 0; }
         .delay-100 { animation-delay: 0.1s; }
         .delay-200 { animation-delay: 0.2s; }
         .delay-300 { animation-delay: 0.3s; }
@@ -189,27 +189,27 @@ export default function LandingPage() {
           {hero.isVisible && (
             <>
               {/* 뱃지 */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 animate-fadeInUp opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-sm text-white/70">콘텐츠 큐레이션의 새로운 시대</span>
               </div>
 
               {/* 메인 카피 */}
-              <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[0.95] mb-8 animate-fadeInUp opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+              <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[0.95] mb-8 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                 <span className="block text-white">발견하고,</span>
                 <span className="block text-white">큐레이션하고,</span>
                 <span className="block shimmer-text">함께 성장하다.</span>
               </h2>
 
               {/* 서브 카피 */}
-              <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-12 leading-relaxed animate-fadeInUp opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
+              <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-12 leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
                 큐레이터가 가치 있는 콘텐츠를 발굴하고, 독자는 벽 없이 지식을 만납니다.
                 <br className="hidden md:block" />
                 당신의 큐레이션이 수익이 되는 플랫폼, Textry.
               </p>
 
               {/* CTA */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fadeInUp opacity-0" style={{ animationDelay: '0.7s', animationFillMode: 'forwards' }}>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fadeInUp" style={{ animationDelay: '0.7s' }}>
                 <Link href="/signup"
                   className="group flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-[#a67c52] to-[#c9a96e] text-[#0A0806] font-bold text-lg hover:shadow-2xl hover:shadow-[#c9a96e]/30 transition-all hover:scale-105 active:scale-95">
                   무료로 시작하기
@@ -223,7 +223,7 @@ export default function LandingPage() {
               </div>
 
               {/* 소셜 프루프 */}
-              <div className="mt-16 flex items-center justify-center gap-8 text-white/30 animate-fadeInUp opacity-0" style={{ animationDelay: '0.9s', animationFillMode: 'forwards' }}>
+              <div className="mt-16 flex items-center justify-center gap-8 text-white/30 animate-fadeInUp" style={{ animationDelay: '0.9s' }}>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-white/60"><CountUp target={50} suffix="+" /></p>
                   <p className="text-xs mt-1">등록된 콘텐츠</p>
@@ -258,13 +258,13 @@ export default function LandingPage() {
           {concept.isVisible && (
             <>
               <div className="text-center mb-20">
-                <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+                <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   New Concept
                 </p>
-                <h3 className="text-4xl md:text-5xl font-black text-white mb-6 animate-fadeInUp opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+                <h3 className="text-4xl md:text-5xl font-black text-white mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
                   저자와 큐레이터,<br />두 개의 역할
                 </h3>
-                <p className="text-lg text-white/40 max-w-2xl mx-auto animate-fadeInUp opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+                <p className="text-lg text-white/40 max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                   Textry에서는 콘텐츠를 쓴 사람과 발굴한 사람을 구분합니다.
                   <br />누구나 큐레이터가 될 수 있고, 본인의 작품을 올리면 저자이자 큐레이터가 됩니다.
                 </p>
@@ -272,7 +272,7 @@ export default function LandingPage() {
 
               <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 {/* 저자 카드 */}
-                <div className="animate-fadeInLeft opacity-0 delay-400" style={{ animationFillMode: 'forwards' }}>
+                <div className="animate-fadeInLeft delay-400" style={{  }}>
                   <div className="group relative p-8 rounded-2xl bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.06] hover:border-[#c9a96e]/30 transition-all duration-500 hover:-translate-y-2">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#5C4A38]/10 rounded-full blur-[60px] group-hover:bg-[#5C4A38]/20 transition-colors" />
                     <div className="relative">
@@ -292,7 +292,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* 큐레이터 카드 */}
-                <div className="animate-fadeInRight opacity-0 delay-400" style={{ animationFillMode: 'forwards' }}>
+                <div className="animate-fadeInRight delay-400" style={{  }}>
                   <div className="group relative p-8 rounded-2xl bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.06] hover:border-[#c9a96e]/30 transition-all duration-500 hover:-translate-y-2">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#c9a96e]/8 rounded-full blur-[60px] group-hover:bg-[#c9a96e]/15 transition-colors" />
                     <div className="relative">
@@ -313,7 +313,7 @@ export default function LandingPage() {
               </div>
 
               {/* 교차점 */}
-              <div className="mt-12 text-center animate-fadeInUp opacity-0 delay-600" style={{ animationFillMode: 'forwards' }}>
+              <div className="mt-12 text-center animate-fadeInUp delay-600" style={{  }}>
                 <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/[0.03] border border-white/[0.06]">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#5C4A38] to-[#c9a96e] flex items-center justify-center text-white text-xs font-bold">+</div>
                   <span className="text-white/50">직접 쓴 콘텐츠를 올리면?</span>
@@ -334,10 +334,10 @@ export default function LandingPage() {
           {features.isVisible && (
             <>
               <div className="text-center mb-20">
-                <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+                <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   Features
                 </p>
-                <h3 className="text-4xl md:text-5xl font-black text-white animate-fadeInUp opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+                <h3 className="text-4xl md:text-5xl font-black text-white animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
                   읽기의 모든 순간을 디자인하다
                 </h3>
               </div>
@@ -351,7 +351,7 @@ export default function LandingPage() {
                   { icon: Globe, title: '오픈 라이브러리', desc: '공개된 지식은 모두의 것. 누구나 자유롭게 읽고 배웁니다.', gradient: 'from-rose-500/20 to-red-500/20', iconBg: 'from-rose-500 to-red-500' },
                   { icon: Shield, title: '시리즈 관리', desc: '콘텐츠를 시리즈로 묶어 체계적으로 구성하세요.', gradient: 'from-indigo-500/20 to-violet-500/20', iconBg: 'from-indigo-500 to-violet-500' },
                 ].map((f, i) => (
-                  <div key={i} className="animate-fadeInUp opacity-0" style={{ animationDelay: `${0.2 + i * 0.1}s`, animationFillMode: 'forwards' }}>
+                  <div key={i} className="animate-fadeInUp" style={{ animationDelay: `${0.2 + i * 0.1}s` }}>
                     <div className="group relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.1] transition-all duration-500 hover:-translate-y-1 h-full">
                       <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${f.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                       <div className="relative">
@@ -379,13 +379,13 @@ export default function LandingPage() {
           {monetize.isVisible && (
             <>
               <div className="text-center mb-20">
-                <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+                <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   Monetization
                 </p>
-                <h3 className="text-4xl md:text-5xl font-black text-white mb-6 animate-fadeInUp opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+                <h3 className="text-4xl md:text-5xl font-black text-white mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
                   큐레이션이 곧 수익입니다
                 </h3>
-                <p className="text-lg text-white/40 max-w-2xl mx-auto animate-fadeInUp opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+                <p className="text-lg text-white/40 max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                   좋은 콘텐츠를 발굴하고 공유하는 것만으로도 수익이 발생합니다.
                   <br />광고 수익과 프리미엄 구독 수익을 큐레이터에게 배분합니다.
                 </p>
@@ -398,7 +398,7 @@ export default function LandingPage() {
                   { tier: 'Tier 1', label: '파트너', desc: '수익화 시작', share: '70%', condition: '100시간 + 30일', color: 'from-blue-500/10 to-blue-600/5', borderColor: 'border-blue-500/20', textColor: 'text-blue-400' },
                   { tier: 'Tier 2', label: '프로', desc: '최고 수익 배분', share: '80%', condition: '1,000시간', color: 'from-[#c9a96e]/15 to-[#a67c52]/8', borderColor: 'border-[#c9a96e]/30', textColor: 'text-[#c9a96e]' },
                 ].map((t, i) => (
-                  <div key={i} className="animate-fadeInUp opacity-0" style={{ animationDelay: `${0.3 + i * 0.15}s`, animationFillMode: 'forwards' }}>
+                  <div key={i} className="animate-fadeInUp" style={{ animationDelay: `${0.3 + i * 0.15}s` }}>
                     <div className={`relative p-6 rounded-2xl bg-gradient-to-br ${t.color} border ${t.borderColor} transition-all hover:-translate-y-1 duration-300 h-full`}>
                       {i === 2 && (
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-[#a67c52] to-[#c9a96e] rounded-full text-[10px] font-bold text-[#0A0806]">
@@ -421,7 +421,7 @@ export default function LandingPage() {
               </div>
 
               {/* 수익 흐름 */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fadeInUp opacity-0 delay-600" style={{ animationFillMode: 'forwards' }}>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fadeInUp delay-600" style={{  }}>
                 {[
                   { icon: Eye, text: '독자가 읽기' },
                   { icon: TrendingUp, text: '광고 노출' },
@@ -453,16 +453,16 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
           {cta.isVisible && (
             <>
-              <h3 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight animate-fadeInUp opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+              <h3 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                 지금, 당신만의
                 <br />
                 <span className="shimmer-text">큐레이션</span>을 시작하세요
               </h3>
-              <p className="text-lg text-white/40 mb-12 animate-fadeInUp opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+              <p className="text-lg text-white/40 mb-12 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                 가입은 무료, 업로드도 무료.
                 <br />좋은 콘텐츠를 세상에 알리는 것만으로 가치가 생깁니다.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeInUp opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
                 <Link href="/signup"
                   className="group inline-flex items-center justify-center gap-3 px-10 py-5 rounded-full bg-gradient-to-r from-[#a67c52] to-[#c9a96e] text-[#0A0806] font-bold text-lg transition-all hover:shadow-2xl hover:shadow-[#c9a96e]/30 hover:scale-105 active:scale-95"
                   style={{ animation: 'pulse-glow 3s ease-in-out infinite' }}>
