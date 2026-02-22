@@ -53,6 +53,8 @@ export function MainHeader({
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const dropdownRef2 = useRef<HTMLDivElement>(null)
+  const dropdownRef3 = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -62,7 +64,11 @@ export function MainHeader({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const inRef1 = dropdownRef.current?.contains(target)
+      const inRef2 = dropdownRef2.current?.contains(target)
+      const inRef3 = dropdownRef3.current?.contains(target)
+      if (!inRef1 && !inRef2 && !inRef3) {
         setShowDropdown(false)
       }
     }
@@ -271,7 +277,7 @@ export function MainHeader({
 
           {/* 태블릿 검색 */}
           <div className="hidden md:flex lg:hidden flex-1">
-            <div className="relative w-full" ref={dropdownRef}>
+            <div className="relative w-full" ref={dropdownRef2}>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
               <input
                 type="text"
@@ -335,7 +341,7 @@ export function MainHeader({
 
         {/* 모바일 검색 */}
         <div className="md:hidden mt-3">
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative" ref={dropdownRef3}>
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
             <input
               type="text"
