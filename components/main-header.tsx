@@ -95,14 +95,14 @@ export function MainHeader({
         const { data: authors } = await supabase
           .from('profiles')
           .select('id, username, email, avatar_url')
-          .or(`username.ilike.%${query}%,email.ilike.%${query}%`)
+          .ilike('username', `%${query}%`)
           .limit(3)
         const results: SearchResult[] = [
           ...(docs || []).map(d => ({
             type: 'document' as const, id: d.id, title: d.title,
             subtitle: d.description || '', thumbnail: d.thumbnail_url,
           })),
-          ...(authors || []).map(a => ({
+          ...(authors || []).filter(a => a.id !== user?.id).map(a => ({
             type: 'author' as const, id: a.id, title: a.username || a.email,
             subtitle: '큐레이터', thumbnail: a.avatar_url,
           })),
