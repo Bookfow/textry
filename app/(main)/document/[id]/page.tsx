@@ -377,7 +377,7 @@ export default function DocumentDetailPage() {
                       </span>
                     </div>
                   </Link>
-                  {user && user.id !== author.id && (
+                  {user && user.id !== author.id && !(doc as any).author_name && (
                     <div className="hidden sm:block">
                       <SubscribeButton
                         authorId={author.id}
@@ -564,10 +564,10 @@ export default function DocumentDetailPage() {
                     구독자 {author.subscribers_count.toLocaleString()}명
                   </p>
                 </div>
-                {user && user.id !== author.id && (
+                {user && user.id !== author.id && !(doc as any).author_name && (
                   <SubscribeButton
                     authorId={author.id}
-                    authorName={(doc as any).author_name || author.username || author.email}
+                    authorName={author.username || author.email}
                     initialSubscribersCount={author.subscribers_count}
                   />
                 )}
