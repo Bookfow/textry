@@ -167,7 +167,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ━━━ 히어로 ━━━ */}
-      <section ref={hero.ref} className="relative min-h-screen flex items-center justify-center grain-overlay">
+      <section ref={hero.ref} className="relative min-h-screen flex items-center justify-center">
         {/* 배경 글로우 */}
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-[#a67c52]/20 rounded-full blur-[120px]"
@@ -246,7 +246,7 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 큐레이터/저자 개념 ━━━ */}
-      <section id="concept" ref={concept.ref} className="relative py-32 grain-overlay">
+      <section id="concept" ref={concept.ref} className="relative py-32">
         <div className="absolute inset-0 bg-gradient-to-b from-[#0A0806] via-[#12100C] to-[#0A0806]" />
         <div className="relative z-10 max-w-6xl mx-auto px-6">
           <>
@@ -361,7 +361,7 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 수익화 시스템 ━━━ */}
-      <section id="monetize" ref={monetize.ref} className="relative py-32 grain-overlay">
+      <section id="monetize" ref={monetize.ref} className="relative py-32">
         <div className="absolute inset-0 bg-gradient-to-b from-[#0A0806] via-[#0F0D0A] to-[#0A0806]" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/20 to-transparent" />
 
