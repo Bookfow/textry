@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
-import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft, Clock, BarChart3, Eye, FileText } from 'lucide-react'
+import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft, Clock, BarChart3, Eye, FileText, Flame } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
 import { PageAdBanner } from '@/components/page-ad-banner'
 import { CATEGORIES } from '@/lib/categories'
@@ -20,6 +20,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [sessionContinue, setSessionContinue] = useState<DocWithAuthor[]>([])
   const [communityStats, setCommunityStats] = useState<{ weeklyHours: number; totalDocs: number; totalViews: number; totalReaders: number } | null>(null)
+  const [weeklyHot, setWeeklyHot] = useState<(DocWithAuthor & { readMinutes: number })[]>([])
   const [activeCategory, setActiveCategory] = useState<string>('all')
 
   useEffect(() => {
@@ -135,7 +136,48 @@ export default function HomePage() {
         }
       }
 
-    // ━━━ 커뮤니티 통계 ━━━
+    // ━━━ 이번 주 읽기 시간 기반 인기 ━━━
+      try {
+        const weekAgo2 = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        const { data: weekSes } = await supabase
+          .from('reading_sessions')
+          .select('document_id, reading_time')
+          .gte('last_read_at', weekAgo2)
+
+        if (weekSes && weekSes.length > 0) {
+          // 문서별 읽기 시간 합산
+          const timeByDoc = new Map<string, number>()
+          for (const s of weekSes) {
+            if (!s.document_id) continue
+            timeByDoc.set(s.document_id, (timeByDoc.get(s.document_id) || 0) + (s.reading_time || 0))
+          }
+
+          // 상위 5개
+          const sorted = [...timeByDoc.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
+          const topDocIds = sorted.map(s => s[0])
+
+          if (topDocIds.length > 0) {
+            const { data: hotDocs } = await supabase
+              .from('documents')
+              .select('*, profiles!documents_author_id_fkey(username, email, avatar_url)')
+              .in('id', topDocIds)
+              .eq('is_published', true)
+
+            if (hotDocs) {
+              const result = topDocIds
+                .map(id => {
+                  const doc = hotDocs.find(d => d.id === id)
+                  if (!doc) return null
+                  return { ...doc, readMinutes: Math.round((timeByDoc.get(id) || 0) / 60) }
+                })
+                .filter(Boolean) as (DocWithAuthor & { readMinutes: number })[]
+              setWeeklyHot(result)
+            }
+          }
+        }
+      } catch {}
+
+      // ━━━ 커뮤니티 통계 ━━━
       try {
         const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
         
@@ -472,6 +514,81 @@ export default function HomePage() {
 
               {/* 랭킹 */}
               <RankingSection docs={filteredPopular} />
+
+              {/* ━━━ 이번 주 인기 (읽기 시간 기반) ━━━ */}
+              {weeklyHot.length > 0 && (
+                <div className="mb-10">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Flame className="w-5 h-5 text-orange-500" />
+                    <h2 className="text-lg md:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">이번 주 가장 오래 읽힌</h2>
+                    <span className="text-xs text-[#9C8B7A] ml-1">읽기 시간 기준</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    {weeklyHot.map((doc, index) => (
+                      <Link key={doc.id} href={`/document/${doc.id}`}>
+                        <div className="group relative p-4 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1 cursor-pointer"
+                          style={{
+                            background: index === 0
+                              ? 'linear-gradient(135deg, #B2967D22, #E6BEAE33)'
+                              : undefined
+                          }}>
+                          {/* 배경 */}
+                          <div className={`absolute inset-0 rounded-xl border transition-colors ${
+                            index === 0
+                              ? 'bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/20 border-orange-200/50 dark:border-orange-800/30'
+                              : 'bg-white dark:bg-[#241E18] border-[#E7D8C9] dark:border-[#3A302A] group-hover:border-[#B2967D]/50'
+                          }`} />
+
+                          <div className="relative flex items-center gap-3">
+                            {/* 순위 + 불꽃 */}
+                            <div className="flex flex-col items-center flex-shrink-0 w-8">
+                              {index === 0 ? (
+                                <Flame className="w-6 h-6 text-orange-500 mb-0.5" />
+                              ) : (
+                                <span className={`text-xl font-black ${
+                                  index === 1 ? 'text-orange-400/70' :
+                                  index === 2 ? 'text-orange-300/60' :
+                                  'text-[#E7D8C9] dark:text-[#3A302A]'
+                                }`}>{index + 1}</span>
+                              )}
+                            </div>
+
+                            {/* 썸네일 */}
+                            <div className="relative w-11 h-15 rounded-lg overflow-hidden flex-shrink-0 bg-[#EEE4E1] dark:bg-[#2E2620] shadow-sm">
+                              {doc.thumbnail_url ? (
+                                <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-lg opacity-30">📄</div>
+                              )}
+                            </div>
+
+                            {/* 정보 */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-semibold text-[#2D2016] dark:text-[#EEE4E1] line-clamp-1 group-hover:text-[#B2967D] transition-colors">
+                                {doc.title}
+                              </h3>
+                              <p className="text-[11px] text-[#9C8B7A] truncate">
+                                {doc.author_name || doc.profiles?.username || doc.profiles?.email || ''}
+                              </p>
+                              <div className="flex items-center gap-1 mt-1">
+                                <span className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                                  index === 0
+                                    ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400'
+                                    : 'bg-[#B2967D]/10 text-[#B2967D]'
+                                }`}>
+                                  <Clock className="w-3 h-3" />
+                                  {doc.readMinutes}분
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* 피드 광고 배너 */}
               <div className="mb-10">
