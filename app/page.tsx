@@ -174,11 +174,11 @@ export default function LandingPage() {
       <section ref={hero.ref} className="relative min-h-screen flex items-center justify-center grain-overlay">
         {/* 배경 글로우 */}
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#a67c52]/8 rounded-full blur-[150px]"
+          <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-[#a67c52]/20 rounded-full blur-[120px]"
             style={{ transform: `translate(${scrollY * 0.02}px, ${scrollY * -0.01}px)` }} />
-          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#c9a96e]/6 rounded-full blur-[120px]"
+          <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-[#c9a96e]/15 rounded-full blur-[100px]"
             style={{ transform: `translate(${scrollY * -0.015}px, ${scrollY * 0.02}px)` }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#8B7049]/4 rounded-full blur-[200px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-[#8B7049]/12 rounded-full blur-[160px]" />
         </div>
 
         {/* 그리드 패턴 */}
