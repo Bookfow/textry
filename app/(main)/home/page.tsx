@@ -528,14 +528,14 @@ export default function HomePage() {
             <>
               {/* 이어 읽기 */}
               {continueReading.length > 0 && (
-                <CarouselSection title="이어서 읽기" icon={BookOpen} docs={continueReading} />
+                <CarouselSection title="이어서 읽기" icon={BookOpen} docs={filterByCategory(continueReading)} />
               )}
 
               {/* 랭킹 */}
               <RankingSection docs={filteredPopular} />
 
               {/* ━━━ 이번 주 인기 (읽기 시간 기반) ━━━ */}
-              {weeklyHot.length > 0 && (
+              {weeklyHot.filter(d => activeCategory === 'all' || d.category === activeCategory).length > 0 && (
                 <div className="mb-10">
                   <div className="flex items-center gap-2 mb-4">
                     <Flame className="w-5 h-5 text-orange-500" />
@@ -544,7 +544,7 @@ export default function HomePage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    {weeklyHot.map((doc, index) => (
+                    {weeklyHot.filter(d => activeCategory === 'all' || d.category === activeCategory).map((doc, index) => (
                       <Link key={doc.id} href={`/document/${doc.id}`}>
                         <div className="group relative p-4 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1 cursor-pointer"
                           style={{
@@ -622,7 +622,7 @@ export default function HomePage() {
 
               {/* 이어서 읽을 콘텐츠 (reading_sessions 기반) */}
               {sessionContinue.length > 0 && (
-                <CarouselSection title="이어서 읽을 콘텐츠" icon={Clock} docs={sessionContinue} showMore="/continue-reading" />
+                <CarouselSection title="이어서 읽을 콘텐츠" icon={Clock} docs={filterByCategory(sessionContinue)} showMore="/continue-reading" />
               )}
 
               {/* 구독자 콘텐츠 */}
