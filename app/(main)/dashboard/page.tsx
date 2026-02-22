@@ -270,8 +270,8 @@ export default function DashboardPage() {
   const getTierLabel = (tier: number) => {
     switch (tier) {
       case 0: return { label: '일반 사용자', color: 'text-gray-500', bg: 'bg-gray-800', icon: '🔒' }
-      case 1: return { label: '파트너 작가', color: 'text-blue-400', bg: 'bg-blue-900/30', icon: '✓' }
-      case 2: return { label: '프로 작가', color: 'text-purple-400', bg: 'bg-purple-900/30', icon: '★' }
+      case 1: return { label: '파트너 큐레이터', color: 'text-blue-400', bg: 'bg-blue-900/30', icon: '✓' }
+      case 2: return { label: '프로 큐레이터', color: 'text-purple-400', bg: 'bg-purple-900/30', icon: '★' }
       default: return { label: '일반', color: 'text-gray-500', bg: 'bg-gray-800', icon: '🔒' }
     }
   }
@@ -370,7 +370,7 @@ export default function DashboardPage() {
                         {tierInfo.label}
                       </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        수익 배분: {authorTier?.tier === 0 ? '수익화 불가' : `작가 ${((authorTier?.revenue_share || 0) * 100).toFixed(0)}%`}
+                        수익 배분: {authorTier?.tier === 0 ? '수익화 불가' : `큐레이터 ${((authorTier?.revenue_share || 0) * 100).toFixed(0)}%`}
                       </p>
                     </div>
                   </div>
@@ -700,7 +700,7 @@ export default function DashboardPage() {
                   {[
                     { source: '홈 피드', pct: 45, color: 'bg-blue-500', icon: '🏠' },
                     { source: '둘러보기', pct: 25, color: 'bg-purple-500', icon: '🔍' },
-                    { source: '작가 페이지', pct: 18, color: 'bg-green-500', icon: '👤' },
+                    { source: '큐레이터 페이지', pct: 18, color: 'bg-green-500', icon: '👤' },
                     { source: '외부 공유', pct: 12, color: 'bg-amber-500', icon: '🔗' },
                   ].map(item => (
                     <div key={item.source} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">

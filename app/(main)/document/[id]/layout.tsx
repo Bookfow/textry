@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       .eq('id', doc.author_id)
       .single()
 
-    const authorName = author?.username || author?.email || '작가'
+    const authorName = author?.username || author?.email || '큐레이터'
     const title = `${doc.title} — ${authorName}`
     const description = doc.description
       || `${authorName}님의 ${doc.category || '문서'} · ${doc.page_count || 0}페이지 · 조회 ${doc.view_count?.toLocaleString() || 0}회 — Textry에서 무료로 읽기`
@@ -99,7 +99,7 @@ export default async function DocumentDetailLayout({ params, children }: Props) 
         jsonLdProps = {
           title: doc.title,
           description: doc.description || '',
-          authorName: author?.username || author?.email || '작가',
+          authorName: author?.username || author?.email || '큐레이터',
           datePublished: doc.created_at,
           dateModified: doc.updated_at,
           thumbnailUrl: doc.thumbnail_url || undefined,

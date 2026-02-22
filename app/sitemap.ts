@@ -33,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }))
 
-    // 작가 프로필
+    // 큐레이터 프로필
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, updated_at')

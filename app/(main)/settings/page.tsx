@@ -232,7 +232,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-[#9C8B7A]">계정 유형</p>
-                  <p className="font-medium text-[#2D2016] dark:text-[#EEE4E1]">{profile?.role === 'author' ? '작가' : '독자'}</p>
+                  <p className="font-medium text-[#2D2016] dark:text-[#EEE4E1]">{profile?.role === 'author' ? '큐레이터' : '독자'}</p>
                 </div>
                 <div>
                   <p className="text-[#9C8B7A]">가입일</p>

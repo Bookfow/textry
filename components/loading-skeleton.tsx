@@ -120,7 +120,7 @@ export function ProfileSkeleton() {
   )
 }
 
-// ─── 작가 페이지 스켈레톤 ───
+// ─── 큐레이터 페이지 스켈레톤 ───
 export function AuthorSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">

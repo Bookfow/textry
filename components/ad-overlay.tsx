@@ -149,7 +149,7 @@ export function AdOverlay({
             <p className="text-[11px] text-gray-500">
               {type === 'reward'
                 ? '이 광고를 끝까지 시청하면 1시간 동안 광고 없이 읽을 수 있습니다'
-                : '광고 수익은 작가님에게 돌아갑니다'}
+                : '광고 수익은 큐레이터님에게 돌아갑니다'}
             </p>
           </div>
         </div>

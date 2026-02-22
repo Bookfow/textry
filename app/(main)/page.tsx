@@ -95,7 +95,7 @@ export default function HomePage() {
 
       // ── 개인화 추천 (로그인 사용자만) ──
       if (user) {
-        // 1. 좋아할 만한 콘텐츠: 좋아요한 문서의 카테고리/작가 기반
+        // 1. 좋아할 만한 콘텐츠: 좋아요한 문서의 카테고리/큐레이터 기반
         const { data: likedReactions } = await supabase
           .from('reactions')
           .select('document_id')
@@ -115,7 +115,7 @@ export default function HomePage() {
         ])
 
         if (readDocIds.size > 0) {
-          // 읽은 문서들의 카테고리와 작가 파악
+          // 읽은 문서들의 카테고리와 큐레이터 파악
           const { data: readDocsInfo } = await supabase
             .from('documents')
             .select('category, author_id')

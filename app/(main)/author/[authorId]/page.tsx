@@ -76,7 +76,7 @@ export default function AuthorPage() {
   const handleShare = async () => {
     const url = window.location.href
     if (navigator.share) {
-      navigator.share({ title: `${author?.username || '작가'} - Textry`, url })
+      navigator.share({ title: `${author?.username || '큐레이터'} - Textry`, url })
     } else {
       await navigator.clipboard.writeText(url)
       toast.success('링크가 복사되었습니다!')
@@ -134,7 +134,7 @@ export default function AuthorPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">작가를 찾을 수 없습니다</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">큐레이터를 찾을 수 없습니다</p>
           <button onClick={() => router.push('/home')} className="text-blue-600 hover:underline">홈으로 돌아가기</button>
         </div>
       </div>
@@ -197,7 +197,7 @@ export default function AuthorPage() {
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                     author.author_tier === 2 ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                   }`}>
-                    {author.author_tier === 2 ? '프로 작가' : '파트너 작가'}
+                    {author.author_tier === 2 ? '프로 큐레이터' : '파트너 큐레이터'}
                   </span>
                 )}
               </div>

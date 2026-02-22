@@ -13,7 +13,7 @@ export default function AboutPage() {
         <div className="prose prose-sm dark:prose-invert max-w-none space-y-8">
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">Textry란?</h2>
-            <p>Textry는 전 세계 작가와 독자를 연결하는 디지털 콘텐츠 플랫폼입니다. 누구나 자신의 문서를 업로드하고, 다양한 분야의 지식과 이야기를 공유할 수 있습니다.</p>
+            <p>Textry는 전 세계 큐레이터와 독자를 연결하는 디지털 콘텐츠 플랫폼입니다. 누구나 자신의 문서를 업로드하고, 다양한 분야의 지식과 이야기를 공유할 수 있습니다.</p>
           </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose">
@@ -37,8 +37,8 @@ export default function AboutPage() {
               <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-3">
                 <Users className="w-5 h-5 text-purple-600" />
               </div>
-              <h3 className="font-bold text-gray-900 dark:text-white mb-1">작가 구독</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">좋아하는 작가를 구독하고, 새 콘텐츠가 올라오면 바로 확인하세요.</p>
+              <h3 className="font-bold text-gray-900 dark:text-white mb-1">큐레이터 구독</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">좋아하는 큐레이터를 구독하고, 새 콘텐츠가 올라오면 바로 확인하세요.</p>
             </div>
 
             <div className="bg-white dark:bg-gray-900 rounded-xl border dark:border-gray-800 p-5">
@@ -46,12 +46,12 @@ export default function AboutPage() {
                 <DollarSign className="w-5 h-5 text-amber-600" />
               </div>
               <h3 className="font-bold text-gray-900 dark:text-white mb-1">수익 창출</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">자격을 갖춘 작가는 광고 및 프리미엄 구독 수익을 배분받을 수 있습니다.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">자격을 갖춘 큐레이터는 광고 및 프리미엄 구독 수익을 배분받을 수 있습니다.</p>
             </div>
           </div>
 
           <section>
-            <h2 className="text-xl font-bold mt-8 mb-3">작가로 시작하기</h2>
+            <h2 className="text-xl font-bold mt-8 mb-3">큐레이터로 시작하기</h2>
             <ol className="list-decimal pl-6 space-y-2 mt-2">
               <li><strong>계정 생성:</strong> 이메일로 간단하게 가입합니다.</li>
               <li><strong>문서 업로드:</strong> 본인의 콘텐츠를 업로드하고 카테고리, 설명을 설정합니다.</li>
@@ -61,7 +61,7 @@ export default function AboutPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mt-8 mb-3">작가 등급 시스템</h2>
+            <h2 className="text-xl font-bold mt-8 mb-3">큐레이터 등급 시스템</h2>
             <div className="not-prose space-y-3 mt-3">
               <div className="bg-white dark:bg-gray-900 rounded-lg border dark:border-gray-800 p-4">
                 <div className="flex items-center gap-2 mb-1">
@@ -73,14 +73,14 @@ export default function AboutPage() {
               <div className="bg-white dark:bg-gray-900 rounded-lg border dark:border-gray-800 p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">✓</span>
-                  <span className="font-bold text-blue-600">Tier 1 — 파트너 작가</span>
+                  <span className="font-bold text-blue-600">Tier 1 — 파트너 큐레이터</span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">누적 읽기 시간 100시간 + 가입 30일 달성 시. 수익의 70% 배분</p>
               </div>
               <div className="bg-white dark:bg-gray-900 rounded-lg border dark:border-gray-800 p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">★</span>
-                  <span className="font-bold text-purple-600">Tier 2 — 프로 작가</span>
+                  <span className="font-bold text-purple-600">Tier 2 — 프로 큐레이터</span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">누적 읽기 시간 1,000시간 달성 시. 수익의 80% 배분</p>
               </div>
@@ -89,7 +89,7 @@ export default function AboutPage() {
 
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">프리미엄 구독</h2>
-            <p>프리미엄 구독자는 광고 없이 모든 콘텐츠를 즐길 수 있으며, 프리미엄 구독료의 일부는 작가에게 배분됩니다.</p>
+            <p>프리미엄 구독자는 광고 없이 모든 콘텐츠를 즐길 수 있으며, 프리미엄 구독료의 일부는 큐레이터에게 배분됩니다.</p>
           </section>
 
           <section>

@@ -98,7 +98,7 @@ export function MainHeader({
           })),
           ...(authors || []).map(a => ({
             type: 'author' as const, id: a.id, title: a.username || a.email,
-            subtitle: '작가', thumbnail: a.avatar_url,
+            subtitle: '큐레이터', thumbnail: a.avatar_url,
           })),
         ]
         setSuggestions(results)
@@ -189,7 +189,7 @@ export function MainHeader({
                 </button>
               ))}
               {suggestions.filter(s => s.type === 'author').length > 0 && (
-                <div className="px-4 py-2 bg-gray-50 dark:bg-[#2E2620] text-xs font-medium text-[#9C8B7A]">작가</div>
+                <div className="px-4 py-2 bg-gray-50 dark:bg-[#2E2620] text-xs font-medium text-[#9C8B7A]">큐레이터</div>
               )}
               {suggestions.filter(s => s.type === 'author').map(result => (
                 <button key={result.id} onClick={() => handleResultClick(result)}
@@ -201,7 +201,7 @@ export function MainHeader({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1] truncate">{result.title}</p>
-                    <p className="text-xs text-[#9C8B7A]">작가</p>
+                    <p className="text-xs text-[#9C8B7A]">큐레이터</p>
                   </div>
                 </button>
               ))}
@@ -229,7 +229,7 @@ export function MainHeader({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
               <input
                 type="text"
-                placeholder="문서 또는 작가 검색..."
+                placeholder="문서 또는 큐레이터 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setShowDropdown(true)}
@@ -275,7 +275,7 @@ export function MainHeader({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
               <input
                 type="text"
-                placeholder="문서 또는 작가 검색..."
+                placeholder="문서 또는 큐레이터 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setShowDropdown(true)}
@@ -339,7 +339,7 @@ export function MainHeader({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
             <input
               type="text"
-              placeholder="문서 또는 작가 검색..."
+              placeholder="문서 또는 큐레이터 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setShowDropdown(true)}

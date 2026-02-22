@@ -46,20 +46,20 @@ async function runSettlement() {
     return { message: `${monthStr}은 이미 정산 완료`, skipped: true }
   }
 
-  // ━━━ 1. 수익화 가능한 작가 조회 (Tier 1+) ━━━
+  // ━━━ 1. 수익화 가능한 큐레이터 조회 (Tier 1+) ━━━
   const { data: authors } = await supabase
     .from('author_tiers')
     .select('author_id, tier, revenue_share')
     .gte('tier', 1)
 
   if (!authors || authors.length === 0) {
-    return { message: '수익화 가능한 작가 없음', settled: 0 }
+    return { message: '수익화 가능한 큐레이터 없음', settled: 0 }
   }
 
   const results: any[] = []
 
   for (const author of authors) {
-    // ━━━ 2. 해당 작가 문서의 뷰어 내 광고 노출 수 ━━━
+    // ━━━ 2. 해당 큐레이터 문서의 뷰어 내 광고 노출 수 ━━━
     const { data: authorDocs } = await supabase
       .from('documents')
       .select('id')
@@ -85,7 +85,7 @@ async function runSettlement() {
     const adPlatformShare = adGrossRevenue * (1 - author.revenue_share)
 
     // ━━━ 4. 프리미엄 읽기 시간 배분 ━━━
-    // 해당 작가 문서의 프리미엄 사용자 읽기 시간
+    // 해당 큐레이터 문서의 프리미엄 사용자 읽기 시간
     const { data: premiumSessions } = await supabase
       .from('reading_sessions')
       .select('reading_time, reader_id')
@@ -122,9 +122,9 @@ async function runSettlement() {
       .eq('is_premium', true)
       .gt('premium_expires_at', new Date().toISOString())
 
-    const premiumPool = (premiumCount || 0) * 3.99 * 0.7 // 구독료의 70%가 작가 풀
+    const premiumPool = (premiumCount || 0) * 3.99 * 0.7 // 구독료의 70%가 큐레이터 풀
     
-    // 전체 프리미엄 읽기 시간 (모든 작가 합산)
+    // 전체 프리미엄 읽기 시간 (모든 큐레이터 합산)
     const { data: allPremiumSessions } = await supabase
       .from('reading_sessions')
       .select('reading_time')
@@ -165,7 +165,7 @@ async function runSettlement() {
       })
 
     if (insertError) {
-      console.error(`작가 ${author.author_id} 정산 실패:`, insertError)
+      console.error(`큐레이터 ${author.author_id} 정산 실패:`, insertError)
       continue
     }
 

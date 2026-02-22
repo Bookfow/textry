@@ -721,12 +721,12 @@ export default function DocumentDetailPage() {
           </div>
         )}
 
-        {/* 이 작가의 다른 문서 */}
+        {/* 이 큐레이터의 다른 콘텐츠 */}
         {moreDocs.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#2D2016] dark:text-[#EEE4E1]">
-                {(doc as any).author_name || author?.username || '작가'}의 다른 문서
+                {(doc as any).author_name || author?.username || '큐레이터'}의 다른 문서
               </h2>
               <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author?.id}`}`} className="flex items-center gap-1 text-sm text-[#B2967D] hover:text-[#a67c52]">
                 전체보기 <ChevronRight className="w-4 h-4" />

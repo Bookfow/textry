@@ -60,7 +60,7 @@ export default function AuthorPage() {
   const [seriesDocs, setSeriesDocs] = useState<any[]>([])
   const [showAddDocDialog, setShowAddDocDialog] = useState(false)
 
-  // 구독 작가
+  // 구독 큐레이터
   const [subscribedAuthors, setSubscribedAuthors] = useState<any[]>([])
 
   const isMyProfile = user?.id === authorId
@@ -134,7 +134,7 @@ export default function AuthorPage() {
         .from('document_series').select('*').eq('author_id', authorId).order('created_at', { ascending: false })
       setSeriesList(seriesData || [])
 
-      // 구독 작가 목록
+      // 구독 큐레이터 목록
       const { data: subs } = await supabase
         .from('subscriptions').select('author_id').eq('subscriber_id', authorId)
       if (subs && subs.length > 0) {
@@ -163,7 +163,7 @@ export default function AuthorPage() {
   const handleShare = async () => {
     const url = window.location.href
     if (navigator.share) {
-      navigator.share({ title: `${author?.username || '작가'} - Textry`, url })
+      navigator.share({ title: `${author?.username || '큐레이터'} - Textry`, url })
     } else {
       await navigator.clipboard.writeText(url)
       toast.success('링크가 복사되었습니다!')
@@ -285,7 +285,7 @@ export default function AuthorPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-[#9C8B7A] mb-4">작가를 찾을 수 없습니다</p>
+          <p className="text-[#9C8B7A] mb-4">큐레이터를 찾을 수 없습니다</p>
           <button onClick={() => router.push('/home')} className="text-[#B2967D] hover:underline">홈으로 돌아가기</button>
         </div>
       </div>
@@ -401,7 +401,7 @@ export default function AuthorPage() {
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                     author.author_tier === 2 ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-[#EEE4E1] dark:bg-[#2E2620] text-[#B2967D]'
                   }`}>
-                    {author.author_tier === 2 ? '프로 작가' : '파트너 작가'}
+                    {author.author_tier === 2 ? '프로 큐레이터' : '파트너 큐레이터'}
                   </span>
                 )}
               </div>
@@ -655,8 +655,8 @@ export default function AuthorPage() {
               {subscribedAuthors.length === 0 ? (
                 <div className="text-center py-16">
                   <Users className="w-12 h-12 text-[#E7D8C9] dark:text-[#3A302A] mx-auto mb-3" />
-                  <p className="text-[#9C8B7A] mb-1">구독 중인 작가가 없습니다</p>
-                  <p className="text-xs text-[#9C8B7A]">마음에 드는 작가를 구독해보세요</p>
+                  <p className="text-[#9C8B7A] mb-1">구독 중인 큐레이터가 없습니다</p>
+                  <p className="text-xs text-[#9C8B7A]">마음에 드는 큐레이터를 구독해보세요</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

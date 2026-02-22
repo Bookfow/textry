@@ -232,7 +232,7 @@ export default function AdminPage() {
           <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
             {([
               { id: 'overview', label: '개요', icon: BarChart3 },
-              { id: 'authors', label: '작가 관리', icon: Users },
+              { id: 'authors', label: '큐레이터 관리', icon: Users },
               { id: 'content', label: '콘텐츠', icon: FileText },
               { id: 'revenue', label: '수익', icon: DollarSign },
               { id: 'premium', label: '프리미엄', icon: Crown },
@@ -257,12 +257,12 @@ export default function AdminPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[
-                  { label: '전체 사용자', value: formatNumber(stats.totalUsers), icon: Users, color: 'text-blue-500', sub: `작가 ${stats.totalAuthors} / 독자 ${stats.totalReaders}` },
+                  { label: '전체 사용자', value: formatNumber(stats.totalUsers), icon: Users, color: 'text-blue-500', sub: `큐레이터 ${stats.totalAuthors} / 독자 ${stats.totalReaders}` },
                   { label: '프리미엄', value: formatNumber(stats.premiumCount), icon: Crown, color: 'text-amber-500', sub: `전환율 ${stats.totalUsers > 0 ? ((stats.premiumCount / stats.totalUsers) * 100).toFixed(1) : 0}%` },
-                  { label: '총 문서', value: formatNumber(stats.totalDocuments), icon: FileText, color: 'text-green-500', sub: `작가당 ${stats.totalAuthors > 0 ? (stats.totalDocuments / stats.totalAuthors).toFixed(1) : 0}개` },
+                  { label: '총 문서', value: formatNumber(stats.totalDocuments), icon: FileText, color: 'text-green-500', sub: `큐레이터당 ${stats.totalAuthors > 0 ? (stats.totalDocuments / stats.totalAuthors).toFixed(1) : 0}개` },
                   { label: '총 조회수', value: formatNumber(stats.totalViews), icon: Eye, color: 'text-purple-500', sub: `문서당 ${stats.totalDocuments > 0 ? Math.round(stats.totalViews / stats.totalDocuments) : 0}회` },
                   { label: '총 읽기 시간', value: formatTime(stats.totalReadingTimeSec), icon: Clock, color: 'text-teal-500', sub: '' },
-                  { label: '플랫폼 수익', value: `$${stats.totalPlatformRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-red-500', sub: `작가 지급: $${stats.totalAuthorPayout.toFixed(2)}` },
+                  { label: '플랫폼 수익', value: `$${stats.totalPlatformRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-red-500', sub: `큐레이터 지급: $${stats.totalAuthorPayout.toFixed(2)}` },
                   { label: '신고 접수', value: formatNumber(reports.length), icon: Flag, color: 'text-orange-500', sub: `대기중 ${reports.filter(r => r.status === 'pending').length}건` },
                 ].map((item, i) => (
                   <div key={i} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
@@ -342,7 +342,7 @@ export default function AdminPage() {
                               <span className="text-gray-700 dark:text-gray-300 w-10">{d.month}</span>
                               <div className="flex items-center gap-3">
                                 <span className="text-red-500">플랫폼 ${d.platform.toFixed(0)}</span>
-                                <span className="text-blue-500">작가 ${d.author.toFixed(0)}</span>
+                                <span className="text-blue-500">큐레이터 ${d.author.toFixed(0)}</span>
                               </div>
                             </div>
                             <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 flex overflow-hidden">
@@ -353,7 +353,7 @@ export default function AdminPage() {
                         ))}
                         <div className="flex items-center gap-4 mt-2 text-xs">
                           <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-400 rounded-sm" /> 플랫폼 수익</span>
-                          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-400 rounded-sm" /> 작가 지급</span>
+                          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-400 rounded-sm" /> 큐레이터 지급</span>
                         </div>
                       </div>
                     )
@@ -364,7 +364,7 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-                  <h3 className="font-bold text-gray-900 dark:text-white mb-4">작가 Tier 분포</h3>
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4">큐레이터 Tier 분포</h3>
                   <div className="space-y-4">
                     {[
                       { tier: 'Tier 0 (일반)', count: stats.tier0Authors, color: 'bg-gray-400', share: '0%' },
@@ -400,7 +400,7 @@ export default function AdminPage() {
                     </div>
                     <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
                       <div>
-                        <p className="text-sm font-medium text-blue-800 dark:text-blue-300">작가 지급 총액</p>
+                        <p className="text-sm font-medium text-blue-800 dark:text-blue-300">큐레이터 지급 총액</p>
                         <p className="text-xs text-blue-600 dark:text-blue-400">광고 + 프리미엄 배분</p>
                       </div>
                       <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">${stats.totalAuthorPayout.toFixed(2)}</p>
@@ -442,7 +442,7 @@ export default function AdminPage() {
               <div className="flex items-center gap-4">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="text" placeholder="작가 검색 (이름, 이메일)" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                  <input type="text" placeholder="큐레이터 검색 (이름, 이메일)" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white" />
                 </div>
                 <select value={authorSort} onChange={e => setAuthorSort(e.target.value as any)}
@@ -455,7 +455,7 @@ export default function AdminPage() {
 
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
                 <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-500 dark:text-gray-400">
-                  <div className="col-span-4">작가</div>
+                  <div className="col-span-4">큐레이터</div>
                   <div className="col-span-1 text-center">Tier</div>
                   <div className="col-span-1 text-center">구독자</div>
                   <div className="col-span-2 text-center">총 수익</div>
@@ -486,7 +486,7 @@ export default function AdminPage() {
                 ))}
                 {filteredAuthors.length === 0 && <p className="text-center text-gray-400 dark:text-gray-500 py-8">검색 결과가 없습니다</p>}
               </div>
-              <p className="text-xs text-gray-400">총 {filteredAuthors.length}명의 작가</p>
+              <p className="text-xs text-gray-400">총 {filteredAuthors.length}명의 큐레이터</p>
             </div>
           )}
 
@@ -510,7 +510,7 @@ export default function AdminPage() {
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
                 <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-500 dark:text-gray-400">
                   <div className="col-span-5">문서</div>
-                  <div className="col-span-2">작가</div>
+                  <div className="col-span-2">큐레이터</div>
                   <div className="col-span-1 text-center">조회수</div>
                   <div className="col-span-2 text-center">읽기 시간</div>
                   <div className="col-span-1 text-center">좋아요</div>
@@ -539,7 +539,7 @@ export default function AdminPage() {
                   <p className="text-3xl font-bold text-red-600 dark:text-red-400">${stats.totalPlatformRevenue.toFixed(2)}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">작가 총 지급액</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">큐레이터 총 지급액</p>
                   <p className="text-3xl font-bold text-blue-600">${stats.totalAuthorPayout.toFixed(2)}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
@@ -558,7 +558,7 @@ export default function AdminPage() {
               </div>
 
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-                <h3 className="font-bold text-gray-900 dark:text-white mb-4">작가별 수익 랭킹</h3>
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4">큐레이터별 수익 랭킹</h3>
                 <div className="space-y-2">
                   {[...authors].sort((a, b) => (b.total_revenue_usd || 0) - (a.total_revenue_usd || 0)).slice(0, 15).map((author, i) => (
                     <div key={author.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">

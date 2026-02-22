@@ -91,7 +91,7 @@ export default function LandingPage() {
               <Users className="w-6 h-6 text-[#B2967D]" />
             </div>
             <h4 className="text-xl font-semibold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">구독 시스템</h4>
-            <p className="text-[#5C4A38] dark:text-[#C4A882]">좋아하는 작가를 구독하고 새 문서를 놓치지 마세요</p>
+            <p className="text-[#5C4A38] dark:text-[#C4A882]">좋아하는 큐레이터를 구독하고 새 콘텐츠를 놓치지 마세요</p>
           </div>
           <div className="bg-white dark:bg-[#2E2620] p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-[#E7D8C9]/50 dark:border-[#3A302A]">
             <div className="w-12 h-12 bg-[#EEE4E1] dark:bg-[#B2967D]/20 rounded-lg flex items-center justify-center mb-4">
@@ -199,7 +199,7 @@ export default function LandingPage() {
                 <div className="px-4 py-3 border-b border-[#E7D8C9] dark:border-[#3A302A]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-[11px] font-semibold text-[#2D2016] dark:text-[#EEE4E1]">작가 대시보드</div>
+                      <div className="text-[11px] font-semibold text-[#2D2016] dark:text-[#EEE4E1]">큐레이터 대시보드</div>
                       <div className="text-[9px] text-[#9C8B7A]">이번 달 성과</div>
                     </div>
                     <div className="text-[9px] px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium">↑ 24%</div>
@@ -255,8 +255,8 @@ export default function LandingPage() {
             </div>
 
             <div className="order-1 md:order-2">
-              <h3 className="text-3xl font-bold mb-4 text-[#2D2016] dark:text-[#EEE4E1]">작가와 독자가 함께 성장</h3>
-              <p className="text-[#5C4A38] dark:text-[#C4A882] mb-6">작가는 광고 수익을 얻고, 독자는 장벽 없이 지식을 만나는 열린 생태계</p>
+              <h3 className="text-3xl font-bold mb-4 text-[#2D2016] dark:text-[#EEE4E1]">큐레이터와 독자가 함께 성장</h3>
+              <p className="text-[#5C4A38] dark:text-[#C4A882] mb-6">큐레이터는 광고 수익을 얻고, 독자는 장벽 없이 지식을 만나는 열린 생태계</p>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <TrendingUp className="w-5 h-5 text-[#B2967D]" />

@@ -97,7 +97,7 @@ export default function PremiumPage() {
     { icon: Eye, label: '전면 광고 (시작/중간/끝) 없음', free: false, premium: true },
     { icon: BookOpen, label: '깨끗한 읽기 환경', free: false, premium: true },
     { icon: Zap, label: '배너 광고 없음', free: false, premium: true },
-    { icon: Shield, label: '작가 수익 기여 (읽기 시간 비례)', free: false, premium: true },
+    { icon: Shield, label: '큐레이터 수익 기여 (읽기 시간 비례)', free: false, premium: true },
     { icon: Sparkles, label: '문서 업로드 및 열람', free: true, premium: true },
     { icon: BookOpen, label: '댓글 및 좋아요', free: true, premium: true },
     { icon: Crown, label: '구독 및 읽기 목록', free: true, premium: true },
@@ -155,7 +155,7 @@ export default function PremiumPage() {
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-3">Textry Premium</h1>
             <p className="text-lg text-[#9C8B7A] max-w-md mx-auto">
-              광고 없이 몰입하여 읽으세요. 당신의 읽기 시간이 작가의 수익이 됩니다.
+              광고 없이 몰입하여 읽으세요. 당신의 읽기 시간이 큐레이터의 수익이 됩니다.
             </p>
           </div>
 
@@ -257,7 +257,7 @@ export default function PremiumPage() {
             <div className="space-y-4">
               {[
                 { q: '프리미엄을 구독하면 어떤 혜택이 있나요?', a: '모든 광고(전면 광고, 배너, 사이드바)가 완전히 제거되어 깨끗한 환경에서 문서를 읽을 수 있습니다.' },
-                { q: '작가에게는 어떻게 수익이 돌아가나요?', a: '프리미엄 구독료의 70%가 작가에게 배분됩니다. 배분은 회원님이 각 작가의 문서를 읽은 시간에 비례합니다.' },
+                { q: '큐레이터에게는 어떻게 수익이 돌아가나요?', a: '프리미엄 구독료의 70%가 큐레이터에게 배분됩니다. 배분은 회원님이 각 큐레이터의 콘텐츠를 읽은 시간에 비례합니다.' },
                 { q: '언제든 해지할 수 있나요?', a: '네, 언제든 해지 가능합니다. 해지 후에도 현재 결제 기간이 끝날 때까지는 프리미엄 혜택을 이용하실 수 있습니다.' },
                 { q: '결제 수단은 무엇인가요?', a: '현재는 수동 결제로 운영되며, 곧 신용카드 및 PayPal 결제가 지원될 예정입니다.' },
               ].map((item, i) => (

@@ -20,7 +20,7 @@ export default function TermsPage() {
             <ul className="list-disc pl-6 space-y-1 mt-2">
               <li><strong>"서비스"</strong>란 회사가 제공하는 PDF 문서 업로드, 열람, 공유, 구독, 댓글 등의 온라인 플랫폼을 말합니다.</li>
               <li><strong>"회원"</strong>이란 회사와 서비스 이용 계약을 체결한 자를 말합니다.</li>
-              <li><strong>"작가"</strong>란 서비스에 콘텐츠를 업로드하는 회원을 말합니다.</li>
+              <li><strong>"큐레이터"</strong>란 서비스에 콘텐츠를 업로드하는 회원을 말합니다.</li>
               <li><strong>"독자"</strong>란 서비스에서 콘텐츠를 열람하는 회원을 말합니다.</li>
               <li><strong>"프리미엄 회원"</strong>이란 유료 구독을 결제하여 광고 없는 서비스 등 추가 혜택을 이용하는 회원을 말합니다.</li>
             </ul>
@@ -51,11 +51,11 @@ export default function TermsPage() {
             <ul className="list-disc pl-6 space-y-1 mt-2">
               <li>PDF 문서 업로드 및 공유 서비스</li>
               <li>문서 열람 및 PDF 뷰어 서비스</li>
-              <li>작가 구독 및 알림 서비스</li>
+              <li>큐레이터 구독 및 알림 서비스</li>
               <li>댓글, 좋아요 등 커뮤니티 기능</li>
               <li>맞춤형 콘텐츠 추천</li>
               <li>프리미엄 구독 서비스 (유료)</li>
-              <li>작가 광고 수익 정산 서비스</li>
+              <li>큐레이터 광고 수익 정산 서비스</li>
             </ul>
           </section>
 
@@ -75,8 +75,8 @@ export default function TermsPage() {
             <h2 className="text-xl font-bold mt-8 mb-3">제7조 (광고 및 수익)</h2>
             <ul className="list-disc pl-6 space-y-1 mt-2">
               <li>서비스에는 광고가 포함될 수 있으며, 프리미엄 회원은 광고가 제거됩니다.</li>
-              <li>작가는 자신의 콘텐츠에서 발생한 광고 수익의 일부를 정산받을 수 있습니다.</li>
-              <li>수익 배분 비율은 작가 등급에 따라 결정되며, 회사는 배분 비율을 사전 공지 후 변경할 수 있습니다.</li>
+              <li>큐레이터는 자신의 콘텐츠에서 발생한 광고 수익의 일부를 정산받을 수 있습니다.</li>
+              <li>수익 배분 비율은 큐레이터 등급에 따라 결정되며, 회사는 배분 비율을 사전 공지 후 변경할 수 있습니다.</li>
               <li>부정 클릭, 조회수 조작 등 부정 행위가 확인될 경우 수익 정산이 취소될 수 있습니다.</li>
             </ul>
           </section>
