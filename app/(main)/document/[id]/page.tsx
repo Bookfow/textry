@@ -363,30 +363,52 @@ export default function DocumentDetailPage() {
               </h1>
 
               {author && (
-                <div className="flex items-center justify-center sm:justify-between mb-4 gap-3">
-                  <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author.id}`}`}>
-                    <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                      {author.avatar_url && !(doc as any).author_name ? (
-                        <Image src={author.avatar_url} alt="" width={36} height={36} className="rounded-full object-cover" />
-                      ) : (
-                        <div className="w-9 h-9 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-sm">
-                          {((doc as any).author_name || author.username || author.email)[0].toUpperCase()}
+                <div className="mb-4">
+                  {/* 저자 + 큐레이터 */}
+                  <div className="flex flex-col gap-2">
+                    {/* 저자 (author_name이 있고 업로더와 다를 때) */}
+                    {(doc as any).author_name && (doc as any).author_name !== author.username && (
+                      <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name)}`}>
+                        <div className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                          <div className="w-8 h-8 bg-gradient-to-br from-[#5C4A38] to-[#8B7049] rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            {((doc as any).author_name)[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">{(doc as any).author_name}</span>
+                            <span className="text-[10px] text-[#9C8B7A] ml-1.5">저자</span>
+                          </div>
+                        </div>
+                      </Link>
+                    )}
+
+                    {/* 큐레이터 (업로드한 사람) */}
+                    <div className="flex items-center justify-center sm:justify-between gap-3">
+                      <Link href={`/profile/${author.id}`}>
+                        <div className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                          {author.avatar_url ? (
+                            <Image src={author.avatar_url} alt="" width={32} height={32} className="rounded-full object-cover" />
+                          ) : (
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-xs">
+                              {(author.username || author.email)[0].toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">{author.username || author.email}</span>
+                            <span className="text-[10px] text-[#9C8B7A] ml-1.5">{(doc as any).author_name && (doc as any).author_name !== author.username ? '큐레이터' : '저자 · 큐레이터'}</span>
+                          </div>
+                        </div>
+                      </Link>
+                      {user && user.id !== author.id && (
+                        <div className="hidden sm:block">
+                          <SubscribeButton
+                            authorId={author.id}
+                            authorName={author.username || author.email}
+                            initialSubscribersCount={author.subscribers_count}
+                          />
                         </div>
                       )}
-                      <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">
-                        {(doc as any).author_name || author.username || author.email}
-                      </span>
                     </div>
-                  </Link>
-                  {user && user.id !== author.id && !(doc as any).author_name && (
-                    <div className="hidden sm:block">
-                      <SubscribeButton
-                        authorId={author.id}
-                        authorName={(doc as any).author_name || author.username || author.email}
-                        initialSubscribersCount={author.subscribers_count}
-                      />
-                    </div>
-                  )}
+                  </div>
                 </div>
               )}
 
@@ -443,7 +465,7 @@ export default function DocumentDetailPage() {
           {[
             { key: 'intro' as const, label: '소개' },
             { key: 'info' as const, label: '도서정보' },
-            { key: 'author' as const, label: '저자소개' },
+            { key: 'author' as const, label: '저자·큐레이터' },
             { key: 'toc' as const, label: '목차' },
           ].map((tab) => (
             <button
@@ -542,76 +564,119 @@ export default function DocumentDetailPage() {
             </div>
           )}
 
-          {/* 저자소개 탭 */}
+          {/* 저자/큐레이터 탭 */}
           {activeTab === 'author' && author && (
             <div>
-              <div className="flex items-center gap-4 mb-4">
-                <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author.id}`}`}>
-                  {author.avatar_url ? (
-                    <Image src={author.avatar_url} alt="" width={56} height={56} className="rounded-full object-cover" />
+              {/* 저자 정보 (author_name이 있고 업로더와 다를 때) */}
+              {(doc as any).author_name && (doc as any).author_name !== author.username && (
+                <div className="mb-5 pb-5 border-b border-[#E7D8C9] dark:border-[#3A302A]">
+                  <p className="text-[10px] uppercase tracking-wider text-[#9C8B7A] font-semibold mb-3">저자</p>
+                  <div className="flex items-center gap-4 mb-3">
+                    <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name)}`}>
+                      <div className="w-14 h-14 bg-gradient-to-br from-[#5C4A38] to-[#8B7049] rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        {((doc as any).author_name)[0].toUpperCase()}
+                      </div>
+                    </Link>
+                    <div className="flex-1">
+                      <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name)}`}>
+                        <p className="text-base font-semibold text-[#2D2016] dark:text-[#EEE4E1] hover:underline">{(doc as any).author_name}</p>
+                      </Link>
+                    </div>
+                  </div>
+                  {(doc as any).author_bio ? (
+                    <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{(doc as any).author_bio}</p>
                   ) : (
-                    <div className="w-14 h-14 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-lg">
-                      {((doc as any).author_name || author.username || author.email)[0].toUpperCase()}
+                    <p className="text-sm text-[#9C8B7A] italic">저자 소개가 등록되지 않았습니다.</p>
+                  )}
+                  {/* 이 저자의 다른 도서 */}
+                  {moreDocs.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs text-[#9C8B7A] mb-2">이 저자의 다른 도서 ({moreDocs.length})</p>
+                      <div className="space-y-1.5">
+                        {moreDocs.slice(0, 4).map(d => (
+                          <div key={d.id} onClick={() => router.push(`/document/${d.id}`)}
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer transition-colors">
+                            <div className="w-8 h-10 flex-shrink-0 rounded overflow-hidden bg-[#EEE4E1] dark:bg-[#2E2620]">
+                              {d.thumbnail_url ? (
+                                <Image src={d.thumbnail_url} alt="" width={32} height={40} className="object-cover w-full h-full" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-3 h-3 text-[#9C8B7A]" /></div>
+                              )}
+                            </div>
+                            <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] truncate flex-1">{d.title}</span>
+                            <ChevronRight className="w-4 h-4 text-[#E7D8C9] dark:text-[#3A302A] flex-shrink-0" />
+                          </div>
+                        ))}
+                      </div>
+                      {moreDocs.length > 4 && (
+                        <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name)}`} className="block mt-2 text-center text-xs text-[#B2967D] hover:underline">전체 보기 →</Link>
+                      )}
                     </div>
                   )}
-                </Link>
-                <div className="flex-1">
-                  <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author.id}`}`}>
-                    <p className="text-base font-semibold text-[#2D2016] dark:text-[#EEE4E1] hover:underline">
-                      {(doc as any).author_name || author.username || author.email}
-                    </p>
-                  </Link>
-                  <p className="text-xs text-[#9C8B7A] mt-0.5">
-                    구독자 {author.subscribers_count.toLocaleString()}명
-                  </p>
                 </div>
-                {user && user.id !== author.id && !(doc as any).author_name && (
-                  <SubscribeButton
-                    authorId={author.id}
-                    authorName={author.username || author.email}
-                    initialSubscribersCount={author.subscribers_count}
-                  />
-                )}
-              </div>
-
-              {((doc as any).author_bio || author.bio) ? (
-                <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{(doc as any).author_bio || author.bio}</p>
-              ) : (
-                <p className="text-sm text-[#9C8B7A] italic">저자 소개가 등록되지 않았습니다.</p>
               )}
 
-              {/* 이 저자의 다른 도서 미니 목록 */}
-              {moreDocs.length > 0 && (
-                <div className="mt-5 pt-4 border-t border-[#E7D8C9] dark:border-[#3A302A]">
-                  <p className="text-xs text-[#9C8B7A] mb-3">이 저자의 다른 도서 ({moreDocs.length})</p>
-                  <div className="space-y-2">
-                    {moreDocs.slice(0, 4).map(d => (
-                      <div
-                        key={d.id}
-                        onClick={() => router.push(`/document/${d.id}`)}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer transition-colors"
-                      >
-                        <div className="w-8 h-10 flex-shrink-0 rounded overflow-hidden bg-[#EEE4E1] dark:bg-[#2E2620]">
-                          {d.thumbnail_url ? (
-                            <Image src={d.thumbnail_url} alt="" width={32} height={40} className="object-cover w-full h-full" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <BookOpen className="w-3 h-3 text-[#9C8B7A]" />
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] truncate flex-1">{d.title}</span>
-                        <ChevronRight className="w-4 h-4 text-[#E7D8C9] dark:text-[#3A302A] flex-shrink-0" />
+              {/* 큐레이터 정보 (업로드한 사람) */}
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-[#9C8B7A] font-semibold mb-3">
+                  {(doc as any).author_name && (doc as any).author_name !== author.username ? '큐레이터' : '저자 · 큐레이터'}
+                </p>
+                <div className="flex items-center gap-4 mb-3">
+                  <Link href={`/profile/${author.id}`}>
+                    {author.avatar_url ? (
+                      <Image src={author.avatar_url} alt="" width={56} height={56} className="rounded-full object-cover" />
+                    ) : (
+                      <div className="w-14 h-14 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-lg">
+                        {(author.username || author.email)[0].toUpperCase()}
                       </div>
-                    ))}
-                  </div>
-                  {moreDocs.length > 4 && (
-                    <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author?.id}`}`} className="block mt-3 text-center text-xs text-[#B2967D] hover:underline">
-                      전체 보기 →
+                    )}
+                  </Link>
+                  <div className="flex-1">
+                    <Link href={`/profile/${author.id}`}>
+                      <p className="text-base font-semibold text-[#2D2016] dark:text-[#EEE4E1] hover:underline">{author.username || author.email}</p>
                     </Link>
+                    <p className="text-xs text-[#9C8B7A] mt-0.5">구독자 {author.subscribers_count.toLocaleString()}명</p>
+                  </div>
+                  {user && user.id !== author.id && (
+                    <SubscribeButton
+                      authorId={author.id}
+                      authorName={author.username || author.email}
+                      initialSubscribersCount={author.subscribers_count}
+                    />
                   )}
                 </div>
-              )}
+                {author.bio ? (
+                  <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{author.bio}</p>
+                ) : (
+                  <p className="text-sm text-[#9C8B7A] italic">큐레이터 소개가 등록되지 않았습니다.</p>
+                )}
+
+                {/* 저자=큐레이터인 경우 다른 도서 목록 */}
+                {(!(doc as any).author_name || (doc as any).author_name === author.username) && moreDocs.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-[#E7D8C9] dark:border-[#3A302A]">
+                    <p className="text-xs text-[#9C8B7A] mb-2">다른 콘텐츠 ({moreDocs.length})</p>
+                    <div className="space-y-1.5">
+                      {moreDocs.slice(0, 4).map(d => (
+                        <div key={d.id} onClick={() => router.push(`/document/${d.id}`)}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer transition-colors">
+                          <div className="w-8 h-10 flex-shrink-0 rounded overflow-hidden bg-[#EEE4E1] dark:bg-[#2E2620]">
+                            {d.thumbnail_url ? (
+                              <Image src={d.thumbnail_url} alt="" width={32} height={40} className="object-cover w-full h-full" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-3 h-3 text-[#9C8B7A]" /></div>
+                            )}
+                          </div>
+                          <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] truncate flex-1">{d.title}</span>
+                          <ChevronRight className="w-4 h-4 text-[#E7D8C9] dark:text-[#3A302A] flex-shrink-0" />
+                        </div>
+                      ))}
+                    </div>
+                    {moreDocs.length > 4 && (
+                      <Link href={`/browse?author_id=${author.id}`} className="block mt-2 text-center text-xs text-[#B2967D] hover:underline">전체 보기 →</Link>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -726,7 +791,7 @@ export default function DocumentDetailPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#2D2016] dark:text-[#EEE4E1]">
-                {(doc as any).author_name || author?.username || '큐레이터'}의 다른 문서
+                {(doc as any).author_name || author?.username || '큐레이터'}의 다른 콘텐츠
               </h2>
               <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author?.id}`}`} className="flex items-center gap-1 text-sm text-[#B2967D] hover:text-[#a67c52]">
                 전체보기 <ChevronRight className="w-4 h-4" />
