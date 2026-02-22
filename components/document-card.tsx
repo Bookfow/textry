@@ -172,16 +172,7 @@ export function DocumentCard({
               </button>
             </div>
 
-            <div className="absolute top-2 left-2 flex flex-col gap-1">
-              <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
-                {getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}
-              </span>
-              {doc.page_count && doc.page_count > 0 && (
-                <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm w-fit flex items-center gap-0.5">
-                  <FileText className="w-2.5 h-2.5" /> {doc.page_count}p
-                </span>
-              )}
-            </div>
+
 
             {progress !== null && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50">
@@ -197,9 +188,17 @@ export function DocumentCard({
             {displayAuthor && (
               <p className="text-[11px] text-gray-500 truncate mb-1">{displayAuthor}</p>
             )}
-            <div className="flex items-center gap-2 text-[11px] text-gray-400">
-              <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{views.toLocaleString()}</span>
-              <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{likesCount.toLocaleString()}</span>
+            <div className="flex items-center justify-between text-[11px] text-gray-400">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{views.toLocaleString()}</span>
+                <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{likesCount.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[10px]">
+                <span>{getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}</span>
+                {doc.page_count && doc.page_count > 0 && (
+                  <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{doc.page_count}p</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -241,16 +240,7 @@ export function DocumentCard({
             </button>
           </div>
 
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
-            <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm">
-              {getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}
-            </span>
-            {doc.page_count && doc.page_count > 0 && (
-              <span className="px-1.5 py-0.5 bg-black/70 text-white text-[10px] rounded backdrop-blur-sm w-fit flex items-center gap-0.5">
-                <FileText className="w-2.5 h-2.5" /> {doc.page_count}p
-              </span>
-            )}
-          </div>
+
 
           {progress !== null && (
             <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200/50">
@@ -266,10 +256,16 @@ export function DocumentCard({
           {displayAuthor && (
             <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate mb-1">{displayAuthor}</p>
           )}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[11px] text-gray-400">
+          <div className="flex items-center justify-between text-[11px] text-gray-400">
+            <div className="flex items-center gap-2">
               <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{views.toLocaleString()}</span>
               <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" />{likesCount.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px]">
+              <span>{getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}</span>
+              {doc.page_count && doc.page_count > 0 && (
+                <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{doc.page_count}p</span>
+              )}
             </div>
             {progress !== null && lastReadAt && (
               <div className="flex items-center gap-1 text-[11px]">
