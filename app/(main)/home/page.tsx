@@ -77,8 +77,8 @@ export default function HomePage() {
       if (popular) {
         const now = Date.now()
         const sorted = popular.sort((a: any, b: any) => {
-          const scoreA = (a.likes_count * 3) + (a.view_count * 1) + Math.max(0, 7 - ((now - new Date(a.created_at).getTime()) / (24*60*60*1000))) * 5
-          const scoreB = (b.likes_count * 3) + (b.view_count * 1) + Math.max(0, 7 - ((now - new Date(b.created_at).getTime()) / (24*60*60*1000))) * 5
+          const scoreA = (a.likes_count * 5) + (a.view_count * 2) + Math.max(0, 7 - ((now - new Date(a.created_at).getTime()) / (24*60*60*1000))) * 1
+          const scoreB = (b.likes_count * 5) + (b.view_count * 2) + Math.max(0, 7 - ((now - new Date(b.created_at).getTime()) / (24*60*60*1000))) * 1
           return scoreB - scoreA
         })
         setPopularDocs(sorted.slice(0, 12))
