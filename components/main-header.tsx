@@ -124,7 +124,7 @@ export function MainHeader({
   const handleResultClick = (result: SearchResult) => {
     setShowDropdown(false)
     saveRecentSearch(result.title)
-    router.push(result.type === 'document' ? `/read/${result.id}` : `/author/${result.id}`)
+    router.push(result.type === 'document' ? `/document/${result.id}` : `/profile/${result.id}`)
   }
 
   const handleSearchSubmit = () => {
