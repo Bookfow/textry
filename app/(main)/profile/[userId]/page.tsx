@@ -14,7 +14,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
-import { getLanguageFlag } from '@/lib/languages'
 import { SubscribeButton } from '@/components/subscribe-button'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -262,7 +261,6 @@ export default function AuthorPage() {
             <span className="px-2 py-1 bg-black/70 text-white text-xs rounded backdrop-blur-sm">
               {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
             </span>
-            <span className="text-xl">{getLanguageFlag(doc.language)}</span>
           </div>
           <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded backdrop-blur-sm">
             {Math.floor(doc.total_reading_time / 60)}분
