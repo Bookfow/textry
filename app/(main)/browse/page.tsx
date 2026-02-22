@@ -23,7 +23,6 @@ function BrowseContent() {
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [authorIdName, setAuthorIdName] = useState('')
-  const [authorIdName, setAuthorIdName] = useState('')
 
   const sort = searchParams.get('sort') || 'recent'
   const category = searchParams.get('category') || 'all'
