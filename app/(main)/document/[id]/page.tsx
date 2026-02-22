@@ -465,7 +465,7 @@ export default function DocumentDetailPage() {
           {[
             { key: 'intro' as const, label: '소개' },
             { key: 'info' as const, label: '도서정보' },
-            { key: 'author' as const, label: '저자·큐레이터' },
+            { key: 'author' as const, label: (doc as any).author_name && (doc as any).author_name !== author?.username ? '저자·큐레이터' : '큐레이터' },
             { key: 'toc' as const, label: '목차' },
           ].map((tab) => (
             <button
