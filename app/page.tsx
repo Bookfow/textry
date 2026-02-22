@@ -1,311 +1,499 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { FileText, Zap, Users, TrendingUp, BookOpen, MessageCircle, Heart, Bookmark, ThumbsUp, Eye, ChevronLeft, ChevronRight, Play } from 'lucide-react'
+import {
+  BookOpen, Users, TrendingUp, Zap, DollarSign,
+  ArrowRight, Play, ChevronRight, Eye, Clock,
+  Sparkles, Shield, BarChart3, Globe, Star,
+} from 'lucide-react'
+
+// ━━━ 스크롤 애니메이션 Hook ━━━
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(el) } },
+      { threshold }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [threshold])
+  return { ref, isVisible }
+}
+
+// ━━━ 카운트업 애니메이션 ━━━
+function CountUp({ target, suffix = '', duration = 2000 }: { target: number; suffix?: string; duration?: number }) {
+  const [count, setCount] = useState(0)
+  const ref = useRef<HTMLSpanElement>(null)
+  const [started, setStarted] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setStarted(true); observer.unobserve(el) } },
+      { threshold: 0.5 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!started) return
+    const steps = 60
+    const increment = target / steps
+    let current = 0
+    const interval = setInterval(() => {
+      current += increment
+      if (current >= target) { setCount(target); clearInterval(interval) }
+      else setCount(Math.floor(current))
+    }, duration / steps)
+    return () => clearInterval(interval)
+  }, [started, target, duration])
+
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>
+}
 
 export default function LandingPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [scrollY, setScrollY] = useState(0)
 
   useEffect(() => {
-    if (!loading && user) {
-      router.replace('/home')
-    }
+    if (!loading && user) router.replace('/home')
   }, [user, loading, router])
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const hero = useInView(0.1)
+  const concept = useInView()
+  const features = useInView()
+  const monetize = useInView()
+  const cta = useInView()
 
   if (loading || user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">로딩 중...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0806]">
+        <div className="w-8 h-8 border-2 border-[#c9a96e] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#ECF8F8] to-white dark:from-[#1A1410] dark:to-[#241E18]">
-      <header className="bg-white/80 dark:bg-[#241E18]/80 backdrop-blur-sm border-b border-[#E7D8C9] dark:border-[#3A302A] sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#a67c52] via-[#f0d58c] to-[#a67c52] bg-clip-text text-transparent" style={{WebkitTextStroke: '0.3px #daa520', paintOrder: 'stroke fill', letterSpacing: '1px'}}>
-              Textry
-            </h1>
-            <div className="flex gap-4">
-              <Link href="/browse">
-                <Button variant="ghost" className="text-[#2D2016] dark:text-[#EEE4E1] hover:text-black dark:hover:text-white font-medium">둘러보기</Button>
-              </Link>
-              <Link href="/login">
-                <Button variant="ghost" className="text-[#2D2016] dark:text-[#EEE4E1] hover:text-black dark:hover:text-white font-medium">로그인</Button>
-              </Link>
-              <Link href="/signup">
-                <Button className="bg-gradient-to-r from-[#a67c52] to-[#c9a96e] hover:from-[#8a6842] hover:to-[#b89860] text-white">
-                  시작하기
-                </Button>
-              </Link>
-            </div>
+    <div className="min-h-screen bg-[#0A0806] text-white overflow-hidden" style={{ fontFamily: "'Pretendard', -apple-system, sans-serif" }}>
+
+      {/* ━━━ 글로벌 스타일 ━━━ */}
+      <style jsx global>{`
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(201,169,110,0.3); } 50% { box-shadow: 0 0 40px rgba(201,169,110,0.6); } }
+        @keyframes grain {
+          0%, 100% { transform: translate(0, 0); }
+          10% { transform: translate(-5%, -10%); }
+          30% { transform: translate(3%, -15%); }
+          50% { transform: translate(12%, 9%); }
+          70% { transform: translate(9%, 4%); }
+          90% { transform: translate(-1%, 7%); }
+        }
+
+        .animate-fadeInUp { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fadeInLeft { animation: fadeInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fadeInRight { animation: fadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-scaleIn { animation: scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+        .delay-700 { animation-delay: 0.7s; }
+
+        .shimmer-text {
+          background: linear-gradient(90deg, #c9a96e 0%, #f0d58c 25%, #c9a96e 50%, #f0d58c 75%, #c9a96e 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: shimmer 4s linear infinite;
+        }
+
+        .grain-overlay::after {
+          content: '';
+          position: absolute;
+          inset: -50%;
+          width: 200%;
+          height: 200%;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+          animation: grain 8s steps(10) infinite;
+          pointer-events: none;
+          z-index: 1;
+        }
+      `}</style>
+
+      {/* ━━━ 네비게이션 ━━━ */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrollY > 50 ? 'bg-[#0A0806]/90 backdrop-blur-xl border-b border-white/5' : 'bg-transparent'
+      }`}>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold shimmer-text" style={{ letterSpacing: '2px' }}>Textry</h1>
+          </Link>
+          <div className="hidden md:flex items-center gap-8">
+            <Link href="/browse" className="text-sm text-white/60 hover:text-white transition-colors">둘러보기</Link>
+            <a href="#concept" className="text-sm text-white/60 hover:text-white transition-colors">큐레이터란?</a>
+            <a href="#monetize" className="text-sm text-white/60 hover:text-white transition-colors">수익화</a>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="text-sm text-white/70 hover:text-white transition-colors px-4 py-2">
+              로그인
+            </Link>
+            <Link href="/signup"
+              className="text-sm font-semibold px-5 py-2.5 rounded-full bg-gradient-to-r from-[#a67c52] to-[#c9a96e] hover:from-[#b8893f] hover:to-[#d4b570] text-[#0A0806] transition-all hover:shadow-lg hover:shadow-[#c9a96e]/25 hover:scale-105 active:scale-95">
+              시작하기
+            </Link>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* ━━━ 히어로 ━━━ */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="max-w-4xl mx-auto">
-        <p className="text-sm md:text-base tracking-widest text-[#B2967D] font-medium mb-4 uppercase">누구나 자유롭게 읽고, 나누는</p>
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-[#7a5a30] via-[#c9a96e] to-[#7a5a30] dark:from-[#c9a96e] dark:via-[#f0d58c] dark:to-[#c9a96e] bg-clip-text text-transparent">
-          지식은 모두에게 공유되어야 한다
-          </h2>
-          <p className="text-xl md:text-2xl text-[#2D2016] dark:text-[#EEE4E1] mb-8">
-          문서 스트리밍 플랫폼
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link href="/signup">
-              <Button size="lg" className="bg-gradient-to-r from-[#a67c52] to-[#c9a96e] hover:from-[#8a6842] hover:to-[#b89860] text-white text-lg px-8">
-              지금 바로 시작하기
-              </Button>
-            </Link>
-            <Link href="/browse">
-              <Button size="lg" variant="outline" className="text-lg px-8 text-[#2D2016] dark:text-[#EEE4E1] border-[#E7D8C9] dark:border-[#3A302A] hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620]">
-                문서 둘러보기
-              </Button>
-            </Link>
+      <section ref={hero.ref} className="relative min-h-screen flex items-center justify-center grain-overlay">
+        {/* 배경 글로우 */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#a67c52]/8 rounded-full blur-[150px]"
+            style={{ transform: `translate(${scrollY * 0.02}px, ${scrollY * -0.01}px)` }} />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#c9a96e]/6 rounded-full blur-[120px]"
+            style={{ transform: `translate(${scrollY * -0.015}px, ${scrollY * 0.02}px)` }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#8B7049]/4 rounded-full blur-[200px]" />
+        </div>
+
+        {/* 그리드 패턴 */}
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+
+        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
+          {hero.isVisible && (
+            <>
+              {/* 뱃지 */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 animate-fadeInUp opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-sm text-white/70">콘텐츠 큐레이션의 새로운 시대</span>
+              </div>
+
+              {/* 메인 카피 */}
+              <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[0.95] mb-8 animate-fadeInUp opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+                <span className="block text-white">발견하고,</span>
+                <span className="block text-white">큐레이션하고,</span>
+                <span className="block shimmer-text">함께 성장하다.</span>
+              </h2>
+
+              {/* 서브 카피 */}
+              <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-12 leading-relaxed animate-fadeInUp opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
+                큐레이터가 가치 있는 콘텐츠를 발굴하고, 독자는 벽 없이 지식을 만납니다.
+                <br className="hidden md:block" />
+                당신의 큐레이션이 수익이 되는 플랫폼, Textry.
+              </p>
+
+              {/* CTA */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fadeInUp opacity-0" style={{ animationDelay: '0.7s', animationFillMode: 'forwards' }}>
+                <Link href="/signup"
+                  className="group flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-[#a67c52] to-[#c9a96e] text-[#0A0806] font-bold text-lg hover:shadow-2xl hover:shadow-[#c9a96e]/30 transition-all hover:scale-105 active:scale-95">
+                  무료로 시작하기
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link href="/browse"
+                  className="flex items-center gap-2 px-8 py-4 rounded-full border border-white/15 text-white/80 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all text-lg">
+                  <Play className="w-5 h-5" />
+                  콘텐츠 둘러보기
+                </Link>
+              </div>
+
+              {/* 소셜 프루프 */}
+              <div className="mt-16 flex items-center justify-center gap-8 text-white/30 animate-fadeInUp opacity-0" style={{ animationDelay: '0.9s', animationFillMode: 'forwards' }}>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-white/60"><CountUp target={50} suffix="+" /></p>
+                  <p className="text-xs mt-1">등록된 콘텐츠</p>
+                </div>
+                <div className="w-px h-8 bg-white/10" />
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-white/60"><CountUp target={100} suffix="+" /></p>
+                  <p className="text-xs mt-1">큐레이터</p>
+                </div>
+                <div className="w-px h-8 bg-white/10" />
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-white/60"><CountUp target={12} suffix="+" /></p>
+                  <p className="text-xs mt-1">카테고리</p>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* 스크롤 인디케이터 */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+          <div className="w-6 h-10 rounded-full border-2 border-white/20 flex justify-center pt-2">
+            <div className="w-1.5 h-3 rounded-full bg-white/40" />
           </div>
         </div>
       </section>
 
-      {/* ━━━ 왜 Textry인가요? ━━━ */}
-      <section className="container mx-auto px-4 py-20">
-        <h3 className="text-3xl font-bold text-center mb-12 text-[#2D2016] dark:text-[#EEE4E1]">왜 Textry인가요?</h3>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="bg-white dark:bg-[#2E2620] p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-[#E7D8C9]/50 dark:border-[#3A302A]">
-            <div className="w-12 h-12 bg-[#EEE4E1] dark:bg-[#B2967D]/20 rounded-lg flex items-center justify-center mb-4">
-              <FileText className="w-6 h-6 text-[#B2967D]" />
-            </div>
-            <h4 className="text-xl font-semibold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">열린 문서 공유</h4>
-            <p className="text-[#5C4A38] dark:text-[#C4A882]">자료를 업로드하고 사람들과 공유하세요</p>
-          </div>
-          <div className="bg-white dark:bg-[#2E2620] p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-[#E7D8C9]/50 dark:border-[#3A302A]">
-            <div className="w-12 h-12 bg-[#EEE4E1] dark:bg-[#B2967D]/20 rounded-lg flex items-center justify-center mb-4">
-              <Users className="w-6 h-6 text-[#B2967D]" />
-            </div>
-            <h4 className="text-xl font-semibold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">구독 시스템</h4>
-            <p className="text-[#5C4A38] dark:text-[#C4A882]">좋아하는 큐레이터를 구독하고 새 콘텐츠를 놓치지 마세요</p>
-          </div>
-          <div className="bg-white dark:bg-[#2E2620] p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-[#E7D8C9]/50 dark:border-[#3A302A]">
-            <div className="w-12 h-12 bg-[#EEE4E1] dark:bg-[#B2967D]/20 rounded-lg flex items-center justify-center mb-4">
-              <MessageCircle className="w-6 h-6 text-[#B2967D]" />
-            </div>
-            <h4 className="text-xl font-semibold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">댓글 & 토론</h4>
-            <p className="text-[#5C4A38] dark:text-[#C4A882]">문서에 댓글을 달고 다른 독자들과 의견을 나누세요</p>
-          </div>
-          <div className="bg-white dark:bg-[#2E2620] p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-[#E7D8C9]/50 dark:border-[#3A302A]">
-            <div className="w-12 h-12 bg-[#EEE4E1] dark:bg-[#B2967D]/20 rounded-lg flex items-center justify-center mb-4">
-              <TrendingUp className="w-6 h-6 text-[#B2967D]" />
-            </div>
-            <h4 className="text-xl font-semibold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">개인 맞춤 추천</h4>
-            <p className="text-[#5C4A38] dark:text-[#C4A882]">읽기 기록을 기반으로 맞춤 문서를 추천받으세요</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ━━━ 기능 소개 + 목업 ━━━ */}
-      <section className="bg-[#EEE4E1]/50 dark:bg-[#1A1410] py-20">
-        <div className="container mx-auto px-4">
-
-          {/* 리더 목업 + 설명 */}
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-            <div>
-              <h3 className="text-3xl font-bold mb-4 text-[#2D2016] dark:text-[#EEE4E1]">유튜브처럼 쉬운 문서 스트리밍 플랫폼</h3>
-              <p className="text-[#5C4A38] dark:text-[#C4A882] mb-6">좋아요, 구독, 댓글, 읽기 목록... 익숙한 기능으로 문서를 더 재미있게!</p>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Heart className="w-5 h-5 text-[#B2967D]" />
-                  <span className="text-[#5C4A38] dark:text-[#E7D8C9]">좋아요/싫어요로 의견 표현</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Bookmark className="w-5 h-5 text-[#B2967D]" />
-                  <span className="text-[#5C4A38] dark:text-[#E7D8C9]">읽기 목록에 저장</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <BookOpen className="w-5 h-5 text-[#B2967D]" />
-                  <span className="text-[#5C4A38] dark:text-[#E7D8C9]">이어 읽기 자동 저장</span>
-                </div>
+      {/* ━━━ 큐레이터/저자 개념 ━━━ */}
+      <section id="concept" ref={concept.ref} className="relative py-32 grain-overlay">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0806] via-[#12100C] to-[#0A0806]" />
+        <div className="relative z-10 max-w-6xl mx-auto px-6">
+          {concept.isVisible && (
+            <>
+              <div className="text-center mb-20">
+                <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+                  New Concept
+                </p>
+                <h3 className="text-4xl md:text-5xl font-black text-white mb-6 animate-fadeInUp opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+                  저자와 큐레이터,<br />두 개의 역할
+                </h3>
+                <p className="text-lg text-white/40 max-w-2xl mx-auto animate-fadeInUp opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+                  Textry에서는 콘텐츠를 쓴 사람과 발굴한 사람을 구분합니다.
+                  <br />누구나 큐레이터가 될 수 있고, 본인의 작품을 올리면 저자이자 큐레이터가 됩니다.
+                </p>
               </div>
-            </div>
 
-            {/* ━━━ PDF 리더 목업 ━━━ */}
-            <div className="bg-gradient-to-br from-[#EEE4E1] to-[#E7D8C9] dark:from-[#2E2620] dark:to-[#3A302A] rounded-2xl p-4 shadow-xl overflow-hidden">
-              <div className="bg-[#1A1410] rounded-xl overflow-hidden shadow-2xl">
-                {/* 상단 컨트롤바 */}
-                <div className="bg-[#241E18] px-3 py-2 flex items-center gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5 text-[#C4A882]" />
-                    <span className="text-[10px] text-[#EEE4E1] font-medium truncate max-w-[120px]">Textry 시작 가이드</span>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center gap-2">
-                    <ChevronLeft className="w-3.5 h-3.5 text-[#9C8B7A]" />
-                    <span className="text-[10px] text-[#C4A882] font-mono">24 / 156</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-[#9C8B7A]" />
-                  </div>
-                  <div className="text-[10px] text-[#9C8B7A] font-mono">110%</div>
-                </div>
-                {/* 프로그레스바 */}
-                <div className="h-0.5 bg-[#2E2620]">
-                  <div className="h-full w-[15%] bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] rounded-r" />
-                </div>
-                {/* 페이지 본문 */}
-                <div className="p-5 min-h-[200px] bg-[#faf6f0]">
-                  <h3 className="text-[13px] font-bold text-[#2D2016] mb-3 leading-tight">Chapter 3. 첫 번째 문서 업로드하기</h3>
-                  <div className="space-y-2 text-[10px] text-[#5C4A38] leading-relaxed">
-                    <p>Textry에 문서를 업로드하는 것은 아주 간단합니다. 대시보드에서 &lsquo;새 문서&rsquo; 버튼을 클릭하고, PDF 또는 EPUB 파일을 드래그하세요.</p>
-                    <p>썸네일과 설명을 추가하면 독자들이 내 문서를 더 쉽게 발견할 수 있습니다. 카테고리와 태그도 잊지 마세요.</p>
-                    <p className="text-[#9C8B7A] italic border-l-2 border-[#E6BEAE] pl-3">
-                      Tip: 첫 페이지가 곧 첫인상입니다. 표지를 신경 쓰면 조회수가 크게 올라갑니다.
-                    </p>
-                    <p>업로드가 완료되면 실시간으로 조회수, 좋아요, 읽기 시간을 대시보드에서 확인할 수 있습니다.</p>
-                  </div>
-                </div>
-                {/* 하단 인터랙션 바 */}
-                <div className="px-4 py-2.5 bg-[#241E18] border-t border-[#3A302A] flex items-center gap-4">
-                  <div className="flex items-center gap-1.5">
-                    <ThumbsUp className="w-3.5 h-3.5 text-[#C4A882]" />
-                    <span className="text-[10px] text-[#9C8B7A]">1,247</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <MessageCircle className="w-3.5 h-3.5 text-[#9C8B7A]" />
-                    <span className="text-[10px] text-[#9C8B7A]">86</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Bookmark className="w-3.5 h-3.5 text-amber-400" fill="currentColor" />
-                  </div>
-                  <div className="ml-auto flex items-center gap-1.5">
-                    <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#B2967D] to-[#E6BEAE]" />
-                    <span className="text-[10px] text-[#C4A882]">Textry 팀</span>
-                    <span className="text-[9px] px-1.5 py-0.5 bg-[#B2967D] text-[#1A1410] rounded font-medium">구독중</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 대시보드 목업 + 설명 */}
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* ━━━ 대시보드 목업 ━━━ */}
-            <div className="bg-gradient-to-br from-[#EEE4E1] to-[#E7D8C9] dark:from-[#2E2620] dark:to-[#3A302A] rounded-2xl p-4 shadow-xl overflow-hidden order-2 md:order-1">
-              <div className="bg-white dark:bg-[#241E18] rounded-xl overflow-hidden shadow-2xl">
-                {/* 상단 헤더 */}
-                <div className="px-4 py-3 border-b border-[#E7D8C9] dark:border-[#3A302A]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-[11px] font-semibold text-[#2D2016] dark:text-[#EEE4E1]">큐레이터 대시보드</div>
-                      <div className="text-[9px] text-[#9C8B7A]">이번 달 성과</div>
-                    </div>
-                    <div className="text-[9px] px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium">↑ 24%</div>
-                  </div>
-                </div>
-                {/* 통계 카드 */}
-                <div className="p-3 grid grid-cols-3 gap-2">
-                  <div className="bg-[#ECF8F8] dark:bg-[#2E2620] rounded-lg p-2.5 text-center">
-                    <Eye className="w-3.5 h-3.5 text-[#B2967D] mx-auto mb-1" />
-                    <div className="text-sm font-bold text-[#2D2016] dark:text-[#EEE4E1]">12.4K</div>
-                    <div className="text-[9px] text-[#9C8B7A]">조회수</div>
-                  </div>
-                  <div className="bg-[#ECF8F8] dark:bg-[#2E2620] rounded-lg p-2.5 text-center">
-                    <Users className="w-3.5 h-3.5 text-[#E6BEAE] mx-auto mb-1" />
-                    <div className="text-sm font-bold text-[#2D2016] dark:text-[#EEE4E1]">847</div>
-                    <div className="text-[9px] text-[#9C8B7A]">구독자</div>
-                  </div>
-                  <div className="bg-[#ECF8F8] dark:bg-[#2E2620] rounded-lg p-2.5 text-center">
-                    <TrendingUp className="w-3.5 h-3.5 text-amber-500 mx-auto mb-1" />
-                    <div className="text-sm font-bold text-[#2D2016] dark:text-[#EEE4E1]">₩84K</div>
-                    <div className="text-[9px] text-[#9C8B7A]">수익</div>
-                  </div>
-                </div>
-                {/* 미니 차트 */}
-                <div className="px-4 pb-3">
-                  <div className="flex items-end gap-1 h-12">
-                    {[35, 48, 42, 58, 52, 68, 75, 62, 80, 72, 88, 92].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-t" style={{ height: `${h}%`, background: i >= 10 ? 'linear-gradient(to top, #a67c52, #c9a96e)' : i >= 8 ? 'rgba(178,150,125,0.6)' : 'rgba(178,150,125,0.25)' }} />
-                    ))}
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-[8px] text-[#9C8B7A]">1월</span>
-                    <span className="text-[8px] text-[#9C8B7A]">12월</span>
-                  </div>
-                </div>
-                {/* 인기 문서 리스트 */}
-                <div className="px-3 pb-3 space-y-1.5">
-                  {[
-                    { title: 'Next.js 완벽 가이드', views: '3.2K', trend: '+12%' },
-                    { title: '디자인 시스템 구축', views: '2.8K', trend: '+8%' },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 px-2 py-1.5 bg-[#ECF8F8] dark:bg-[#2E2620] rounded-lg">
-                      <div className="w-5 h-7 bg-gradient-to-br from-[#E6BEAE] to-[#B2967D] rounded flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[10px] font-medium text-[#2D2016] dark:text-[#EEE4E1] truncate">{item.title}</div>
-                        <div className="text-[9px] text-[#9C8B7A]">{item.views} 조회</div>
+              <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                {/* 저자 카드 */}
+                <div className="animate-fadeInLeft opacity-0 delay-400" style={{ animationFillMode: 'forwards' }}>
+                  <div className="group relative p-8 rounded-2xl bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.06] hover:border-[#c9a96e]/30 transition-all duration-500 hover:-translate-y-2">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#5C4A38]/10 rounded-full blur-[60px] group-hover:bg-[#5C4A38]/20 transition-colors" />
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#5C4A38] to-[#8B7049] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <BookOpen className="w-8 h-8 text-white" />
                       </div>
-                      <span className="text-[9px] text-green-600 dark:text-green-400 font-medium">{item.trend}</span>
+                      <h4 className="text-2xl font-bold text-white mb-3">저자</h4>
+                      <p className="text-white/40 leading-relaxed mb-6">
+                        콘텐츠를 직접 창작한 원작자입니다. 시, 소설, 논문, 에세이 등 자신의 작품이 Textry에서 독자를 만납니다.
+                      </p>
+                      <div className="flex items-center gap-2 text-sm text-[#c9a96e]/80">
+                        <Star className="w-4 h-4" />
+                        <span>윤동주, 현진건, 그리고 당신</span>
+                      </div>
                     </div>
-                  ))}
+                  </div>
+                </div>
+
+                {/* 큐레이터 카드 */}
+                <div className="animate-fadeInRight opacity-0 delay-400" style={{ animationFillMode: 'forwards' }}>
+                  <div className="group relative p-8 rounded-2xl bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.06] hover:border-[#c9a96e]/30 transition-all duration-500 hover:-translate-y-2">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#c9a96e]/8 rounded-full blur-[60px] group-hover:bg-[#c9a96e]/15 transition-colors" />
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#a67c52] to-[#c9a96e] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <Sparkles className="w-8 h-8 text-[#0A0806]" />
+                      </div>
+                      <h4 className="text-2xl font-bold text-white mb-3">큐레이터</h4>
+                      <p className="text-white/40 leading-relaxed mb-6">
+                        가치 있는 콘텐츠를 발굴하고 플랫폼에 공유합니다. 좋은 글을 찾아 세상에 알리는 것 자체가 가치이며, 수익이 됩니다.
+                      </p>
+                      <div className="flex items-center gap-2 text-sm text-[#c9a96e]/80">
+                        <Zap className="w-4 h-4" />
+                        <span>발굴 · 공유 · 수익화</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="order-1 md:order-2">
-              <h3 className="text-3xl font-bold mb-4 text-[#2D2016] dark:text-[#EEE4E1]">큐레이터와 독자가 함께 성장</h3>
-              <p className="text-[#5C4A38] dark:text-[#C4A882] mb-6">큐레이터는 광고 수익을 얻고, 독자는 장벽 없이 지식을 만나는 열린 생태계</p>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="w-5 h-5 text-[#B2967D]" />
-                  <span className="text-[#5C4A38] dark:text-[#E7D8C9]">조회수와 읽기 시간 기반 수익</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5 text-[#B2967D]" />
-                  <span className="text-[#5C4A38] dark:text-[#E7D8C9]">구독자 관리 대시보드</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Zap className="w-5 h-5 text-[#B2967D]" />
-                  <span className="text-[#5C4A38] dark:text-[#E7D8C9]">실시간 분석 데이터</span>
+              {/* 교차점 */}
+              <div className="mt-12 text-center animate-fadeInUp opacity-0 delay-600" style={{ animationFillMode: 'forwards' }}>
+                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#5C4A38] to-[#c9a96e] flex items-center justify-center text-white text-xs font-bold">+</div>
+                  <span className="text-white/50">직접 쓴 콘텐츠를 올리면?</span>
+                  <span className="text-[#c9a96e] font-semibold">저자 · 큐레이터</span>
                 </div>
               </div>
-            </div>
-          </div>
-
+            </>
+          )}
         </div>
       </section>
 
-      {/* ━━━ CTA ━━━ */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="max-w-3xl mx-auto bg-gradient-to-r from-[#a67c52] to-[#c9a96e] rounded-2xl p-12 text-white">
-          <h3 className="text-3xl font-bold mb-4">지금 바로 시작하세요</h3>
-          <p className="text-xl mb-8 opacity-90">5분이면 첫 문서를 업로드하고 독자들을 만날 수 있습니다</p>
-          <div className="flex gap-4 justify-center">
-            <Link href="/signup">
-            <Button size="lg" variant="secondary" className="text-lg px-8">지금 시작하기</Button>
-            </Link>
-            <Link href="/browse">
-              <Button size="lg" variant="outline" className="text-lg px-8 bg-white/10 text-white border-white hover:bg-white/20">문서 둘러보기</Button>
-            </Link>
-          </div>
+      {/* ━━━ 기능 하이라이트 ━━━ */}
+      <section ref={features.ref} className="relative py-32">
+        <div className="absolute inset-0 bg-[#0A0806]" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/20 to-transparent" />
+
+        <div className="relative z-10 max-w-6xl mx-auto px-6">
+          {features.isVisible && (
+            <>
+              <div className="text-center mb-20">
+                <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+                  Features
+                </p>
+                <h3 className="text-4xl md:text-5xl font-black text-white animate-fadeInUp opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+                  읽기의 모든 순간을 디자인하다
+                </h3>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                {[
+                  { icon: Eye, title: '스트리밍 뷰어', desc: 'PDF, EPUB를 브라우저에서 바로. 다운로드 없이 몰입하는 읽기 경험.', gradient: 'from-blue-500/20 to-cyan-500/20', iconBg: 'from-blue-500 to-cyan-500' },
+                  { icon: Users, title: '구독 시스템', desc: '좋아하는 큐레이터를 구독하고, 새 콘텐츠를 놓치지 마세요.', gradient: 'from-purple-500/20 to-pink-500/20', iconBg: 'from-purple-500 to-pink-500' },
+                  { icon: BarChart3, title: '실시간 분석', desc: '조회수, 읽기 시간, 완독률. 데이터로 콘텐츠를 개선하세요.', gradient: 'from-emerald-500/20 to-teal-500/20', iconBg: 'from-emerald-500 to-teal-500' },
+                  { icon: BookOpen, title: '이어 읽기', desc: '어디서 멈췄든 자동 저장. 다음에 이어서 읽을 수 있습니다.', gradient: 'from-amber-500/20 to-orange-500/20', iconBg: 'from-amber-500 to-orange-500' },
+                  { icon: Globe, title: '오픈 라이브러리', desc: '공개된 지식은 모두의 것. 누구나 자유롭게 읽고 배웁니다.', gradient: 'from-rose-500/20 to-red-500/20', iconBg: 'from-rose-500 to-red-500' },
+                  { icon: Shield, title: '시리즈 관리', desc: '콘텐츠를 시리즈로 묶어 체계적으로 구성하세요.', gradient: 'from-indigo-500/20 to-violet-500/20', iconBg: 'from-indigo-500 to-violet-500' },
+                ].map((f, i) => (
+                  <div key={i} className="animate-fadeInUp opacity-0" style={{ animationDelay: `${0.2 + i * 0.1}s`, animationFillMode: 'forwards' }}>
+                    <div className="group relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.1] transition-all duration-500 hover:-translate-y-1 h-full">
+                      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${f.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                      <div className="relative">
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                          <f.icon className="w-6 h-6 text-white" />
+                        </div>
+                        <h4 className="text-lg font-bold text-white mb-2">{f.title}</h4>
+                        <p className="text-sm text-white/35 leading-relaxed">{f.desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* ━━━ 수익화 시스템 ━━━ */}
+      <section id="monetize" ref={monetize.ref} className="relative py-32 grain-overlay">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0806] via-[#0F0D0A] to-[#0A0806]" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/20 to-transparent" />
+
+        <div className="relative z-10 max-w-6xl mx-auto px-6">
+          {monetize.isVisible && (
+            <>
+              <div className="text-center mb-20">
+                <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+                  Monetization
+                </p>
+                <h3 className="text-4xl md:text-5xl font-black text-white mb-6 animate-fadeInUp opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+                  큐레이션이 곧 수익입니다
+                </h3>
+                <p className="text-lg text-white/40 max-w-2xl mx-auto animate-fadeInUp opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+                  좋은 콘텐츠를 발굴하고 공유하는 것만으로도 수익이 발생합니다.
+                  <br />광고 수익과 프리미엄 구독 수익을 큐레이터에게 배분합니다.
+                </p>
+              </div>
+
+              {/* 티어 시스템 */}
+              <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-16">
+                {[
+                  { tier: 'Tier 0', label: '시작', desc: '가입 후 콘텐츠 업로드', share: '—', condition: '누구나', color: 'from-white/5 to-white/[0.02]', borderColor: 'border-white/[0.06]', textColor: 'text-white/30' },
+                  { tier: 'Tier 1', label: '파트너', desc: '수익화 시작', share: '70%', condition: '100시간 + 30일', color: 'from-blue-500/10 to-blue-600/5', borderColor: 'border-blue-500/20', textColor: 'text-blue-400' },
+                  { tier: 'Tier 2', label: '프로', desc: '최고 수익 배분', share: '80%', condition: '1,000시간', color: 'from-[#c9a96e]/15 to-[#a67c52]/8', borderColor: 'border-[#c9a96e]/30', textColor: 'text-[#c9a96e]' },
+                ].map((t, i) => (
+                  <div key={i} className="animate-fadeInUp opacity-0" style={{ animationDelay: `${0.3 + i * 0.15}s`, animationFillMode: 'forwards' }}>
+                    <div className={`relative p-6 rounded-2xl bg-gradient-to-br ${t.color} border ${t.borderColor} transition-all hover:-translate-y-1 duration-300 h-full`}>
+                      {i === 2 && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-[#a67c52] to-[#c9a96e] rounded-full text-[10px] font-bold text-[#0A0806]">
+                          BEST
+                        </div>
+                      )}
+                      <p className={`text-xs font-bold ${t.textColor} mb-1`}>{t.tier}</p>
+                      <h4 className="text-xl font-bold text-white mb-1">{t.label}</h4>
+                      <p className="text-sm text-white/30 mb-4">{t.desc}</p>
+                      <div className="border-t border-white/[0.06] pt-4">
+                        <p className="text-3xl font-black text-white mb-1">
+                          {t.share === '—' ? <span className="text-white/20">—</span> : t.share}
+                        </p>
+                        <p className="text-xs text-white/30">수익 배분</p>
+                        <p className="text-xs text-white/20 mt-2">{t.condition}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 수익 흐름 */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fadeInUp opacity-0 delay-600" style={{ animationFillMode: 'forwards' }}>
+                {[
+                  { icon: Eye, text: '독자가 읽기' },
+                  { icon: TrendingUp, text: '광고 노출' },
+                  { icon: DollarSign, text: '수익 발생' },
+                  { icon: Zap, text: '큐레이터 정산' },
+                ].map((step, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    {i > 0 && <ChevronRight className="w-4 h-4 text-white/15 hidden sm:block" />}
+                    <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                      <step.icon className="w-4 h-4 text-[#c9a96e]" />
+                      <span className="text-sm text-white/50">{step.text}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* ━━━ 최종 CTA ━━━ */}
+      <section ref={cta.ref} className="relative py-32">
+        <div className="absolute inset-0 bg-[#0A0806]" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/20 to-transparent" />
+
+        {/* 글로우 */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#c9a96e]/8 rounded-full blur-[150px]" />
+
+        <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
+          {cta.isVisible && (
+            <>
+              <h3 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight animate-fadeInUp opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+                지금, 당신만의
+                <br />
+                <span className="shimmer-text">큐레이션</span>을 시작하세요
+              </h3>
+              <p className="text-lg text-white/40 mb-12 animate-fadeInUp opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+                가입은 무료, 업로드도 무료.
+                <br />좋은 콘텐츠를 세상에 알리는 것만으로 가치가 생깁니다.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeInUp opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
+                <Link href="/signup"
+                  className="group inline-flex items-center justify-center gap-3 px-10 py-5 rounded-full bg-gradient-to-r from-[#a67c52] to-[#c9a96e] text-[#0A0806] font-bold text-lg transition-all hover:shadow-2xl hover:shadow-[#c9a96e]/30 hover:scale-105 active:scale-95"
+                  style={{ animation: 'pulse-glow 3s ease-in-out infinite' }}>
+                  무료로 시작하기
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
       {/* ━━━ 푸터 ━━━ */}
-      <footer className="bg-[#2D2016] text-white py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#c9a96e] via-[#f0d58c] to-[#c9a96e] bg-clip-text text-transparent" style={{WebkitTextStroke: '0.3px #daa520', paintOrder: 'stroke fill', letterSpacing: '1px'}}>
-            Textry
-          </h2>
-          <p className="text-[#9C8B7A] mb-6">문서 스트리밍 플랫폼</p>
-          <div className="flex gap-6 justify-center text-sm text-[#9C8B7A]">
-            <Link href="/browse" className="hover:text-white">둘러보기</Link>
-            <Link href="/signup" className="hover:text-white">회원가입</Link>
-            <Link href="/login" className="hover:text-white">로그인</Link>
+      <footer className="relative border-t border-white/[0.04] py-12">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-bold shimmer-text" style={{ letterSpacing: '2px' }}>Textry</h2>
+              <span className="text-xs text-white/20">콘텐츠 큐레이션 플랫폼</span>
+            </div>
+            <div className="flex items-center gap-6 text-sm text-white/30">
+              <Link href="/browse" className="hover:text-white/60 transition-colors">둘러보기</Link>
+              <Link href="/policies/about" className="hover:text-white/60 transition-colors">소개</Link>
+              <Link href="/policies/terms" className="hover:text-white/60 transition-colors">이용약관</Link>
+              <Link href="/policies/privacy" className="hover:text-white/60 transition-colors">개인정보</Link>
+              <Link href="/help" className="hover:text-white/60 transition-colors">고객센터</Link>
+            </div>
           </div>
-          <p className="text-[#5C4A38] text-sm mt-8">© 2026 Textry. All rights reserved.</p>
+          <div className="mt-8 pt-6 border-t border-white/[0.04] text-center">
+            <p className="text-xs text-white/15">© 2026 Textry. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>
