@@ -28,7 +28,6 @@ function BrowseContent() {
   const category = searchParams.get('category') || 'all'
   const authorFilter = searchParams.get('author') || ''
   const authorIdFilter = searchParams.get('author_id') || ''
-  const authorIdFilter = searchParams.get('author_id') || ''
 
   const updateParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
