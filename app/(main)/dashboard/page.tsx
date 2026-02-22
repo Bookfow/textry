@@ -938,7 +938,7 @@ export default function DashboardPage() {
                       id="edit-author-name"
                       value={newAuthorName}
                       onChange={(e) => setNewAuthorName(e.target.value)}
-                      placeholder="원저자 이름 (비워두면 업로더 이름 사용)"
+                      placeholder="원저자 이름 (비워두면 큐레이터 이름 표시)"
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
                   </div>
@@ -948,7 +948,7 @@ export default function DashboardPage() {
                       id="edit-author-bio"
                       value={newAuthorBio}
                       onChange={(e) => setNewAuthorBio(e.target.value)}
-                      placeholder="저자에 대한 소개 (비워두면 업로더 프로필 소개 사용)"
+                      placeholder="저자에 대한 소개 (비워두면 큐레이터 프로필 소개 표시)"
                       rows={3}
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
