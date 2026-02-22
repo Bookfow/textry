@@ -186,8 +186,7 @@ export default function LandingPage() {
           style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-          {hero.isVisible && (
-            <>
+          <>
               {/* 뱃지 */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -239,8 +238,7 @@ export default function LandingPage() {
                   <p className="text-xs mt-1">카테고리</p>
                 </div>
               </div>
-            </>
-          )}
+</>
         </div>
 
         {/* 스크롤 인디케이터 */}
@@ -255,8 +253,7 @@ export default function LandingPage() {
       <section id="concept" ref={concept.ref} className="relative py-32 grain-overlay">
         <div className="absolute inset-0 bg-gradient-to-b from-[#0A0806] via-[#12100C] to-[#0A0806]" />
         <div className="relative z-10 max-w-6xl mx-auto px-6">
-          {concept.isVisible && (
-            <>
+          <>
               <div className="text-center mb-20">
                 <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   New Concept
@@ -320,8 +317,7 @@ export default function LandingPage() {
                   <span className="text-[#c9a96e] font-semibold">저자 · 큐레이터</span>
                 </div>
               </div>
-            </>
-          )}
+</>
         </div>
       </section>
 
@@ -331,8 +327,7 @@ export default function LandingPage() {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/20 to-transparent" />
 
         <div className="relative z-10 max-w-6xl mx-auto px-6">
-          {features.isVisible && (
-            <>
+          <>
               <div className="text-center mb-20">
                 <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   Features
@@ -365,8 +360,7 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-            </>
-          )}
+</>
         </div>
       </section>
 
@@ -376,8 +370,7 @@ export default function LandingPage() {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/20 to-transparent" />
 
         <div className="relative z-10 max-w-6xl mx-auto px-6">
-          {monetize.isVisible && (
-            <>
+          <>
               <div className="text-center mb-20">
                 <p className="text-sm tracking-[0.3em] text-[#c9a96e] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   Monetization
@@ -437,8 +430,7 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-            </>
-          )}
+</>
         </div>
       </section>
 
@@ -451,8 +443,7 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#c9a96e]/8 rounded-full blur-[150px]" />
 
         <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
-          {cta.isVisible && (
-            <>
+          <>
               <h3 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                 지금, 당신만의
                 <br />
@@ -470,8 +461,7 @@ export default function LandingPage() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
-            </>
-          )}
+</>
         </div>
       </section>
 
