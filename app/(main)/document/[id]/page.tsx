@@ -394,7 +394,7 @@ export default function DocumentDetailPage() {
                           )}
                           <div>
                             <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">{author.username || author.email}</span>
-                            <span className="text-[10px] text-[#9C8B7A] ml-1.5">{(doc as any).author_name && (doc as any).author_name !== author.username ? '큐레이터' : '저자 · 큐레이터'}</span>
+                            <span className="text-[10px] text-[#9C8B7A] ml-1.5">{(doc as any).author_name && (doc as any).author_name === (author.username || author.email) ? '저자 · 큐레이터' : '큐레이터'}</span>
                           </div>
                         </div>
                       </Link>
@@ -619,7 +619,7 @@ export default function DocumentDetailPage() {
               {/* 큐레이터 정보 (업로드한 사람) */}
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-[#9C8B7A] font-semibold mb-3">
-                  {(doc as any).author_name && (doc as any).author_name !== author.username ? '큐레이터' : '저자 · 큐레이터'}
+                  {(doc as any).author_name && (doc as any).author_name === (author.username || author.email) ? '저자 · 큐레이터' : '큐레이터'}
                 </p>
                 <div className="flex items-center gap-4 mb-3">
                   <Link href={`/profile/${author.id}`}>
