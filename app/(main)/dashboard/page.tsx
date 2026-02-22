@@ -69,6 +69,9 @@ export default function DashboardPage() {
   const [newAuthorName, setNewAuthorName] = useState('')
   const [newAuthorBio, setNewAuthorBio] = useState('')
   const [sortBy, setSortBy] = useState<'views' | 'time' | 'revenue' | 'date'>('date')
+  const [docAdCounts, setDocAdCounts] = useState<Record<string, number>>({})
+  const [thisMonthImpressions, setThisMonthImpressions] = useState(0)
+  const [thisMonthEstRevenue, setThisMonthEstRevenue] = useState(0)
 
   useEffect(() => {
     if (user) loadDashboard()
@@ -110,16 +113,56 @@ export default function DashboardPage() {
 
       const totalRevenue = revenue?.reduce((sum, r) => sum + Number(r.total_author_revenue), 0) || 0
 
+      // ━━━ 실제 ad_impressions 기반 수익 계산 ━━━
+      const revenueShare = tierData?.revenue_share || 0
+      const CPM = 2.0  // 예상 CPM $2.00
+
+      // 문서별 뷰어 내 광고 노출 수 조회
+      if (docs && docs.length > 0) {
+        const docIds = docs.map(d => d.id)
+        const { data: adData } = await supabase
+          .from('ad_impressions')
+          .select('document_id')
+          .in('document_id', docIds)
+          .in('ad_position', ['overlay', 'control_bar', 'side_panel'])
+
+        if (adData) {
+          const counts: Record<string, number> = {}
+          adData.forEach(ad => {
+            if (ad.document_id) counts[ad.document_id] = (counts[ad.document_id] || 0) + 1
+          })
+          setDocAdCounts(counts)
+        }
+      }
+
+      // 이번 달 뷰어 내 광고 노출 (실시간 수익 추정)
+      const monthStart = new Date()
+      monthStart.setDate(1)
+      monthStart.setHours(0, 0, 0, 0)
+      const { data: monthlyAds } = await supabase
+        .from('ad_impressions')
+        .select('id')
+        .eq('author_id', user.id)
+        .in('ad_position', ['overlay', 'control_bar', 'side_panel'])
+        .gte('created_at', monthStart.toISOString())
+      
+      const monthImpressions = monthlyAds?.length || 0
+      const monthEstRevenue = (monthImpressions / 1000) * CPM * revenueShare
+      setThisMonthImpressions(monthImpressions)
+      setThisMonthEstRevenue(monthEstRevenue)
+
+      const estimatedTotal = totalRevenue + monthEstRevenue
+
       setStats({
         totalViews,
         totalReadingTime,
-        totalRevenue,
+        totalRevenue: estimatedTotal,
         subscribersCount,
         documentsCount: docs?.length || 0,
-        viewsChange: 12.5,
-        readingTimeChange: 8.3,
-        revenueChange: totalRevenue > 0 ? 15.2 : 0,
-        subscribersChange: 5.0,
+        viewsChange: 0,
+        readingTimeChange: 0,
+        revenueChange: 0,
+        subscribersChange: 0,
       })
     } catch (err) {
       console.error('Error loading dashboard:', err)
@@ -211,6 +254,14 @@ export default function DashboardPage() {
     return `${minutes}분`
   }
 
+  // 문서별 예상 수익 계산 (뷰어 내 광고 노출 기반)
+  const getDocRevenue = (docId: string) => {
+    const impressions = docAdCounts[docId] || 0
+    const revenueShare = authorTier?.revenue_share || 0
+    const CPM = 2.0
+    return (impressions / 1000) * CPM * revenueShare
+  }
+
   const formatReadingHours = (hours: number) => {
     if (hours >= 1000) return `${(hours / 1000).toFixed(1)}K`
     return hours.toFixed(1)
@@ -251,7 +302,7 @@ export default function DashboardPage() {
     switch (sortBy) {
       case 'views': return b.view_count - a.view_count
       case 'time': return b.total_reading_time - a.total_reading_time
-      case 'revenue': return (b.view_count * 0.01 + b.total_reading_time / 60 * 0.05) - (a.view_count * 0.01 + a.total_reading_time / 60 * 0.05)
+      case 'revenue': return getDocRevenue(b.id) - getDocRevenue(a.id)
       case 'date': return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       default: return 0
     }
@@ -361,7 +412,6 @@ export default function DashboardPage() {
                     <Eye className="w-4 h-4 text-blue-500" />
                   </div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalViews.toLocaleString()}</p>
-                  <ChangeIndicator value={stats.viewsChange} />
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
                   <div className="flex items-center justify-between mb-3">
@@ -369,7 +419,6 @@ export default function DashboardPage() {
                     <Clock className="w-4 h-4 text-green-500" />
                   </div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatTime(stats.totalReadingTime)}</p>
-                  <ChangeIndicator value={stats.readingTimeChange} />
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
                   <div className="flex items-center justify-between mb-3">
@@ -377,7 +426,6 @@ export default function DashboardPage() {
                     <Users className="w-4 h-4 text-purple-500" />
                   </div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.subscribersCount.toLocaleString()}</p>
-                  <ChangeIndicator value={stats.subscribersChange} />
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
                   <div className="flex items-center justify-between mb-3">
@@ -385,7 +433,9 @@ export default function DashboardPage() {
                     <DollarSign className="w-4 h-4 text-amber-500" />
                   </div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.totalRevenue.toFixed(2)}</p>
-                  <ChangeIndicator value={stats.revenueChange} />
+                  {(authorTier?.tier || 0) === 0 && (
+                    <p className="text-[10px] text-amber-500">수익화 미활성</p>
+                  )}
                 </div>
               </div>
 
@@ -497,8 +547,9 @@ export default function DashboardPage() {
                       </div>
                       <div className="col-span-1 text-center">
                         <p className="text-sm font-medium text-green-600">
-                          ${((doc.view_count * 0.01) + ((doc.total_reading_time / 60) * 0.05)).toFixed(2)}
+                          ${getDocRevenue(doc.id).toFixed(2)}
                         </p>
+                        <p className="text-[10px] text-gray-400">{docAdCounts[doc.id] || 0}회 노출</p>
                       </div>
                       <div className="col-span-2 flex items-center justify-center gap-2">
                         <button
@@ -746,9 +797,12 @@ export default function DashboardPage() {
                   )}
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">이번 달 수익</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">이번 달 예상 수익</p>
                   <p className="text-3xl font-bold text-blue-600">
-                    ${revenueRecords.length > 0 ? Number(revenueRecords[0].total_author_revenue).toFixed(2) : '0.00'}
+                    ${thisMonthEstRevenue.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    광고 {thisMonthImpressions.toLocaleString()}회 노출
                   </p>
                 </div>
               </div>
