@@ -413,92 +413,77 @@ export default function HomePage() {
 
           {/* ━━━ 커뮤니티 읽기 통계 ━━━ */}
           {communityStats && (
-            <div className="mb-6 relative overflow-hidden rounded-2xl shadow-xl">
-              {/* 메인 배경 — 깊은 그라데이션 */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#1a0f08] via-[#2D1B0E] to-[#1a1520]" />
+            <div className="mb-6 relative overflow-hidden rounded-2xl shadow-lg border border-[#E7D8C9]/60 dark:border-[#3A302A]">
+              {/* 밝은 웜톤 배경 */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#FDF8F4] via-[#F7EDE5] to-[#FFF5EE] dark:from-[#2A2018] dark:via-[#2E2520] dark:to-[#2A2028]" />
               
-              {/* 글로우 오브 장식 */}
-              <div className="absolute top-[-40%] right-[-10%] w-[300px] h-[300px] bg-amber-500/20 rounded-full blur-[80px]" />
-              <div className="absolute bottom-[-30%] left-[-5%] w-[250px] h-[250px] bg-purple-600/15 rounded-full blur-[70px]" />
-              <div className="absolute top-[20%] left-[40%] w-[200px] h-[200px] bg-emerald-500/10 rounded-full blur-[60px]" />
-              
-              {/* 미세한 패턴 오버레이 */}
-              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+              {/* 글로우 장식 */}
+              <div className="absolute top-[-30%] right-[-5%] w-[250px] h-[250px] bg-amber-300/20 dark:bg-amber-500/10 rounded-full blur-[70px]" />
+              <div className="absolute bottom-[-20%] left-[10%] w-[200px] h-[200px] bg-rose-300/15 dark:bg-purple-500/8 rounded-full blur-[60px]" />
+              <div className="absolute top-[30%] left-[50%] w-[180px] h-[180px] bg-sky-200/15 dark:bg-emerald-500/5 rounded-full blur-[50px]" />
 
               <div className="relative p-5 sm:p-7">
                 {/* 헤더 */}
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/30 to-orange-600/20 flex items-center justify-center border border-amber-500/20 shadow-lg shadow-amber-900/20">
-                      <BarChart3 className="w-5 h-5 text-amber-400" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#B2967D] to-[#C4A882] flex items-center justify-center shadow-md shadow-[#B2967D]/20">
+                      <BarChart3 className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-base font-bold text-white">이번 주 Textry에서는</p>
-                      <p className="text-[11px] text-white/40">지난 7일간의 활동</p>
+                      <p className="text-base font-bold text-[#2D2016] dark:text-[#EEE4E1]">이번 주 Textry에서는</p>
+                      <p className="text-[11px] text-[#9C8B7A]">지난 7일간의 활동</p>
                     </div>
                   </div>
-                  <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[10px] text-white/50 font-medium">LIVE</span>
+                  <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200/60 dark:border-emerald-800/30">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">LIVE</span>
                   </div>
                 </div>
 
                 {/* 통계 카드 */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   {/* 시간 읽힘 */}
-                  <div className="group relative p-4 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/[0.08] hover:border-amber-500/30 transition-all duration-300">
-                    <div className="absolute inset-0 rounded-xl bg-amber-500/0 group-hover:bg-amber-500/5 transition-colors duration-300" />
-                    <div className="relative">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/20 to-amber-600/10 flex items-center justify-center mb-3 shadow-inner">
-                        <Clock className="w-5 h-5 text-amber-400" />
-                      </div>
-                      <p className="text-3xl sm:text-4xl font-black text-white tracking-tighter leading-none">
-                        {communityStats.weeklyHours > 0 ? communityStats.weeklyHours.toLocaleString() : '<1'}
-                      </p>
-                      <p className="text-[11px] text-white/40 mt-1.5 font-semibold uppercase tracking-wider">시간 읽힘</p>
+                  <div className="group p-4 rounded-xl bg-white/70 dark:bg-white/5 border border-amber-200/40 dark:border-amber-800/20 hover:border-amber-400/60 dark:hover:border-amber-600/40 hover:shadow-md hover:shadow-amber-100/50 dark:hover:shadow-amber-900/10 transition-all duration-300">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-amber-200/80 dark:from-amber-500/20 dark:to-amber-600/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                      <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     </div>
+                    <p className="text-3xl sm:text-4xl font-black text-[#2D2016] dark:text-white tracking-tighter leading-none">
+                      {communityStats.weeklyHours > 0 ? communityStats.weeklyHours.toLocaleString() : '<1'}
+                    </p>
+                    <p className="text-[11px] text-amber-700/60 dark:text-amber-400/50 mt-1.5 font-semibold">시간 읽힘</p>
                   </div>
 
                   {/* 독자 수 */}
-                  <div className="group relative p-4 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/[0.08] hover:border-emerald-500/30 transition-all duration-300">
-                    <div className="absolute inset-0 rounded-xl bg-emerald-500/0 group-hover:bg-emerald-500/5 transition-colors duration-300" />
-                    <div className="relative">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 flex items-center justify-center mb-3 shadow-inner">
-                        <Users className="w-5 h-5 text-emerald-400" />
-                      </div>
-                      <p className="text-3xl sm:text-4xl font-black text-white tracking-tighter leading-none">
-                        {communityStats.totalReaders.toLocaleString()}
-                      </p>
-                      <p className="text-[11px] text-white/40 mt-1.5 font-semibold uppercase tracking-wider">명의 독자</p>
+                  <div className="group p-4 rounded-xl bg-white/70 dark:bg-white/5 border border-emerald-200/40 dark:border-emerald-800/20 hover:border-emerald-400/60 dark:hover:border-emerald-600/40 hover:shadow-md hover:shadow-emerald-100/50 dark:hover:shadow-emerald-900/10 transition-all duration-300">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200/80 dark:from-emerald-500/20 dark:to-emerald-600/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                      <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
+                    <p className="text-3xl sm:text-4xl font-black text-[#2D2016] dark:text-white tracking-tighter leading-none">
+                      {communityStats.totalReaders.toLocaleString()}
+                    </p>
+                    <p className="text-[11px] text-emerald-700/60 dark:text-emerald-400/50 mt-1.5 font-semibold">명의 독자</p>
                   </div>
 
                   {/* 작품 수 */}
-                  <div className="group relative p-4 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/[0.08] hover:border-blue-500/30 transition-all duration-300">
-                    <div className="absolute inset-0 rounded-xl bg-blue-500/0 group-hover:bg-blue-500/5 transition-colors duration-300" />
-                    <div className="relative">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400/20 to-blue-600/10 flex items-center justify-center mb-3 shadow-inner">
-                        <FileText className="w-5 h-5 text-blue-400" />
-                      </div>
-                      <p className="text-3xl sm:text-4xl font-black text-white tracking-tighter leading-none">
-                        {communityStats.totalDocs.toLocaleString()}
-                      </p>
-                      <p className="text-[11px] text-white/40 mt-1.5 font-semibold uppercase tracking-wider">편의 작품</p>
+                  <div className="group p-4 rounded-xl bg-white/70 dark:bg-white/5 border border-sky-200/40 dark:border-blue-800/20 hover:border-sky-400/60 dark:hover:border-blue-600/40 hover:shadow-md hover:shadow-sky-100/50 dark:hover:shadow-blue-900/10 transition-all duration-300">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-100 to-sky-200/80 dark:from-blue-500/20 dark:to-blue-600/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                      <FileText className="w-5 h-5 text-sky-600 dark:text-blue-400" />
                     </div>
+                    <p className="text-3xl sm:text-4xl font-black text-[#2D2016] dark:text-white tracking-tighter leading-none">
+                      {communityStats.totalDocs.toLocaleString()}
+                    </p>
+                    <p className="text-[11px] text-sky-700/60 dark:text-blue-400/50 mt-1.5 font-semibold">편의 작품</p>
                   </div>
 
                   {/* 총 조회수 */}
-                  <div className="group relative p-4 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
-                    <div className="absolute inset-0 rounded-xl bg-purple-500/0 group-hover:bg-purple-500/5 transition-colors duration-300" />
-                    <div className="relative">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400/20 to-purple-600/10 flex items-center justify-center mb-3 shadow-inner">
-                        <Eye className="w-5 h-5 text-purple-400" />
-                      </div>
-                      <p className="text-3xl sm:text-4xl font-black text-white tracking-tighter leading-none">
-                        {communityStats.totalViews.toLocaleString()}
-                      </p>
-                      <p className="text-[11px] text-white/40 mt-1.5 font-semibold uppercase tracking-wider">총 조회수</p>
+                  <div className="group p-4 rounded-xl bg-white/70 dark:bg-white/5 border border-violet-200/40 dark:border-purple-800/20 hover:border-violet-400/60 dark:hover:border-purple-600/40 hover:shadow-md hover:shadow-violet-100/50 dark:hover:shadow-purple-900/10 transition-all duration-300">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-100 to-violet-200/80 dark:from-purple-500/20 dark:to-purple-600/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                      <Eye className="w-5 h-5 text-violet-600 dark:text-purple-400" />
                     </div>
+                    <p className="text-3xl sm:text-4xl font-black text-[#2D2016] dark:text-white tracking-tighter leading-none">
+                      {communityStats.totalViews.toLocaleString()}
+                    </p>
+                    <p className="text-[11px] text-violet-700/60 dark:text-purple-400/50 mt-1.5 font-semibold">총 조회수</p>
                   </div>
                 </div>
               </div>
