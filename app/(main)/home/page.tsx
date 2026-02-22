@@ -246,18 +246,23 @@ export default function HomePage() {
             ref={scrollRef}
             className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
           >
-            {docs.map((doc, idx) => (
-              <React.Fragment key={doc.id}>
-                <div className="flex-shrink-0 w-[155px] sm:w-[170px] md:w-[200px] lg:w-[210px] xl:w-[220px]">
-                  <DocumentCard
-                    doc={doc}
-                    authorName={doc.author_name || doc.profiles?.username || doc.profiles?.email}
-                    variant="grid"
-                  />
-                </div>
-                {idx === 5 && <PageAdBanner position="home_feed" variant="card" />}
-              </React.Fragment>
-            ))}
+            {(() => {
+              const adPositions = new Set<number>()
+              let pos = 5, gap = 8
+              while (pos < docs.length) { adPositions.add(pos); pos += gap; gap += 2 }
+              return docs.map((doc, idx) => (
+                <React.Fragment key={doc.id}>
+                  <div className="flex-shrink-0 w-[155px] sm:w-[170px] md:w-[200px] lg:w-[210px] xl:w-[220px]">
+                    <DocumentCard
+                      doc={doc}
+                      authorName={doc.author_name || doc.profiles?.username || doc.profiles?.email}
+                      variant="grid"
+                    />
+                  </div>
+                  {adPositions.has(idx) && <PageAdBanner position="home_feed" variant="card" />}
+                </React.Fragment>
+              ))
+            })()}
           </div>
         </div>
       </div>

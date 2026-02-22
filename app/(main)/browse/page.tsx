@@ -249,23 +249,28 @@ function BrowseContent() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
-          {documents.map((doc, idx) => {
-            const author = authors.get(doc.author_id)
-            return (
-              <React.Fragment key={doc.id}>
-                <DocumentCard
-                  doc={doc}
-                  authorName={(doc as any).author_name || author?.username || author?.email}
-                  variant="grid"
-                />
-                {idx === 11 && (
-                  <div className="col-span-full">
-                    <PageAdBanner position="browse_inline" />
-                  </div>
-                )}
-              </React.Fragment>
-            )
-          })}
+          {(() => {
+            const adPositions = new Set<number>()
+            let pos = 5, gap = 8
+            while (pos < documents.length) { adPositions.add(pos); pos += gap; gap += 2 }
+            return documents.map((doc, idx) => {
+              const author = authors.get(doc.author_id)
+              return (
+                <React.Fragment key={doc.id}>
+                  <DocumentCard
+                    doc={doc}
+                    authorName={(doc as any).author_name || author?.username || author?.email}
+                    variant="grid"
+                  />
+                  {adPositions.has(idx) && (
+                    <div className="col-span-full">
+                      <PageAdBanner position="browse_inline" />
+                    </div>
+                  )}
+                </React.Fragment>
+              )
+            })
+          })()}
         </div>
       )}
 
