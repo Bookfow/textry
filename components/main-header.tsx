@@ -88,9 +88,9 @@ export function MainHeader({
         const query = searchQuery.trim()
         const { data: docs } = await supabase
           .from('documents')
-          .select('id, title, description, thumbnail_url')
+          .select('id, title, description, thumbnail_url, author_name')
           .eq('is_published', true)
-          .ilike('title', `%${query}%`)
+          .or(`title.ilike.%${query}%,author_name.ilike.%${query}%`)
           .limit(5)
         const { data: authors } = await supabase
           .from('profiles')
@@ -100,7 +100,8 @@ export function MainHeader({
         const results: SearchResult[] = [
           ...(docs || []).map(d => ({
             type: 'document' as const, id: d.id, title: d.title,
-            subtitle: d.description || '', thumbnail: d.thumbnail_url,
+            subtitle: d.author_name ? `${d.author_name} · ${d.description || ''}` : (d.description || ''),
+            thumbnail: d.thumbnail_url,
           })),
           ...(authors || []).filter(a => a.id !== user?.id).map(a => ({
             type: 'author' as const, id: a.id, title: a.username || a.email,
