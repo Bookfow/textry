@@ -371,35 +371,59 @@ export default function HomePage() {
 
           {/* ━━━ 커뮤니티 읽기 통계 ━━━ */}
           {communityStats && (
-            <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#B2967D]/10 via-[#E6BEAE]/10 to-[#B2967D]/10 dark:from-[#B2967D]/5 dark:via-[#E6BEAE]/5 dark:to-[#B2967D]/5 border border-[#E7D8C9]/50 dark:border-[#3A302A]">
-              <div className="flex items-center gap-2 mb-3">
-                <BarChart3 className="w-4 h-4 text-[#B2967D]" />
-                <span className="text-sm font-medium text-[#5C4A38] dark:text-[#C4A882]">이번 주 Textry에서는</span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="text-center">
-                  <p className="text-xl sm:text-2xl font-bold text-[#B2967D]">
-                    {communityStats.weeklyHours > 0 ? communityStats.weeklyHours.toLocaleString() : '<1'}
-                  </p>
-                  <p className="text-[11px] text-[#9C8B7A] mt-0.5">시간 읽힘</p>
+            <div className="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2D2016] via-[#3A2A1E] to-[#4A3628] dark:from-[#1A1410] dark:via-[#241E18] dark:to-[#2E2620] border border-[#5C4A38]/30 shadow-lg">
+              {/* 배경 장식 */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#B2967D]/15 to-transparent rounded-full -translate-y-1/2 translate-x-1/3" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-[#E6BEAE]/10 to-transparent rounded-full translate-y-1/2 -translate-x-1/4" />
+              
+              <div className="relative p-5 sm:p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-[#B2967D]/20 flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-[#C4A882]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-[#EEE4E1]">이번 주 Textry에서는</p>
+                    <p className="text-[10px] text-[#9C8B7A]">지난 7일간의 활동</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-xl sm:text-2xl font-bold text-[#B2967D]">
-                    {communityStats.totalReaders.toLocaleString()}
-                  </p>
-                  <p className="text-[11px] text-[#9C8B7A] mt-0.5">명의 독자</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xl sm:text-2xl font-bold text-[#B2967D]">
-                    {communityStats.totalDocs.toLocaleString()}
-                  </p>
-                  <p className="text-[11px] text-[#9C8B7A] mt-0.5">편의 작품</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xl sm:text-2xl font-bold text-[#B2967D]">
-                    {communityStats.totalViews.toLocaleString()}
-                  </p>
-                  <p className="text-[11px] text-[#9C8B7A] mt-0.5">총 조회수</p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="text-center p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5">
+                    <div className="w-9 h-9 rounded-full bg-amber-500/15 flex items-center justify-center mx-auto mb-2">
+                      <Clock className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-black text-[#EEE4E1] tracking-tight">
+                      {communityStats.weeklyHours > 0 ? communityStats.weeklyHours.toLocaleString() : '<1'}
+                    </p>
+                    <p className="text-[11px] text-[#9C8B7A] mt-1 font-medium">시간 읽힘</p>
+                  </div>
+                  <div className="text-center p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5">
+                    <div className="w-9 h-9 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto mb-2">
+                      <Users className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-black text-[#EEE4E1] tracking-tight">
+                      {communityStats.totalReaders.toLocaleString()}
+                    </p>
+                    <p className="text-[11px] text-[#9C8B7A] mt-1 font-medium">명의 독자</p>
+                  </div>
+                  <div className="text-center p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5">
+                    <div className="w-9 h-9 rounded-full bg-blue-500/15 flex items-center justify-center mx-auto mb-2">
+                      <FileText className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-black text-[#EEE4E1] tracking-tight">
+                      {communityStats.totalDocs.toLocaleString()}
+                    </p>
+                    <p className="text-[11px] text-[#9C8B7A] mt-1 font-medium">편의 작품</p>
+                  </div>
+                  <div className="text-center p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5">
+                    <div className="w-9 h-9 rounded-full bg-purple-500/15 flex items-center justify-center mx-auto mb-2">
+                      <Eye className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-black text-[#EEE4E1] tracking-tight">
+                      {communityStats.totalViews.toLocaleString()}
+                    </p>
+                    <p className="text-[11px] text-[#9C8B7A] mt-1 font-medium">총 조회수</p>
+                  </div>
                 </div>
               </div>
             </div>
