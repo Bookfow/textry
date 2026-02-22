@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
-import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft, Clock } from 'lucide-react'
+import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft, Clock, BarChart3, Eye, FileText } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
 import { PageAdBanner } from '@/components/page-ad-banner'
 import { CATEGORIES } from '@/lib/categories'
@@ -19,6 +19,7 @@ export default function HomePage() {
   const [recentDocs, setRecentDocs] = useState<DocWithAuthor[]>([])
   const [loading, setLoading] = useState(true)
   const [sessionContinue, setSessionContinue] = useState<DocWithAuthor[]>([])
+  const [communityStats, setCommunityStats] = useState<{ weeklyHours: number; totalDocs: number; totalViews: number; totalReaders: number } | null>(null)
   const [activeCategory, setActiveCategory] = useState<string>('all')
 
   useEffect(() => {
@@ -133,6 +134,46 @@ export default function HomePage() {
           }
         }
       }
+
+    // ━━━ 커뮤니티 통계 ━━━
+      try {
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        
+        // 이번 주 총 읽기 시간
+        const { data: weekSessions } = await supabase
+          .from('reading_sessions')
+          .select('reading_time')
+          .gte('last_read_at', weekAgo)
+        const weeklySeconds = weekSessions?.reduce((sum, s) => sum + (s.reading_time || 0), 0) || 0
+        const weeklyHours = Math.round(weeklySeconds / 3600)
+
+        // 전체 문서 수
+        const { count: docCount } = await supabase
+          .from('documents')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_published', true)
+
+        // 전체 조회수 합산
+        const { data: allDocs } = await supabase
+          .from('documents')
+          .select('view_count')
+          .eq('is_published', true)
+        const totalViews = allDocs?.reduce((sum, d) => sum + (d.view_count || 0), 0) || 0
+
+        // 이번 주 독자 수
+        const { data: weekReaders } = await supabase
+          .from('reading_sessions')
+          .select('reader_id')
+          .gte('last_read_at', weekAgo)
+        const uniqueReaders = new Set(weekReaders?.map(r => r.reader_id).filter(Boolean) || []).size
+
+        setCommunityStats({
+          weeklyHours,
+          totalDocs: docCount || 0,
+          totalViews,
+          totalReaders: uniqueReaders,
+        })
+      } catch {}
 
     } catch (err) {
       console.error('Error loading home:', err)
@@ -327,6 +368,42 @@ export default function HomePage() {
     <div className="min-h-screen">
       <main className="p-4 md:p-6 lg:p-8">
         <div className="max-w-[1600px] mx-auto">
+
+          {/* ━━━ 커뮤니티 읽기 통계 ━━━ */}
+          {communityStats && (
+            <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#B2967D]/10 via-[#E6BEAE]/10 to-[#B2967D]/10 dark:from-[#B2967D]/5 dark:via-[#E6BEAE]/5 dark:to-[#B2967D]/5 border border-[#E7D8C9]/50 dark:border-[#3A302A]">
+              <div className="flex items-center gap-2 mb-3">
+                <BarChart3 className="w-4 h-4 text-[#B2967D]" />
+                <span className="text-sm font-medium text-[#5C4A38] dark:text-[#C4A882]">이번 주 Textry</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-[#B2967D]">
+                    {communityStats.weeklyHours > 0 ? communityStats.weeklyHours.toLocaleString() : '<1'}
+                  </p>
+                  <p className="text-[11px] text-[#9C8B7A] mt-0.5">시간 읽힘</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-[#B2967D]">
+                    {communityStats.totalReaders.toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-[#9C8B7A] mt-0.5">명의 독자</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-[#B2967D]">
+                    {communityStats.totalDocs.toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-[#9C8B7A] mt-0.5">편의 작품</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-[#B2967D]">
+                    {communityStats.totalViews.toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-[#9C8B7A] mt-0.5">총 조회수</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ━━━ 카테고리 탭 ━━━ */}
           <div className="mb-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
