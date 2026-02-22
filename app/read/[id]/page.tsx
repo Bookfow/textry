@@ -235,6 +235,7 @@ export default function ReadPage() {
   const [lastAdPage, setLastAdPage] = useState<number>(0)
   const [startAdShown, setStartAdShown] = useState(false)
   const [endAdShown, setEndAdShown] = useState(false)
+  const [restoredFromComplete, setRestoredFromComplete] = useState(false)
   const [documentReady, setDocumentReady] = useState(false)
   const prevPageRef = useRef<number>(1)
 
@@ -537,7 +538,12 @@ export default function ReadPage() {
     const prevPage = prevPageRef.current
     prevPageRef.current = pageNumber
 
-    if (pageNumber === numPages && !endAdShown && tierConfig.showEndAd) {
+    // 완독 복원 후 사용자가 페이지를 넘기면 플래그 해제
+    if (restoredFromComplete && pageNumber > 1) {
+      setRestoredFromComplete(false)
+    }
+
+    if (pageNumber === numPages && !endAdShown && !restoredFromComplete && tierConfig.showEndAd) {
       const timeSinceLastAd = (Date.now() - lastAdTime) / 1000
       if (timeSinceLastAd >= tierConfig.minTimeBetweenAds / 2 || adCount === 0) {
         setAdType('end')
