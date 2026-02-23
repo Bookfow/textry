@@ -44,7 +44,6 @@ export default function WebtoonUploadForm() {
     { value: 'webtoon', label: '웹툰', icon: '🎨' },
     { value: 'manga', label: '만화', icon: '📖' },
     { value: 'illustration', label: '일러스트', icon: '🖼️' },
-    ...CATEGORIES.filter(c => !['webtoon', 'manga', 'illustration'].includes(c.value)),
   ]
 
   // 이미지 추가
@@ -243,13 +242,7 @@ export default function WebtoonUploadForm() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2 md:w-1/2">
-              <Label className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">언어 *</Label>
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger className={inputClass}><SelectValue /></SelectTrigger>
-                <SelectContent>{LANGUAGES.map(l => (<SelectItem key={l.value} value={l.value}>{l.flag} {l.label}</SelectItem>))}</SelectContent>
-              </Select>
-            </div>
+
           </div>
 
           {/* 썸네일 */}
