@@ -365,6 +365,21 @@ export function MainHeader({
             </DropdownMenu>
 
             {user && <ProfileMenu />}
+            {!user && (
+              <div className="flex items-center gap-2">
+                <Link href="/">
+                  <Button variant="ghost" className="rounded-full hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] h-9 px-3 text-[#5C4A38] dark:text-[#C4A882] text-sm">
+                    <span className="hidden sm:inline">Textry 소개</span>
+                    <span className="sm:hidden">소개</span>
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button className="rounded-full h-9 px-4 bg-gradient-to-r from-[#a67c52] to-[#c9a96e] hover:from-[#8a6842] hover:to-[#b89860] text-white text-sm font-semibold">
+                    가입하기
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
