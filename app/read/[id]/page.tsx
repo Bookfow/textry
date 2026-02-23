@@ -1157,7 +1157,7 @@ export default function ReadPage() {
               )}
 
               {/* ━━━ PDF 전용 컨트롤 ━━━ */}
-              {viewMode !== 'reflow' && !isEpub && (
+              {viewMode !== 'reflow' && !isEpub && document?.content_type !== 'webtoon' && (
                 <>
                   <div className="w-px h-4 bg-[#3A302A]" />
 
