@@ -25,6 +25,7 @@ interface PDFViewerProps {
   onPageChange?: (page: number, total: number) => void
   onDocumentLoad?: (numPages: number) => void
   onScaleChange?: (scale: number) => void
+  bottomOffset?: number
 }
 
 // ━━━ Lazy 페이지 컴포넌트 (IntersectionObserver) ━━━
@@ -113,6 +114,7 @@ export default function PDFViewer({
   onPageChange,
   onDocumentLoad,
   onScaleChange,
+  bottomOffset = 0,
 }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pdfLoading, setPdfLoading] = useState(true)
@@ -173,7 +175,7 @@ export default function PDFViewer({
     const frameSize = 24
 
     const availableWidth = screenWidth - sidePanelWidth
-    const availableHeight = screenHeight - controlBarHeight
+    const availableHeight = screenHeight - controlBarHeight - bottomOffset
 
     const contentWidth = availableWidth - frameSize - 16
     const contentHeight = availableHeight - frameSize - 16
@@ -188,7 +190,7 @@ export default function PDFViewer({
       const optimal = Math.min(contentWidth, widthFromHeight)
       setFitWidth(Math.max(optimal, 200))
     }
-  }, [showSidePanel, pageAspect, viewMode])
+  }, [showSidePanel, pageAspect, viewMode, bottomOffset])
 
   useEffect(() => {
     calculateFitWidth()

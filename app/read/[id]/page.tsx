@@ -1278,7 +1278,8 @@ export default function ReadPage() {
             ) : (
               pdfUrl && (
                 <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
-                  showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange} />
+                  showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange}
+                  bottomOffset={!isPremium && !isRewardAdFree ? 58 : 0} />
               )
             )}
           </div>
@@ -1455,6 +1456,15 @@ export default function ReadPage() {
           </div>
         </div>
       </div>
+
+      {/* ━━━ 하단 고정 광고 배너 ━━━ */}
+      {!isPremium && !isRewardAdFree && (
+        <div className="fixed bottom-0 left-0 right-0 z-30 bg-[#241E18]/95 backdrop-blur-sm border-t border-[#3A302A] flex items-center justify-center py-1">
+          <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded">
+            <AdBanner position="bottom" documentId={documentId} authorId={document?.author_id} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
