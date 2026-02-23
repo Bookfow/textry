@@ -204,6 +204,39 @@ export default function WebtoonUploadForm() {
     setThumbnailPreview(URL.createObjectURL(file))
   }
 
+
+  // ━━━ 구독자 알림 발송 ━━━
+  const notifySubscribers = async (documentId: string, documentTitle: string) => {
+    try {
+      const { data: subs } = await supabase
+        .from('subscriptions')
+        .select('subscriber_id')
+        .eq('author_id', user!.id)
+      if (!subs || subs.length === 0) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user!.id)
+        .single()
+
+      const notifications = subs.map(sub => ({
+        user_id: sub.subscriber_id,
+        type: 'new_document',
+        title: '새 웹툰이 올라왔어요!',
+        message: `${profile?.username || '구독 중인 큐레이터'}님이 새 웹툰을 올렸습니다: ${documentTitle}`,
+        link: `/document/${documentId}`,
+        is_read: false,
+      }))
+
+      for (let i = 0; i < notifications.length; i += 50) {
+        await supabase.from('notifications').insert(notifications.slice(i, i + 50))
+      }
+    } catch (err) {
+      console.error('알림 발송 실패:', err)
+    }
+  }
+
   // ━━━ 업로드 ━━━
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()

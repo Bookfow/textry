@@ -195,6 +195,40 @@ export default function UploadPage() {
     return null
   }
 
+
+  // ━━━ 구독자 알림 발송 ━━━
+  const notifySubscribers = async (documentId: string, documentTitle: string) => {
+    try {
+      const { data: subs } = await supabase
+        .from('subscriptions')
+        .select('subscriber_id')
+        .eq('author_id', user!.id)
+      if (!subs || subs.length === 0) return
+
+      const { data: myProfile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user!.id)
+        .single()
+
+      const notifications = subs.map(sub => ({
+        user_id: sub.subscriber_id,
+        type: 'new_document',
+        title: '새 콘텐츠가 올라왔어요!',
+        message: `${myProfile?.username || '구독 중인 큐레이터'}님이 새 콘텐츠를 올렸습니다: ${documentTitle}`,
+        link: `/document/${documentId}`,
+        is_read: false,
+      }))
+
+      // 50명씩 배치 INSERT
+      for (let i = 0; i < notifications.length; i += 50) {
+        await supabase.from('notifications').insert(notifications.slice(i, i + 50))
+      }
+    } catch (err) {
+      console.error('알림 발송 실패:', err)
+    }
+  }
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!file || !title.trim()) { toast.warning('제목과 파일을 입력해주세요.'); return }
@@ -300,7 +334,8 @@ export default function UploadPage() {
         try { setProgressMessage('챕터 저장 중...'); const batchSize = 10; const rows: any[] = []; for (let i = 0; i < epubData.chapters.length; i++) { rows.push({ document_id: docData.id, page_number: i + 1, text_content: epubData.chapters[i].content }); if (rows.length >= batchSize || i === epubData.chapters.length - 1) { await supabase.from('document_pages_text').insert(rows); rows.length = 0 }; setProgress(70 + Math.round(((i + 1) / epubData.chapters.length) * 25)); setProgressMessage(`챕터 저장 중... ${i + 1}/${epubData.chapters.length}`) } } catch (extractErr) { console.warn('챕터 저장 실패:', extractErr) }
       }
 
-      setProgress(100); setProgressMessage('완료!'); toast.success('업로드가 완료되었습니다!'); router.push('/dashboard')
+      setProgress(100); setProgressMessage('완료!'); await notifySubscribers(docData.id, title.trim())
+      toast.success('업로드가 완료되었습니다!'); router.push('/dashboard')
     } catch (error: any) { console.error('Upload error:', error); toast.error(`업로드 실패: ${error.message}`) }
     finally { setUploading(false); setProgress(0); setProgressMessage('') }
   }

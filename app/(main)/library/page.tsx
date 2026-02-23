@@ -8,6 +8,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { BookOpen, Heart, Clock, Grid, BookMarked } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
+import { getCategoryLabel, CATEGORIES } from '@/lib/categories'
+import { ChevronDown, Filter, ArrowUpDown } from 'lucide-react'
 
 type ReadingDoc = {
   id: string
@@ -46,6 +48,8 @@ export default function LibraryPage() {
   const [readingDocs, setReadingDocs] = useState<ReadingDoc[]>([])
   const [favDocs, setFavDocs] = useState<FavDoc[]>([])
   const [loading, setLoading] = useState(true)
+  const [sortBy, setSortBy] = useState<'recent' | 'progress' | 'title'>('recent')
+  const [filterCategory, setFilterCategory] = useState('all')
 
   useEffect(() => {
     if (!user) {
@@ -290,7 +294,33 @@ export default function LibraryPage() {
     )
   }
 
-  const currentDocs = activeTab === 'reading' ? readingDocs : favDocs
+  // 필터 + 정렬
+  const filteredReading = readingDocs
+    .filter(d => filterCategory === 'all' || d.category === filterCategory)
+    .sort((a, b) => {
+      if (sortBy === 'progress') {
+        const pA = a.page_count > 0 ? a.current_page / a.page_count : 0
+        const pB = b.page_count > 0 ? b.current_page / b.page_count : 0
+        return pB - pA
+      }
+      if (sortBy === 'title') return a.title.localeCompare(b.title, 'ko')
+      return new Date(b.last_read_at).getTime() - new Date(a.last_read_at).getTime()
+    })
+
+  const filteredFav = favDocs
+    .filter(d => filterCategory === 'all' || d.category === filterCategory)
+    .sort((a, b) => {
+      if (sortBy === 'title') return a.title.localeCompare(b.title, 'ko')
+      return 0 // 기본: 찜한 순서 유지
+    })
+
+  const currentDocs = activeTab === 'reading' ? filteredReading : filteredFav
+
+  // 사용 중인 카테고리 목록
+  const usedCategories = [...new Set([
+    ...readingDocs.map(d => d.category),
+    ...favDocs.map(d => d.category),
+  ])].filter(Boolean)
 
   return (
     <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-6 pb-20 lg:pb-6">
@@ -344,6 +374,48 @@ export default function LibraryPage() {
           찜한 ({favDocs.length})
         </button>
       </div>
+
+
+      {/* 정렬 & 필터 */}
+      {(readingDocs.length > 0 || favDocs.length > 0) && (
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          {/* 정렬 */}
+          <div className="relative">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="appearance-none pl-3 pr-8 py-1.5 text-xs rounded-lg bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] text-[#5C4A38] dark:text-[#C4A882] cursor-pointer focus:outline-none focus:border-[#B2967D]"
+            >
+              <option value="recent">최근 읽은 순</option>
+              <option value="progress">진행률 높은 순</option>
+              <option value="title">제목순</option>
+            </select>
+            <ArrowUpDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[#9C8B7A] pointer-events-none" />
+          </div>
+
+          {/* 카테고리 필터 */}
+          {usedCategories.length > 1 && (
+            <div className="relative">
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="appearance-none pl-3 pr-8 py-1.5 text-xs rounded-lg bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] text-[#5C4A38] dark:text-[#C4A882] cursor-pointer focus:outline-none focus:border-[#B2967D]"
+              >
+                <option value="all">전체 카테고리</option>
+                {usedCategories.map(cat => (
+                  <option key={cat} value={cat}>{getCategoryLabel(cat)}</option>
+                ))}
+              </select>
+              <Filter className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[#9C8B7A] pointer-events-none" />
+            </div>
+          )}
+
+          {/* 결과 수 */}
+          <span className="text-[11px] text-[#9C8B7A]">
+            {currentDocs.length}권
+          </span>
+        </div>
+      )}
 
       {/* 콘텐츠 */}
       {currentDocs.length === 0 ? (
