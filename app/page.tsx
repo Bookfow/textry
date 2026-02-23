@@ -150,7 +150,7 @@ export default function LandingPage() {
             <h1 className="text-2xl font-bold shimmer-text" style={{ letterSpacing: '2px' }}>Textry</h1>
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            <Link href="/browse" className="text-sm font-medium text-white/70 hover:text-white transition-colors">둘러보기</Link>
+            <Link href="/home" className="text-sm font-medium text-white/70 hover:text-white transition-colors">둘러보기</Link>
             <a href="#concept" className="text-sm font-medium text-white/70 hover:text-white transition-colors">큐레이터란?</a>
             <a href="#monetize" className="text-sm font-medium text-white/70 hover:text-white transition-colors">수익화</a>
           </div>
@@ -210,7 +210,7 @@ export default function LandingPage() {
                   무료로 시작하기
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link href="/browse"
+                <Link href="/home"
                   className="flex items-center gap-2 px-6 py-3.5 md:px-8 md:py-4 rounded-full border border-white/15 text-white/80 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all text-base md:text-lg">
                   <Play className="w-5 h-5" />
                   콘텐츠 둘러보기
@@ -470,7 +470,7 @@ export default function LandingPage() {
               <span className="text-xs text-white/20">콘텐츠 큐레이션 플랫폼</span>
             </div>
             <div className="flex items-center gap-6 text-sm font-medium text-white/40">
-              <Link href="/browse" className="hover:text-white/60 transition-colors">둘러보기</Link>
+              <Link href="/home" className="hover:text-white/60 transition-colors">둘러보기</Link>
               <Link href="/policies/about" className="hover:text-white/60 transition-colors">소개</Link>
               <Link href="/policies/terms" className="hover:text-white/60 transition-colors">이용약관</Link>
               <Link href="/policies/privacy" className="hover:text-white/60 transition-colors">개인정보</Link>
