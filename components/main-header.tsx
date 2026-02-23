@@ -92,7 +92,7 @@ export function MainHeader({
           .eq('is_published', true)
           .ilike('title', `%${query}%`)
           .limit(5)
-        // 저자명 검색 (중복 제거)
+        // 창작자명 검색 (중복 제거)
         const { data: authorDocs } = await supabase
           .from('documents')
           .select('author_name')
@@ -109,7 +109,7 @@ export function MainHeader({
         const results: SearchResult[] = [
           ...uniqueWriters.map(name => ({
             type: 'writer' as const, id: name, title: name,
-            subtitle: '저자', thumbnail: null,
+            subtitle: '창작자', thumbnail: null,
           })),
           ...(docs || []).map(d => ({
             type: 'document' as const, id: d.id, title: d.title,
@@ -209,7 +209,7 @@ export function MainHeader({
                 </button>
               ))}
               {suggestions.filter(s => s.type === 'writer').length > 0 && (
-                <div className="px-4 py-2 bg-gray-50 dark:bg-[#2E2620] text-xs font-medium text-[#9C8B7A]">저자</div>
+                <div className="px-4 py-2 bg-gray-50 dark:bg-[#2E2620] text-xs font-medium text-[#9C8B7A]">창작자</div>
               )}
               {suggestions.filter(s => s.type === 'writer').map(result => (
                 <button key={result.id} onClick={() => handleResultClick(result)}
@@ -219,7 +219,7 @@ export function MainHeader({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1] truncate">{result.title}</p>
-                    <p className="text-xs text-[#9C8B7A]">저자 · 작품 보기</p>
+                    <p className="text-xs text-[#9C8B7A]">창작자 · 작품 보기</p>
                   </div>
                 </button>
               ))}
@@ -264,7 +264,7 @@ export function MainHeader({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
               <input
                 type="text"
-                placeholder="콘텐츠, 큐레이터 또는 저자 검색..."
+                placeholder="콘텐츠, 큐레이터 또는 창작자 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setShowDropdown(true)}
@@ -310,7 +310,7 @@ export function MainHeader({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
               <input
                 type="text"
-                placeholder="콘텐츠, 큐레이터 또는 저자 검색..."
+                placeholder="콘텐츠, 큐레이터 또는 창작자 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setShowDropdown(true)}
@@ -389,7 +389,7 @@ export function MainHeader({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9C8B7A] w-5 h-5 pointer-events-none z-10" />
             <input
               type="text"
-              placeholder="콘텐츠, 큐레이터 또는 저자 검색..."
+              placeholder="콘텐츠, 큐레이터 또는 창작자 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setShowDropdown(true)}

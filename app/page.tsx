@@ -245,7 +245,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ 큐레이터/저자 개념 ━━━ */}
+      {/* ━━━ 큐레이터/창작자 개념 ━━━ */}
       <section id="concept" ref={concept.ref} className="relative py-32">
         <div className="absolute inset-0 bg-gradient-to-b from-[#0A0806] via-[#12100C] to-[#0A0806]" />
         <div className="relative z-10 max-w-6xl mx-auto px-6">
@@ -255,11 +255,11 @@ export default function LandingPage() {
                   New Concept
                 </p>
                 <h3 className="text-4xl md:text-5xl font-black text-white mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
-                  저자와 큐레이터,<br />두 개의 역할
+                  창작자와 큐레이터,<br />두 개의 역할
                 </h3>
                 <p className="text-lg font-medium text-white/45 max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                   Textry에서는 콘텐츠를 쓴 사람과 공유하는 사람을 구분합니다.
-                  <br />누구나 큐레이터가 될 수 있고, 본인의 작품을 올리면 저자이자 큐레이터가 됩니다.
+                  <br />누구나 큐레이터가 될 수 있고, 본인의 작품을 올리면 창작자이자 큐레이터가 됩니다.
                 </p>
               </div>
 
@@ -272,9 +272,9 @@ export default function LandingPage() {
                       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#5C4A38] to-[#8B7049] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                         <BookOpen className="w-8 h-8 text-white" />
                       </div>
-                      <h4 className="text-2xl font-bold text-white mb-3">저자</h4>
+                      <h4 className="text-2xl font-bold text-white mb-3">창작자</h4>
                       <p className="font-medium text-white/45 leading-relaxed mb-6">
-                        콘텐츠를 직접 창작한 원작자입니다. 시, 소설, 논문, 에세이 등 자신의 작품이 Textry에서 독자를 만납니다.
+                        콘텐츠를 직접 창작한 원작 창작자입니다. 시, 소설, 논문, 에세이 등 자신의 작품이 Textry에서 독자를 만납니다.
                       </p>
                       <div className="flex items-center gap-2 text-sm text-[#c9a96e]/80">
                         <Star className="w-4 h-4" />
@@ -310,7 +310,7 @@ export default function LandingPage() {
                 <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/[0.03] border border-white/[0.06]">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#5C4A38] to-[#c9a96e] flex items-center justify-center text-white text-xs font-bold">+</div>
                   <span className="text-white/50">직접 쓴 콘텐츠를 올리면?</span>
-                  <span className="text-[#c9a96e] font-semibold">저자 · 큐레이터</span>
+                  <span className="text-[#c9a96e] font-semibold">창작자 · 큐레이터</span>
                 </div>
               </div>
 </>

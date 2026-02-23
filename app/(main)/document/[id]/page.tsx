@@ -364,9 +364,9 @@ export default function DocumentDetailPage() {
 
               {author && (
                 <div className="mb-4">
-                  {/* 저자 + 큐레이터 */}
+                  {/* 창작자 + 큐레이터 */}
                   <div className="flex flex-col gap-2">
-                    {/* 저자 (author_name이 있고 업로더와 다를 때) */}
+                    {/* 창작자 (author_name이 있고 업로더와 다를 때) */}
                     {(doc as any).author_name && (doc as any).author_name !== author.username && (
                       <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name)}`}>
                         <div className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -375,7 +375,7 @@ export default function DocumentDetailPage() {
                           </div>
                           <div>
                             <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">{(doc as any).author_name}</span>
-                            <span className="text-[10px] text-[#9C8B7A] ml-1.5">저자</span>
+                            <span className="text-[10px] text-[#9C8B7A] ml-1.5">창작자</span>
                           </div>
                         </div>
                       </Link>
@@ -394,7 +394,7 @@ export default function DocumentDetailPage() {
                           )}
                           <div>
                             <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">{author.username || author.email}</span>
-                            <span className="text-[10px] text-[#9C8B7A] ml-1.5">{(doc as any).author_name && (doc as any).author_name === (author.username || author.email) ? '저자 · 큐레이터' : '큐레이터'}</span>
+                            <span className="text-[10px] text-[#9C8B7A] ml-1.5">{(doc as any).author_name && (doc as any).author_name === (author.username || author.email) ? '창작자 · 큐레이터' : '큐레이터'}</span>
                           </div>
                         </div>
                       </Link>
@@ -465,7 +465,7 @@ export default function DocumentDetailPage() {
           {[
             { key: 'intro' as const, label: '소개' },
             { key: 'info' as const, label: '도서정보' },
-            { key: 'author' as const, label: (doc as any).author_name && (doc as any).author_name !== author?.username ? '저자·큐레이터' : '큐레이터' },
+            { key: 'author' as const, label: (doc as any).author_name && (doc as any).author_name !== author?.username ? '창작자·큐레이터' : '큐레이터' },
             { key: 'toc' as const, label: '목차' },
           ].map((tab) => (
             <button
@@ -564,13 +564,13 @@ export default function DocumentDetailPage() {
             </div>
           )}
 
-          {/* 저자/큐레이터 탭 */}
+          {/* 창작자/큐레이터 탭 */}
           {activeTab === 'author' && author && (
             <div>
-              {/* 저자 정보 (author_name이 있고 업로더와 다를 때) */}
+              {/* 창작자 정보 (author_name이 있고 업로더와 다를 때) */}
               {(doc as any).author_name && (doc as any).author_name !== author.username && (
                 <div className="mb-5 pb-5 border-b border-[#E7D8C9] dark:border-[#3A302A]">
-                  <p className="text-[10px] uppercase tracking-wider text-[#9C8B7A] font-semibold mb-3">저자</p>
+                  <p className="text-[10px] uppercase tracking-wider text-[#9C8B7A] font-semibold mb-3">창작자</p>
                   <div className="flex items-center gap-4 mb-3">
                     <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name)}`}>
                       <div className="w-14 h-14 bg-gradient-to-br from-[#5C4A38] to-[#8B7049] rounded-full flex items-center justify-center text-white font-bold text-lg">
@@ -586,12 +586,12 @@ export default function DocumentDetailPage() {
                   {(doc as any).author_bio ? (
                     <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{(doc as any).author_bio}</p>
                   ) : (
-                    <p className="text-sm text-[#9C8B7A] italic">저자 소개가 등록되지 않았습니다.</p>
+                    <p className="text-sm text-[#9C8B7A] italic">창작자 소개가 등록되지 않았습니다.</p>
                   )}
-                  {/* 이 저자의 다른 도서 */}
+                  {/* 이 창작자의 다른 작품 */}
                   {moreDocs.length > 0 && (
                     <div className="mt-4">
-                      <p className="text-xs text-[#9C8B7A] mb-2">이 저자의 다른 도서 ({moreDocs.length})</p>
+                      <p className="text-xs text-[#9C8B7A] mb-2">이 창작자의 다른 작품 ({moreDocs.length})</p>
                       <div className="space-y-1.5">
                         {moreDocs.slice(0, 4).map(d => (
                           <div key={d.id} onClick={() => router.push(`/document/${d.id}`)}
@@ -619,7 +619,7 @@ export default function DocumentDetailPage() {
               {/* 큐레이터 정보 (업로드한 사람) */}
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-[#9C8B7A] font-semibold mb-3">
-                  {(doc as any).author_name && (doc as any).author_name === (author.username || author.email) ? '저자 · 큐레이터' : '큐레이터'}
+                  {(doc as any).author_name && (doc as any).author_name === (author.username || author.email) ? '창작자 · 큐레이터' : '큐레이터'}
                 </p>
                 <div className="flex items-center gap-4 mb-3">
                   <Link href={`/profile/${author.id}`}>
@@ -651,7 +651,7 @@ export default function DocumentDetailPage() {
                   <p className="text-sm text-[#9C8B7A] italic">큐레이터 소개가 등록되지 않았습니다.</p>
                 )}
 
-                {/* 저자=큐레이터인 경우 다른 도서 목록 */}
+                {/* 창작자=큐레이터인 경우 다른 도서 목록 */}
                 {(!(doc as any).author_name || (doc as any).author_name === author.username) && moreDocs.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-[#E7D8C9] dark:border-[#3A302A]">
                     <p className="text-xs text-[#9C8B7A] mb-2">다른 콘텐츠 ({moreDocs.length})</p>

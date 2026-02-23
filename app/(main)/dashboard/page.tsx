@@ -933,22 +933,22 @@ export default function DashboardPage() {
                     <p className="text-xs text-gray-400 dark:text-gray-500 text-right">{newDescription.length}/50</p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-author-name">저자명</Label>
+                    <Label htmlFor="edit-author-name">창작자명</Label>
                     <input
                       id="edit-author-name"
                       value={newAuthorName}
                       onChange={(e) => setNewAuthorName(e.target.value)}
-                      placeholder="원저자 이름 (비워두면 큐레이터 이름 표시)"
+                      placeholder="원작 창작자 이름 (비워두면 큐레이터 이름 표시)"
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-author-bio">저자 소개</Label>
+                    <Label htmlFor="edit-author-bio">창작자 소개</Label>
                     <textarea
                       id="edit-author-bio"
                       value={newAuthorBio}
                       onChange={(e) => setNewAuthorBio(e.target.value)}
-                      placeholder="저자에 대한 소개 (비워두면 큐레이터 프로필 소개 표시)"
+                      placeholder="창작자에 대한 소개 (비워두면 큐레이터 프로필 소개 표시)"
                       rows={3}
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
