@@ -984,7 +984,7 @@ export default function ReadPage() {
       />
 
       {/* ━━━ 배경/밝기 팝업 (PDF 모드에서만, EPUB 제외) ━━━ */}
-      {showThemePopup && viewMode !== 'reflow' && !isEpub && (
+      {showThemePopup && viewMode !== 'reflow' && !isEpub && document?.content_type !== 'webtoon' && (
         <div ref={themePopupRef} className="fixed top-[62px] left-1/2 -translate-x-1/2 w-56 bg-[#241E18] border border-[#3A302A] rounded-xl shadow-2xl p-4 z-[9999]">
           <p className="text-xs text-[#9C8B7A] mb-2 font-medium">배경 테마</p>
           <div className="flex gap-2 mb-4">
@@ -1121,7 +1121,11 @@ export default function ReadPage() {
 
             <div className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5">
               {/* ━━━ 뷰 모드 버튼 ━━━ */}
-              {isEpub ? (
+              {document?.content_type === 'webtoon' ? (
+                <div className="flex items-center bg-[#2E2620] rounded-lg px-2 py-1">
+                  <span className="text-xs text-[#C4A882]">🎨 웹툰</span>
+                </div>
+              ) : isEpub ? (
                 <div className="flex items-center bg-[#2E2620] rounded-lg p-0.5">
                   <button className="p-1.5 rounded-md bg-[#B2967D] text-[#1A1410]" title="리플로우 모드 (EPUB)">
                     <AlignLeft className="w-4 h-4" />
