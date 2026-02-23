@@ -10,6 +10,7 @@ import { Eye, ThumbsUp, TrendingUp, Heart, Search, Sparkles, Filter, BookOpen } 
 import { getCategoryIcon, getCategoryLabel, CATEGORIES } from '@/lib/categories'
 import { getLanguageFlag } from '@/lib/languages'
 import { DocumentCard } from '@/components/document-card'
+import { CardGridSkeleton } from '@/components/loading-skeleton'
 import { PageAdBanner } from '@/components/page-ad-banner'
 
 const PAGE_SIZE = 24
@@ -130,22 +131,8 @@ function BrowseContent() {
   if (loading) {
     return (
       <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-6">
-        <div className="animate-pulse space-y-6">
-          <div className="flex gap-2">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="h-9 w-20 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full" />
-            ))}
-          </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <div key={i} className="space-y-2">
-                <div className="aspect-[3/4] bg-[#EEE4E1] dark:bg-[#2E2620] rounded-xl" />
-                <div className="h-4 bg-[#EEE4E1] dark:bg-[#2E2620] rounded w-3/4" />
-                <div className="h-3 bg-[#EEE4E1] dark:bg-[#2E2620] rounded w-1/2" />
-              </div>
-            ))}
-          </div>
-        </div>
+        <div className="h-8 w-48 bg-[#EEE4E1] dark:bg-[#2E2620] rounded-lg mb-6 animate-pulse" />
+        <CardGridSkeleton count={12} />
       </main>
     )
   }

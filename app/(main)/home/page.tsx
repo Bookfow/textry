@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
 import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft, Clock, BarChart3, Eye, FileText, Flame, Lock, LogIn } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
+import { HomeSkeleton } from '@/components/loading-skeleton'
 import { PageAdBanner } from '@/components/page-ad-banner'
 import { CATEGORIES } from '@/lib/categories'
 
