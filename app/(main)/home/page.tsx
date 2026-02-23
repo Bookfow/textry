@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { supabase, Document, Profile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
-import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft, Clock, BarChart3, Eye, FileText, Flame } from 'lucide-react'
+import { BookOpen, Users, TrendingUp, Sparkles, Crown, ChevronRight, ChevronLeft, Clock, BarChart3, Eye, FileText, Flame, Lock, LogIn } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
 import { PageAdBanner } from '@/components/page-ad-banner'
 import { CATEGORIES } from '@/lib/categories'
@@ -393,6 +393,26 @@ export default function HomePage() {
     )
   }
 
+
+  // ━━━ 비로그인 유도 카드 ━━━
+  const LoginPromptCard = ({ icon: Icon, title, description }: { icon: any; title: string; description: string }) => (
+    <div className="mb-10">
+      <div className="flex items-center gap-2 mb-4">
+        <Icon className="w-5 h-5 text-[#B2967D]" />
+        <h2 className="text-lg md:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">{title}</h2>
+      </div>
+      <Link href="/login">
+        <div className="relative overflow-hidden rounded-2xl border border-dashed border-[#E7D8C9] dark:border-[#3A302A] p-8 text-center hover:border-[#B2967D] hover:bg-[#EEE4E1]/30 dark:hover:bg-[#2E2620]/30 transition-all cursor-pointer group">
+          <div className="w-12 h-12 rounded-full bg-[#EEE4E1] dark:bg-[#2E2620] flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+            <LogIn className="w-5 h-5 text-[#B2967D]" />
+          </div>
+          <p className="text-sm font-medium text-[#5C4A38] dark:text-[#C4A882] mb-1">{description}</p>
+          <p className="text-xs text-[#9C8B7A]">로그인하고 이용하기 →</p>
+        </div>
+      </Link>
+    </div>
+  )
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -527,8 +547,11 @@ export default function HomePage() {
           ) : (
             <>
               {/* 이어 읽기 */}
-              {continueReading.length > 0 && (
+              {user && continueReading.length > 0 && (
                 <CarouselSection title="이어서 읽기" icon={BookOpen} docs={filterByCategory(continueReading)} />
+              )}
+              {!user && (
+                <LoginPromptCard icon={BookOpen} title="이어서 읽기" description="로그인하면 읽던 곳에서 이어서 읽을 수 있어요" />
               )}
 
               {/* 랭킹 */}
@@ -621,12 +644,17 @@ export default function HomePage() {
               <CarouselSection title="새로운 콘텐츠" icon={Sparkles} docs={filteredRecent} showMore="/browse?sort=recent" />
 
               {/* 이어서 읽을 콘텐츠 (reading_sessions 기반) */}
-              {sessionContinue.length > 0 && (
+              {user && sessionContinue.length > 0 && (
                 <CarouselSection title="이어서 읽을 콘텐츠" icon={Clock} docs={filterByCategory(sessionContinue)} showMore="/continue-reading" />
               )}
 
               {/* 구독자 콘텐츠 */}
-              <CarouselSection title="구독 중인 새 콘텐츠" icon={Users} docs={filterByCategory(subscribedDocs)} />
+              {user && filterByCategory(subscribedDocs).length > 0 && (
+                <CarouselSection title="구독 중인 새 콘텐츠" icon={Users} docs={filterByCategory(subscribedDocs)} />
+              )}
+              {!user && (
+                <LoginPromptCard icon={Users} title="구독 중인 새 콘텐츠" description="큐레이터를 구독하면 새 콘텐츠를 놓치지 않아요" />
+              )}
             </>
           )}
         </div>
