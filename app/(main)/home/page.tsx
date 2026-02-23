@@ -510,6 +510,11 @@ export default function HomePage() {
             </div>
           )}
 
+          {/* 비로그인 통계 유도 */}
+          {!user && (
+            <LoginPromptCard icon={BarChart3} title="이번 주 Textry에서는" description="로그인하면 Textry의 읽기 통계를 확인할 수 있어요" />
+          )}
+
           {/* ━━━ 카테고리 탭 ━━━ */}
           <div className="mb-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
             <div className="flex items-center justify-center gap-2 pb-2 min-w-max">
