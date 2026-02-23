@@ -18,7 +18,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">제2조 (정의)</h2>
             <ul className="list-disc pl-6 space-y-1 mt-2">
-              <li><strong>"서비스"</strong>란 회사가 제공하는 PDF 콘텐츠 업로드, 열람, 공유, 구독, 댓글 등의 온라인 플랫폼을 말합니다.</li>
+              <li><strong>"서비스"</strong>란 회사가 제공하는 디지털 콘텐츠(PDF, EPUB, 웹툰 등) 업로드, 열람, 공유, 구독, 댓글 등의 온라인 플랫폼을 말합니다.</li>
               <li><strong>"회원"</strong>이란 회사와 서비스 이용 계약을 체결한 자를 말합니다.</li>
               <li><strong>"큐레이터"</strong>란 서비스에 콘텐츠를 업로드하는 회원을 말합니다.</li>
               <li><strong>"독자"</strong>란 서비스에서 콘텐츠를 열람하는 회원을 말합니다.</li>
@@ -39,7 +39,7 @@ export default function TermsPage() {
             <h2 className="text-xl font-bold mt-8 mb-3">제4조 (회원 가입)</h2>
             <ul className="list-disc pl-6 space-y-1 mt-2">
               <li>서비스 이용을 원하는 자는 회사가 정한 가입 양식에 따라 회원 정보를 기입한 후 이 약관에 동의한다는 의사 표시를 함으로써 회원 가입을 신청합니다.</li>
-              <li>소셜 로그인(카카오, Google)을 통해 가입할 경우, 해당 소셜 서비스의 이용약관에도 동의하는 것으로 간주됩니다.</li>
+              <li>소셜 로그인(카카오, 네이버)을 통해 가입할 경우, 해당 소셜 서비스의 이용약관에도 동의하는 것으로 간주됩니다.</li>
               <li>만 14세 미만의 아동은 서비스에 가입할 수 없습니다.</li>
               <li>회사는 다음 각 호에 해당하는 신청에 대하여는 승낙을 하지 않을 수 있습니다: 타인의 명의를 이용한 경우, 허위 정보를 기재한 경우, 기타 회사가 정한 이용 신청 요건이 미비된 경우.</li>
             </ul>
@@ -49,7 +49,7 @@ export default function TermsPage() {
             <h2 className="text-xl font-bold mt-8 mb-3">제5조 (서비스의 제공)</h2>
             <p>회사는 다음과 같은 서비스를 제공합니다.</p>
             <ul className="list-disc pl-6 space-y-1 mt-2">
-              <li>PDF 콘텐츠 업로드 및 공유 서비스</li>
+              <li>PDF, EPUB, 웹툰 등 디지털 콘텐츠 업로드 및 공유 서비스</li>
               <li>콘텐츠 열람 및 뷰어 서비스</li>
               <li>큐레이터 구독 및 알림 서비스</li>
               <li>댓글, 좋아요 등 커뮤니티 기능</li>

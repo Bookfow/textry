@@ -70,8 +70,9 @@ export default function PrivacyPage() {
                 <tbody className="text-gray-700 dark:text-gray-300">
                   <tr><td className="border dark:border-gray-700 px-3 py-2">Supabase Inc.</td><td className="border dark:border-gray-700 px-3 py-2">데이터 저장 및 인증 서비스</td></tr>
                   <tr><td className="border dark:border-gray-700 px-3 py-2">Vercel Inc.</td><td className="border dark:border-gray-700 px-3 py-2">웹 호스팅 및 콘텐츠 전송</td></tr>
-                  <tr><td className="border dark:border-gray-700 px-3 py-2">Google LLC</td><td className="border dark:border-gray-700 px-3 py-2">광고 서비스(AdSense), 소셜 로그인</td></tr>
-                  <tr><td className="border dark:border-gray-700 px-3 py-2">주식회사 카카오</td><td className="border dark:border-gray-700 px-3 py-2">소셜 로그인</td></tr>
+                  <tr><td className="border dark:border-gray-700 px-3 py-2">Google LLC | 광고 서비스(AdSense)</td></tr>
+                  <tr><td className="border dark:border-gray-700 px-3 py-2">주식회사 카카오 | 소셜 로그인(카카오) |
+| 네이버 주식회사 | 소셜 로그인(네이버)</td></tr>
                 </tbody>
               </table>
             </div>
