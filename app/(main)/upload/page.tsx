@@ -316,6 +316,29 @@ export default function UploadPage() {
             <p className="text-[#9C8B7A]">새로운 콘텐츠를 공유하세요</p>
           </div>
 
+          {/* 문서/웹툰 탭 */}
+          <div className="flex gap-2 mb-4">
+            <button onClick={() => setUploadTab('document')}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
+                uploadTab === 'document'
+                  ? 'bg-[#B2967D] text-white'
+                  : 'bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] text-[#5C4A38] dark:text-[#C4A882] hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620]'
+              }`}>
+              <FileText className="w-4 h-4" /> 문서
+            </button>
+            <button onClick={() => setUploadTab('webtoon')}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
+                uploadTab === 'webtoon'
+                  ? 'bg-[#B2967D] text-white'
+                  : 'bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] text-[#5C4A38] dark:text-[#C4A882] hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620]'
+              }`}>
+              <Palette className="w-4 h-4" /> 🎨 웹툰
+            </button>
+          </div>
+
+          {uploadTab === 'webtoon' ? (
+            <WebtoonUploadForm />
+          ) : (
           <div className="bg-white dark:bg-[#241E18] rounded-2xl border border-[#E7D8C9] dark:border-[#3A302A] shadow-sm">
             <div className="px-6 pt-6 pb-2">
               <h2 className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1]">콘텐츠 정보</h2>
@@ -391,6 +414,7 @@ export default function UploadPage() {
               </form>
             </div>
           </div>
+                  )}
         </div>
       </main>
     </div>
