@@ -169,13 +169,13 @@ export default function PDFViewer({
 
   const calculateFitWidth = useCallback(() => {
     const screenWidth = window.innerWidth
-    const screenHeight = window.innerHeight
+    const screenHeight = containerRef.current?.clientHeight || window.innerHeight
     const sidePanelWidth = showSidePanel ? (screenWidth < 640 ? 0 : 380) : 0
-    const controlBarHeight = 50
+    const controlBarHeight = 0
     const frameSize = 24
 
     const availableWidth = screenWidth - sidePanelWidth
-    const availableHeight = screenHeight - controlBarHeight - bottomOffset
+    const availableHeight = screenHeight - controlBarHeight
 
     const contentWidth = availableWidth - frameSize - 16
     const contentHeight = availableHeight - frameSize - 16

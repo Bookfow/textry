@@ -1261,7 +1261,7 @@ export default function ReadPage() {
       ) : null}
 
       {/* ━━━ 메인 컨텐츠 ━━━ */}
-      <div className="flex flex-1 overflow-hidden pt-[58px]">
+      <div className={`flex flex-1 overflow-hidden pt-[58px] ${!isPremium && !isRewardAdFree ? 'pb-[58px]' : ''}`}>
         <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidePanel ? 'sm:mr-[380px]' : ''}`}>
           <div className="flex-1 overflow-hidden transition-[filter,background-color] duration-300"
             style={{ backgroundColor: viewerBgColor, ...viewerFilterStyle }}>
