@@ -38,6 +38,17 @@ export type Document = {
   updated_at: string
   author_name: string | null
   author_bio: string | null
+  content_type: 'document' | 'webtoon'
+}
+
+export type WebtoonImage = {
+  id: string
+  document_id: string
+  image_url: string
+  image_order: number
+  width: number | null
+  height: number | null
+  created_at: string
 }
 export type Comment = {
   id: string

@@ -10,13 +10,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CATEGORIES } from '@/lib/categories'
 import { LANGUAGES } from '@/lib/languages'
-import { FileText, Upload as UploadIcon, LogIn } from 'lucide-react'
+import { FileText, Upload as UploadIcon, LogIn, Palette } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+const WebtoonUploadForm = dynamic(() => import('@/components/webtoon-upload-form'), { ssr: false })
 import { useToast } from '@/components/toast'
 
 export default function UploadPage() {
   const { user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
+  const [uploadTab, setUploadTab] = useState<'document' | 'webtoon'>('document')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('technology')

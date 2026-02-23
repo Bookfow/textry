@@ -62,6 +62,18 @@ const PDFViewer = dynamic(() => import('@/components/pdf-viewer'), {
   ),
 })
 
+const WebtoonViewer = dynamic(() => import('@/components/webtoon-viewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[#C4A882]">웹툰 뷰어 로딩 중...</p>
+      </div>
+    </div>
+  ),
+})
+
 const ReflowViewer = dynamic(() => import('@/components/reflow-viewer'), {
   ssr: false,
   loading: () => (
@@ -1265,7 +1277,18 @@ export default function ReadPage() {
         <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidePanel ? 'sm:mr-[380px]' : ''}`}>
           <div className="flex-1 overflow-hidden transition-[filter,background-color] duration-300"
             style={{ backgroundColor: viewerBgColor, ...viewerFilterStyle }}>
-            {viewMode === 'reflow' ? (
+            {document?.content_type === 'webtoon' ? (
+              <WebtoonViewer
+                documentId={documentId}
+                authorId={document?.author_id}
+                isPremium={isPremium}
+                isRewardAdFree={isRewardAdFree}
+                onProgress={(current, total) => {
+                  setPageNumber(current)
+                  setNumPages(total)
+                }}
+              />
+            ) : viewMode === 'reflow' ? (
               <ReflowViewer
                 pdfUrl={pdfUrl}
                 documentId={documentId}
