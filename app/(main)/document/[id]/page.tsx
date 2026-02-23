@@ -218,7 +218,7 @@ export default function DocumentDetailPage() {
         }
       }
 
-      // ━━━ 이 문서를 읽은 사람이 본 다른 문서 ━━━
+      // ━━━ 이 콘텐츠를 읽은 사람이 본 다른 문서 ━━━
       try {
         const { data: otherReaders } = await supabase
           .from('reading_sessions')
@@ -305,7 +305,7 @@ export default function DocumentDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-[#9C8B7A] mb-4">문서를 찾을 수 없습니다</p>
+          <p className="text-[#9C8B7A] mb-4">콘텐츠를 찾을 수 없습니다</p>
           <button onClick={() => router.push('/home')} className="text-[#B2967D] hover:underline">홈으로 돌아가기</button>
         </div>
       </div>
@@ -767,11 +767,11 @@ export default function DocumentDetailPage() {
           </div>
         )}
 
-        {/* 이 문서를 읽은 사람이 본 */}
+        {/* 이 콘텐츠를 읽은 사람이 본 */}
         {alsoReadDocs.length > 0 && (
           <div className="mb-6">
             <h2 className="text-lg font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-4">
-              이 문서를 읽은 사람이 본
+              이 콘텐츠를 읽은 사람이 본
             </h2>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
               {alsoReadDocs.map(d => (

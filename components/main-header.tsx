@@ -190,7 +190,7 @@ export function MainHeader({
           {!searchLoading && suggestions.length > 0 && (
             <>
               {suggestions.filter(s => s.type === 'document').length > 0 && (
-                <div className="px-4 py-2 bg-gray-50 dark:bg-[#2E2620] text-xs font-medium text-[#9C8B7A]">문서</div>
+                <div className="px-4 py-2 bg-gray-50 dark:bg-[#2E2620] text-xs font-medium text-[#9C8B7A]">콘텐츠</div>
               )}
               {suggestions.filter(s => s.type === 'document').map(result => (
                 <button key={result.id} onClick={() => handleResultClick(result)}

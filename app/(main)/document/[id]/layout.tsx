@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const authorName = author?.username || author?.email || '큐레이터'
     const title = `${doc.title} — ${authorName}`
     const description = doc.description
-      || `${authorName}님의 ${doc.category || '문서'} · ${doc.page_count || 0}페이지 · 조회 ${doc.view_count?.toLocaleString() || 0}회 — Textry에서 무료로 읽기`
+      || `${authorName}님의 ${doc.category || '콘텐츠'} · ${doc.page_count || 0}페이지 · 조회 ${doc.view_count?.toLocaleString() || 0}회 — Textry에서 무료로 읽기`
     const ogImage = doc.thumbnail_url || `${baseUrl}/og-default.png`
     const url = `${baseUrl}/document/${id}`
 
@@ -115,7 +115,7 @@ export default async function DocumentDetailLayout({ params, children }: Props) 
         items={[
           { name: '홈', url: baseUrl },
           { name: '탐색', url: `${baseUrl}/browse` },
-          { name: jsonLdProps?.title || '문서', url: `${baseUrl}/document/${id}` },
+          { name: jsonLdProps?.title || '콘텐츠', url: `${baseUrl}/document/${id}` },
         ]}
       />
       {jsonLdProps && <ArticleJsonLd {...jsonLdProps} />}

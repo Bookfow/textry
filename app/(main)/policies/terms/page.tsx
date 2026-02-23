@@ -12,13 +12,13 @@ export default function TermsPage() {
         <div className="prose prose-sm dark:prose-invert max-w-none space-y-6">
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">제1조 (목적)</h2>
-            <p>이 약관은 Textry(이하 "회사")가 제공하는 문서 스트리밍 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+            <p>이 약관은 Textry(이하 "회사")가 제공하는 콘텐츠 스트리밍 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
           </section>
 
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">제2조 (정의)</h2>
             <ul className="list-disc pl-6 space-y-1 mt-2">
-              <li><strong>"서비스"</strong>란 회사가 제공하는 PDF 문서 업로드, 열람, 공유, 구독, 댓글 등의 온라인 플랫폼을 말합니다.</li>
+              <li><strong>"서비스"</strong>란 회사가 제공하는 PDF 콘텐츠 업로드, 열람, 공유, 구독, 댓글 등의 온라인 플랫폼을 말합니다.</li>
               <li><strong>"회원"</strong>이란 회사와 서비스 이용 계약을 체결한 자를 말합니다.</li>
               <li><strong>"큐레이터"</strong>란 서비스에 콘텐츠를 업로드하는 회원을 말합니다.</li>
               <li><strong>"독자"</strong>란 서비스에서 콘텐츠를 열람하는 회원을 말합니다.</li>
@@ -49,8 +49,8 @@ export default function TermsPage() {
             <h2 className="text-xl font-bold mt-8 mb-3">제5조 (서비스의 제공)</h2>
             <p>회사는 다음과 같은 서비스를 제공합니다.</p>
             <ul className="list-disc pl-6 space-y-1 mt-2">
-              <li>PDF 문서 업로드 및 공유 서비스</li>
-              <li>문서 열람 및 PDF 뷰어 서비스</li>
+              <li>PDF 콘텐츠 업로드 및 공유 서비스</li>
+              <li>콘텐츠 열람 및 뷰어 서비스</li>
               <li>큐레이터 구독 및 알림 서비스</li>
               <li>댓글, 좋아요 등 커뮤니티 기능</li>
               <li>맞춤형 콘텐츠 추천</li>

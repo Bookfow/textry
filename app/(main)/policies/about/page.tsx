@@ -13,7 +13,7 @@ export default function AboutPage() {
         <div className="prose prose-sm dark:prose-invert max-w-none space-y-8">
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">Textry란?</h2>
-            <p>Textry는 전 세계 큐레이터와 독자를 연결하는 디지털 콘텐츠 플랫폼입니다. 누구나 자신의 문서를 업로드하고, 다양한 분야의 지식과 이야기를 공유할 수 있습니다.</p>
+            <p>Textry는 전 세계 큐레이터와 독자를 연결하는 디지털 콘텐츠 플랫폼입니다. 누구나 자신의 콘텐츠를 업로드하고, 다양한 분야의 지식과 이야기를 공유할 수 있습니다.</p>
           </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose">
@@ -22,7 +22,7 @@ export default function AboutPage() {
                 <Upload className="w-5 h-5 text-blue-600" />
               </div>
               <h3 className="font-bold text-gray-900 dark:text-white mb-1">콘텐츠 업로드</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">PDF, TXT, DOCX, MD 형식의 문서를 쉽게 업로드하고 전 세계와 공유하세요.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">PDF, TXT, DOCX, MD 형식의 콘텐츠를 쉽게 업로드하고 전 세계와 공유하세요.</p>
             </div>
 
             <div className="bg-white dark:bg-gray-900 rounded-xl border dark:border-gray-800 p-5">
@@ -54,7 +54,7 @@ export default function AboutPage() {
             <h2 className="text-xl font-bold mt-8 mb-3">큐레이터로 시작하기</h2>
             <ol className="list-decimal pl-6 space-y-2 mt-2">
               <li><strong>계정 생성:</strong> 이메일로 간단하게 가입합니다.</li>
-              <li><strong>문서 업로드:</strong> 본인의 콘텐츠를 업로드하고 카테고리, 설명을 설정합니다.</li>
+              <li><strong>콘텐츠 업로드:</strong> 본인의 콘텐츠를 업로드하고 카테고리, 설명을 설정합니다.</li>
               <li><strong>독자와 소통:</strong> 댓글을 통해 독자와 소통하고, 구독자를 늘려보세요.</li>
               <li><strong>수익화:</strong> 일정 조건(누적 읽기 시간 100시간, 가입 후 30일)을 달성하면 수익 배분을 시작합니다.</li>
             </ol>

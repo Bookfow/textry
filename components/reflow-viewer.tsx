@@ -804,7 +804,7 @@ cd C:\Users\user\textry && git add . && git commit -m "fix: 리플로우 설정 
             }}>
               <div className="text-2xl mb-2">📄</div>
               <p className="font-semibold mb-1" style={{ color: themeStyle.headingColor, fontSize: `${Math.round(fontSize * 0.9)}px` }}>
-                이 문서는 리플로우 모드를 지원하지 않습니다
+                이 콘텐츠는 리플로우 모드를 지원하지 않습니다
               </p>
               <p className="text-xs mb-4 leading-relaxed" style={{ color: themeStyle.muted }}>
                 스캔 이미지, 장식 폰트, 벡터 변환 등으로 인해{'\n'}

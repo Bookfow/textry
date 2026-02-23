@@ -58,7 +58,7 @@ export default function SafetyPage() {
             <h2 className="text-xl font-bold mt-8 mb-3">신고 절차</h2>
             <p>가이드라인을 위반하는 콘텐츠를 발견한 경우:</p>
             <ol className="list-decimal pl-6 space-y-2 mt-2">
-              <li>해당 문서의 댓글 섹션 하단에 있는 <strong>"신고"</strong> 버튼을 클릭합니다.</li>
+              <li>해당 콘텐츠의 댓글 섹션 하단에 있는 <strong>"신고"</strong> 버튼을 클릭합니다.</li>
               <li>신고 사유를 선택하고 상세 내용을 입력합니다.</li>
               <li>Textry 운영팀이 신고 내용을 검토하고 적절한 조치를 취합니다.</li>
             </ol>

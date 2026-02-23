@@ -191,11 +191,11 @@ export default function ContinueReadingPage() {
               <BookOpen className="w-10 h-10 text-[#B2967D]" />
             </div>
           </div>
-          <p className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-2">아직 읽고 있는 문서가 없어요</p>
-          <p className="text-sm text-[#9C8B7A] mb-6 text-center max-w-xs">문서를 읽기 시작하면 여기에 표시됩니다.<br />지금 새로운 문서를 발견해보세요!</p>
+          <p className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-2">아직 읽고 있는 콘텐츠가 없어요</p>
+          <p className="text-sm text-[#9C8B7A] mb-6 text-center max-w-xs">콘텐츠를 읽기 시작하면 여기에 표시됩니다.<br />지금 새로운 콘텐츠를 발견해보세요!</p>
           <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#B2967D] hover:bg-[#a67c52] text-white text-sm font-medium rounded-full transition-colors shadow-lg shadow-[#B2967D]/20">
             <Compass className="w-4 h-4" />
-            문서 둘러보기
+            콘텐츠 둘러보기
           </Link>
         </div>
       ) : (

@@ -121,11 +121,11 @@ export default function ReadingListPage() {
               <Heart className="w-10 h-10 text-red-400 dark:text-red-300" />
             </div>
           </div>
-          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">아직 찜한 문서가 없어요</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 text-center max-w-xs">문서를 읽으면서 하트 버튼을 눌러<br />나만의 컬렉션을 만들어보세요!</p>
+          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">아직 찜한 콘텐츠가 없어요</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 text-center max-w-xs">콘텐츠를 읽으면서 하트 버튼을 눌러<br />나만의 컬렉션을 만들어보세요!</p>
           <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl transition-colors shadow-lg shadow-red-500/20">
             <Compass className="w-4 h-4" />
-            문서 둘러보기
+            콘텐츠 둘러보기
           </Link>
         </div>
       ) : (

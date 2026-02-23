@@ -546,8 +546,8 @@ export default function HomePage() {
 
           {!hasAnyContent ? (
             <div className="text-center py-20">
-              <p className="text-[#9C8B7A] mb-4">추천할 문서가 없습니다</p>
-              <Link href="/browse" className="text-[#B2967D] hover:underline">문서 둘러보기</Link>
+              <p className="text-[#9C8B7A] mb-4">추천할 콘텐츠가 없습니다</p>
+              <Link href="/browse" className="text-[#B2967D] hover:underline">콘텐츠 둘러보기</Link>
             </div>
           ) : (
             <>

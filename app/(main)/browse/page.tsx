@@ -194,7 +194,7 @@ function BrowseContent() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <h1 className="text-lg md:text-xl font-bold text-[#2D2016] dark:text-[#EEE4E1]">
-            {authorFilter ? `${authorFilter}의 문서` : authorIdFilter ? `${authorIdName || '큐레이터'}의 문서` : category === 'all' ? '전체 문서' : `${getCategoryIcon(category)} ${getCategoryLabel(category)}`}
+            {authorFilter ? `${authorFilter}의 문서` : authorIdFilter ? `${authorIdName || '큐레이터'}의 문서` : category === 'all' ? '전체 콘텐츠' : `${getCategoryIcon(category)} ${getCategoryLabel(category)}`}
           </h1>
           <span className="text-sm text-[#9C8B7A]">{documents.length}개</span>
         </div>
@@ -226,11 +226,11 @@ function BrowseContent() {
               <BookOpen className="w-10 h-10 text-[#B2967D]" />
             </div>
           </div>
-          <p className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-2">문서가 없습니다</p>
+          <p className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-2">콘텐츠가 없습니다</p>
           <p className="text-sm text-[#9C8B7A] mb-6 text-center max-w-xs">
             {category !== 'all'
-              ? `${getCategoryLabel(category)} 카테고리에 아직 문서가 없습니다.`
-              : '새로운 문서가 곧 등록될 예정입니다.'
+              ? `${getCategoryLabel(category)} 카테고리에 아직 콘텐츠가 없습니다.`
+              : '새로운 콘텐츠가 곧 등록될 예정입니다.'
             }
           </p>
           {category !== 'all' && (

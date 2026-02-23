@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const authorName = author?.username || author?.email || '큐레이터'
     const title = `${doc.title} | Textry`
-    const description = doc.description || `${authorName}님의 문서 — Textry에서 읽기`
+    const description = doc.description || `${authorName}님의 콘텐츠 — Textry에서 읽기`
     const ogImage = doc.thumbnail_url || 'https://textry-v1.vercel.app/og-default.png'
 
     return {
@@ -126,7 +126,7 @@ export default async function ReadLayout({ params, children }: Props) {
         items={[
           { name: '홈', url: baseUrl },
           { name: '탐색', url: `${baseUrl}/browse` },
-          { name: jsonLdProps?.title || '문서', url: `${baseUrl}/read/${id}` },
+          { name: jsonLdProps?.title || '콘텐츠', url: `${baseUrl}/read/${id}` },
         ]}
       />
       {jsonLdProps && <ArticleJsonLd {...jsonLdProps} />}

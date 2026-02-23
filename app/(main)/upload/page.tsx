@@ -274,7 +274,7 @@ export default function UploadPage() {
         pageCount = epubData.chapters.length
       }
 
-      setProgress(60); setProgressMessage('문서 정보 저장 중...')
+      setProgress(60); setProgressMessage('콘텐츠 정보 저장 중...')
       const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, category, language, file_path: uploadFileName, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: Math.floor(file.size / 1000), page_count: pageCount || null, is_published: true }).select('id').single()
       if (dbError) throw dbError
 
@@ -308,24 +308,24 @@ export default function UploadPage() {
       <main className="p-4 md:p-6 lg:p-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">문서 업로드</h1>
-            <p className="text-[#9C8B7A]">새로운 문서를 공유하세요</p>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">콘텐츠 업로드</h1>
+            <p className="text-[#9C8B7A]">새로운 콘텐츠를 공유하세요</p>
           </div>
 
           <div className="bg-white dark:bg-[#241E18] rounded-2xl border border-[#E7D8C9] dark:border-[#3A302A] shadow-sm">
             <div className="px-6 pt-6 pb-2">
-              <h2 className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1]">문서 정보</h2>
-              <p className="text-sm text-[#9C8B7A] mt-1">문서의 기본 정보를 입력해주세요</p>
+              <h2 className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1]">콘텐츠 정보</h2>
+              <p className="text-sm text-[#9C8B7A] mt-1">콘텐츠의 기본 정보를 입력해주세요</p>
             </div>
             <div className="px-6 pb-6">
               <form onSubmit={handleUpload} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="title" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">제목 *</Label>
-                  <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="문서 제목을 입력하세요" required className={inputClass} />
+                  <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="콘텐츠 제목을 입력하세요" required className={inputClass} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">설명</Label>
-                  <Textarea id="description" value={description} onChange={(e) => { if (e.target.value.length <= 50) setDescription(e.target.value) }} placeholder="문서에 대한 간단한 설명 (최대 50자)" rows={2} maxLength={50} className={`${inputClass} resize-none`} />
+                  <Textarea id="description" value={description} onChange={(e) => { if (e.target.value.length <= 50) setDescription(e.target.value) }} placeholder="콘텐츠에 대한 간단한 설명 (최대 50자)" rows={2} maxLength={50} className={`${inputClass} resize-none`} />
                   <p className="text-xs text-[#9C8B7A] text-right">{description.length}/50</p>
                 </div>
                 <div className="space-y-4">
@@ -353,7 +353,7 @@ export default function UploadPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="file" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">문서 파일 *</Label>
+                  <Label htmlFor="file" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">콘텐츠 파일 *</Label>
                   <Input id="file" type="file" onChange={handleFileChange} disabled={uploading} accept=".pdf,.epub,.txt,.docx" required className={inputClass} />
                   <p className="text-xs text-[#9C8B7A]">지원 형식: PDF, EPUB, TXT, DOCX (최대 100MB)</p>
                   {file && (<div className="flex items-center gap-2 text-sm text-[#5C4A38] dark:text-[#C4A882]"><FileText className="w-4 h-4" /><span>{file.name}</span><span className="text-xs">({(file.size / 1024 / 1024).toFixed(2)} MB)</span></div>)}
@@ -376,7 +376,7 @@ export default function UploadPage() {
                     <input type="checkbox" checked={copyrightAgreed} onChange={(e) => setCopyrightAgreed(e.target.checked)} className="mt-1 w-4 h-4 rounded border-[#E7D8C9] dark:border-[#3A302A] text-[#B2967D] focus:ring-[#B2967D]" />
                     <div className="text-sm">
                       <p className="font-medium text-[#5C4A38] dark:text-[#C4A882]">저작권 확인 *</p>
-                      <p className="text-[#9C8B7A] mt-1">본인이 이 문서의 저작권을 보유하고 있거나, 저작권자로부터 배포 권한을 부여받았음을 확인합니다. 타인의 저작권을 침해하는 콘텐츠를 업로드할 경우 계정 정지 및 법적 책임이 발생할 수 있습니다.</p>
+                      <p className="text-[#9C8B7A] mt-1">본인이 이 콘텐츠의 저작권을 보유하고 있거나, 저작권자로부터 배포 권한을 부여받았음을 확인합니다. 타인의 저작권을 침해하는 콘텐츠를 업로드할 경우 계정 정지 및 법적 책임이 발생할 수 있습니다.</p>
                     </div>
                   </label>
                 </div>

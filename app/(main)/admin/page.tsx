@@ -259,8 +259,8 @@ export default function AdminPage() {
                 {[
                   { label: '전체 사용자', value: formatNumber(stats.totalUsers), icon: Users, color: 'text-blue-500', sub: `큐레이터 ${stats.totalAuthors} / 독자 ${stats.totalReaders}` },
                   { label: '프리미엄', value: formatNumber(stats.premiumCount), icon: Crown, color: 'text-amber-500', sub: `전환율 ${stats.totalUsers > 0 ? ((stats.premiumCount / stats.totalUsers) * 100).toFixed(1) : 0}%` },
-                  { label: '총 문서', value: formatNumber(stats.totalDocuments), icon: FileText, color: 'text-green-500', sub: `큐레이터당 ${stats.totalAuthors > 0 ? (stats.totalDocuments / stats.totalAuthors).toFixed(1) : 0}개` },
-                  { label: '총 조회수', value: formatNumber(stats.totalViews), icon: Eye, color: 'text-purple-500', sub: `문서당 ${stats.totalDocuments > 0 ? Math.round(stats.totalViews / stats.totalDocuments) : 0}회` },
+                  { label: '총 콘텐츠', value: formatNumber(stats.totalDocuments), icon: FileText, color: 'text-green-500', sub: `큐레이터당 ${stats.totalAuthors > 0 ? (stats.totalDocuments / stats.totalAuthors).toFixed(1) : 0}개` },
+                  { label: '총 조회수', value: formatNumber(stats.totalViews), icon: Eye, color: 'text-purple-500', sub: `콘텐츠당 ${stats.totalDocuments > 0 ? Math.round(stats.totalViews / stats.totalDocuments) : 0}회` },
                   { label: '총 읽기 시간', value: formatTime(stats.totalReadingTimeSec), icon: Clock, color: 'text-teal-500', sub: '' },
                   { label: '플랫폼 수익', value: `$${stats.totalPlatformRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-red-500', sub: `큐레이터 지급: $${stats.totalAuthorPayout.toFixed(2)}` },
                   { label: '신고 접수', value: formatNumber(reports.length), icon: Flag, color: 'text-orange-500', sub: `대기중 ${reports.filter(r => r.status === 'pending').length}건` },
@@ -417,7 +417,7 @@ export default function AdminPage() {
               </div>
 
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-                <h3 className="font-bold text-gray-900 dark:text-white mb-4">인기 문서 TOP 10 (전체)</h3>
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4">인기 콘텐츠 TOP 10 (전체)</h3>
                 <div className="space-y-2">
                   {documents.slice(0, 10).map((doc: any, i: number) => (
                     <div key={doc.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
@@ -495,7 +495,7 @@ export default function AdminPage() {
               <div className="flex items-center gap-4">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="text" placeholder="문서 검색" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                  <input type="text" placeholder="콘텐츠 검색" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white" />
                 </div>
                 <select value={docSort} onChange={e => setDocSort(e.target.value as any)}
@@ -509,7 +509,7 @@ export default function AdminPage() {
 
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
                 <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-500 dark:text-gray-400">
-                  <div className="col-span-5">문서</div>
+                  <div className="col-span-5">콘텐츠</div>
                   <div className="col-span-2">큐레이터</div>
                   <div className="col-span-1 text-center">조회수</div>
                   <div className="col-span-2 text-center">읽기 시간</div>
@@ -527,7 +527,7 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-gray-400">총 {filteredDocs.length}개 문서 (상위 50개 표시)</p>
+              <p className="text-xs text-gray-400">총 {filteredDocs.length}개 콘텐츠 (상위 50개 표시)</p>
             </div>
           )}
 
@@ -672,7 +672,7 @@ export default function AdminPage() {
                         </div>
 
                         <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                          📄 {report.documents?.title || '삭제된 문서'}
+                          📄 {report.documents?.title || '삭제된 콘텐츠'}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                           신고자: {report.reporter?.username || report.reporter?.email || '알 수 없음'}
@@ -689,7 +689,7 @@ export default function AdminPage() {
                         {report.documents?.id && (
                           <button onClick={() => window.open(`/read/${report.documents.id}`, '_blank')}
                             className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                            <ExternalLink className="w-3 h-3" /> 문서 보기
+                            <ExternalLink className="w-3 h-3" /> 콘텐츠 보기
                           </button>
                         )}
                         {report.status === 'pending' && (
@@ -705,13 +705,13 @@ export default function AdminPage() {
                         {(report.status === 'pending' || report.status === 'reviewed') && (
                           <>
                             <button onClick={async () => {
-                              if (!confirm('해당 문서를 삭제하고 신고를 처리하시겠습니까?')) return
+                              if (!confirm('해당 콘텐츠를 삭제하고 신고를 처리하시겠습니까?')) return
                               const { error: delErr } = await supabase.from('documents').delete().eq('id', report.documents?.id)
-                              if (delErr) { toast.error('문서 삭제 실패'); return }
+                              if (delErr) { toast.error('콘텐츠 삭제 실패'); return }
                               const { error } = await supabase.from('reports').update({ status: 'resolved' }).eq('id', report.id)
-                              if (!error) { setReports(prev => prev.map(r => r.id === report.id ? { ...r, status: 'resolved' } : r)); toast.success('문서 삭제 및 신고 처리 완료') }
+                              if (!error) { setReports(prev => prev.map(r => r.id === report.id ? { ...r, status: 'resolved' } : r)); toast.success('콘텐츠 삭제 및 신고 처리 완료') }
                             }} className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
-                              <Trash2 className="w-3 h-3" /> 문서 삭제
+                              <Trash2 className="w-3 h-3" /> 콘텐츠 삭제
                             </button>
                             <button onClick={async () => {
                               const { error } = await supabase.from('reports').update({ status: 'dismissed' }).eq('id', report.id)

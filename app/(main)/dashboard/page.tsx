@@ -172,7 +172,7 @@ export default function DashboardPage() {
   }
 
   const handleDelete = async (doc: Document) => {
-    if (!confirm(`"${doc.title}" 문서를 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return
+    if (!confirm(`"${doc.title}" 콘텐츠를 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return
     try {
       await supabase.storage.from('documents').remove([doc.file_path])
       if (doc.thumbnail_url) {
@@ -181,12 +181,12 @@ export default function DashboardPage() {
       }
       const { error } = await supabase.from('documents').delete().eq('id', doc.id)
       if (error) throw error
-      toast.success('문서가 삭제되었습니다.')
+      toast.success('콘텐츠가 삭제되었습니다.')
       setDocuments(documents.filter(d => d.id !== doc.id))
       loadDashboard()
     } catch (err) {
       console.error('Error deleting document:', err)
-      toast.error('문서 삭제에 실패했습니다.')
+      toast.error('콘텐츠 삭제에 실패했습니다.')
     }
   }
 
@@ -234,14 +234,14 @@ export default function DashboardPage() {
         .update({ title: newTitle.trim(), description: newDescription.trim() || null, author_name: newAuthorName.trim() || null, author_bio: newAuthorBio.trim() || null })
         .eq('id', docId)
       if (error) throw error
-      toast.success('문서가 수정되었습니다.')
+      toast.success('콘텐츠가 수정되었습니다.')
       setEditingDescription(null)
       setNewTitle('')
       setNewDescription('')
       loadDashboard()
     } catch (err) {
       console.error('Error updating document:', err)
-      toast.error('문서 수정에 실패했습니다.')
+      toast.error('콘텐츠 수정에 실패했습니다.')
     } finally {
       setSavingDescription(false)
     }
@@ -329,7 +329,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <Link href="/upload">
-              <Button className="bg-blue-600 hover:bg-blue-700">새 문서 업로드</Button>
+              <Button className="bg-blue-600 hover:bg-blue-700">새 콘텐츠 업로드</Button>
             </Link>
           </div>
 
@@ -441,7 +441,7 @@ export default function DashboardPage() {
 
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-gray-900 dark:text-white">인기 문서 TOP 5</h3>
+                  <h3 className="font-bold text-gray-900 dark:text-white">인기 콘텐츠 TOP 5</h3>
                   <button onClick={() => setActiveTab('content')} className="text-sm text-blue-600 hover:underline flex items-center gap-1">
                     전체보기 및 수정 <ChevronRight className="w-4 h-4" />
                   </button>
@@ -470,7 +470,7 @@ export default function DashboardPage() {
                     </Link>
                   ))}
                   {documents.length === 0 && (
-                    <p className="text-center text-gray-400 dark:text-gray-500 py-8">아직 업로드한 문서가 없습니다</p>
+                    <p className="text-center text-gray-400 dark:text-gray-500 py-8">아직 업로드한 콘텐츠가 없습니다</p>
                   )}
                 </div>
               </div>
@@ -482,7 +482,7 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                  내 문서 ({documents.length}개)
+                  내 콘텐츠 ({documents.length}개)
                 </h3>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500 dark:text-gray-400">정렬:</span>
@@ -502,13 +502,13 @@ export default function DashboardPage() {
               {documents.length === 0 ? (
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-12 text-center">
                   <FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400 mb-4">아직 업로드한 문서가 없습니다</p>
-                  <Link href="/upload"><Button>첫 문서 업로드하기</Button></Link>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">아직 업로드한 콘텐츠가 없습니다</p>
+                  <Link href="/upload"><Button>첫 콘텐츠 업로드하기</Button></Link>
                 </div>
               ) : (
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
                   <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800 text-xs font-medium text-gray-500 dark:text-gray-400">
-                    <div className="col-span-5">문서</div>
+                    <div className="col-span-5">콘텐츠</div>
                     <div className="col-span-1 text-center">조회수</div>
                     <div className="col-span-2 text-center">읽기 시간</div>
                     <div className="col-span-1 text-center">좋아요</div>
@@ -595,7 +595,7 @@ export default function DashboardPage() {
                         }, 0) / documents.length)}%`
                       : '0%'}
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">독자가 문서를 끝까지 읽는 비율</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">독자가 콘텐츠를 끝까지 읽는 비율</p>
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">평균 이탈률</p>
@@ -621,7 +621,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-                <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 읽기 완료율</h3>
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4">콘텐츠별 읽기 완료율</h3>
                 <div className="space-y-3">
                   {[...documents].sort((a, b) => b.view_count - a.view_count).slice(0, 10).map(doc => {
                     const completionRate = doc.page_count > 0
@@ -652,7 +652,7 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-                  <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 조회수</h3>
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4">콘텐츠별 조회수</h3>
                   <div className="space-y-3">
                     {[...documents].sort((a, b) => b.view_count - a.view_count).slice(0, 8).map(doc => {
                       const maxViews = Math.max(...documents.map(d => d.view_count), 1)
@@ -673,7 +673,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-                  <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 읽기 시간</h3>
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4">콘텐츠별 읽기 시간</h3>
                   <div className="space-y-3">
                     {[...documents].sort((a, b) => b.total_reading_time - a.total_reading_time).slice(0, 8).map(doc => {
                       const maxTime = Math.max(...documents.map(d => d.total_reading_time), 1)
@@ -728,7 +728,7 @@ export default function DashboardPage() {
                     <div key={cat} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
                       <div className="text-2xl mb-1">{getCategoryIcon(cat)}</div>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{getCategoryLabel(cat)}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{count}개 문서</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{count}개 콘텐츠</p>
                     </div>
                   ))}
                 </div>
@@ -897,12 +897,12 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ━━━ 문서 수정 다이얼로그 ━━━ */}
+      {/* ━━━ 콘텐츠 수정 다이얼로그 ━━━ */}
       <Dialog open={!!editingDescription} onOpenChange={() => {
         setEditingDescription(null); setNewTitle(''); setNewDescription(''); setNewAuthorName(''); setNewAuthorBio('')
       }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>문서 수정</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>콘텐츠 수정</DialogTitle></DialogHeader>
           <div className="space-y-4 pt-4">
             {(() => {
               const descDoc = documents.find(d => d.id === editingDescription)
@@ -910,12 +910,12 @@ export default function DashboardPage() {
               return (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-title">문서 제목</Label>
+                    <Label htmlFor="edit-title">콘텐츠 제목</Label>
                     <input
                       id="edit-title"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
-                      placeholder="문서 제목"
+                      placeholder="콘텐츠 제목"
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
                   </div>
@@ -925,7 +925,7 @@ export default function DashboardPage() {
                       id="edit-description"
                       value={newDescription}
                       onChange={(e) => { if (e.target.value.length <= 50) setNewDescription(e.target.value) }}
-                      placeholder="문서에 대한 간단한 설명"
+                      placeholder="콘텐츠에 대한 간단한 설명"
                       rows={2}
                       maxLength={50}
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"

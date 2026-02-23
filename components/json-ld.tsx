@@ -4,7 +4,7 @@ export function WebsiteJsonLd() {
     '@type': 'WebSite',
     name: 'Textry',
     url: 'https://textry-v1.vercel.app',
-    description: '지식을 스트리밍하다 — PDF 문서를 읽고, 공유하고, 발견하는 플랫폼',
+    description: '지식을 스트리밍하다 — PDF 콘텐츠를 읽고, 공유하고, 발견하는 플랫폼',
     potentialAction: {
       '@type': 'SearchAction',
       target: {

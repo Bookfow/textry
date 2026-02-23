@@ -13,8 +13,8 @@ export const metadata: Metadata = {
     default: "Textry — 지식을 스트리밍하다",
     template: "%s | Textry",
   },
-  description: "문서를 업로드하고, 읽고, 공유하세요. Textry는 큐레이터와 독자를 연결하는 콘텐츠 스트리밍 플랫폼입니다.",
-  keywords: ["문서", "PDF", "읽기", "스트리밍", "큐레이터", "출판", "Textry"],
+  description: "콘텐츠를 업로드하고, 읽고, 공유하세요. Textry는 큐레이터와 독자를 연결하는 콘텐츠 스트리밍 플랫폼입니다.",
+  keywords: ["콘텐츠", "PDF", "읽기", "스트리밍", "큐레이터", "출판", "Textry"],
   authors: [{ name: "Textry" }],
   creator: "Textry",
   manifest: "/manifest.json",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     siteName: "Textry",
     title: "Textry — 지식을 스트리밍하다",
-    description: "문서를 업로드하고, 읽고, 공유하세요. Textry는 큐레이터와 독자를 연결하는 콘텐츠 스트리밍 플랫폼입니다.",
+    description: "콘텐츠를 업로드하고, 읽고, 공유하세요. Textry는 큐레이터와 독자를 연결하는 콘텐츠 스트리밍 플랫폼입니다.",
     url: "https://textry-v1.vercel.app",
     images: [
       {
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Textry — 지식을 스트리밍하다",
-    description: "문서를 업로드하고, 읽고, 공유하세요.",
+    description: "콘텐츠를 업로드하고, 읽고, 공유하세요.",
     images: ["https://textry-v1.vercel.app/og-default.png"],
   },
   robots: {

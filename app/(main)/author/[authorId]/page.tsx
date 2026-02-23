@@ -208,7 +208,7 @@ export default function AuthorPage() {
                 <span>·</span>
                 <span>구독자 {author.subscribers_count?.toLocaleString() || 0}명</span>
                 <span>·</span>
-                <span>문서 {documents.length}개</span>
+                <span>콘텐츠 {documents.length}개</span>
               </div>
 
               {/* 소개 (짧게) */}
@@ -272,7 +272,7 @@ export default function AuthorPage() {
               {documents.length === 0 ? (
                 <div className="text-center py-20">
                   <FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400">아직 업로드한 문서가 없습니다</p>
+                  <p className="text-gray-500 dark:text-gray-400">아직 업로드한 콘텐츠가 없습니다</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
@@ -298,7 +298,7 @@ export default function AuthorPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">{documents.length}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">총 문서</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">총 콘텐츠</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">{(author.subscribers_count || 0).toLocaleString()}</p>

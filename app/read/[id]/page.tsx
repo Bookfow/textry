@@ -759,7 +759,7 @@ export default function ReadPage() {
       loadSeriesInfo(documentId)
     } catch (err) {
       console.error('Error loading document:', err)
-      alert('문서를 불러오는데 실패했습니다.')
+      alert('콘텐츠를 불러오는데 실패했습니다.')
       router.push('/browse')
     } finally {
       setLoading(false)
@@ -808,7 +808,7 @@ export default function ReadPage() {
         docs: allDocs.map(d => ({
           documentId: d.document_id,
           position: d.position,
-          title: titleMap.get(d.document_id) || '알 수 없는 문서',
+          title: titleMap.get(d.document_id) || '알 수 없는 콘텐츠',
         })),
         prevDocId: prevDoc?.document_id || null,
         nextDocId: nextDoc?.document_id || null,
@@ -905,7 +905,7 @@ export default function ReadPage() {
       <div className="min-h-screen flex items-center justify-center bg-[#1A1410]">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[#C4A882]">문서를 불러오는 중...</p>
+          <p className="text-[#C4A882]">콘텐츠를 불러오는 중...</p>
         </div>
       </div>
     )

@@ -89,7 +89,7 @@ export function AdOverlay({
   if (!isVisible) return null
 
   const titles: Record<string, string> = {
-    start: '잠시 후 문서가 시작됩니다',
+    start: '잠시 후 콘텐츠가 시작됩니다',
     middle: '광고',
     end: '다 읽으셨습니다!',
     reward: '🎬 광고 시청 중 — 1시간 무광고 보상!',
@@ -179,7 +179,7 @@ export function AdOverlay({
         {/* 끝 광고일 때 추천 문서 영역 */}
         {(type === 'end') && (
           <div className="mt-3 bg-gray-900 border border-gray-700 rounded-xl p-3">
-            <p className="text-xs font-medium text-white mb-2">이런 문서도 있어요</p>
+            <p className="text-xs font-medium text-white mb-2">이런 콘텐츠도 있어요</p>
             <div className="flex gap-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex-1 p-1.5 rounded-lg bg-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer text-center">
@@ -189,7 +189,7 @@ export function AdOverlay({
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-gray-600 text-center mt-1.5">추천 문서는 추후 연동됩니다</p>
+            <p className="text-[10px] text-gray-600 text-center mt-1.5">추천 콘텐츠는 추후 연동됩니다</p>
           </div>
         )}
       </div>

@@ -274,7 +274,7 @@ export default function LandingPage() {
                       </div>
                       <h4 className="text-2xl font-bold text-white mb-3">창작자</h4>
                       <p className="font-medium text-white/45 leading-relaxed mb-6">
-                        콘텐츠를 직접 창작한 원작 창작자입니다. 문서, 시, 소설, 논문, 에세이, 웹툰 등 자신의 작품이 Textry에서 독자를 만납니다.
+                        콘텐츠를 직접 창작한 원작 창작자입니다. 시, 소설, 논문, 에세이, 웹툰 등 자신의 작품이 Textry에서 독자를 만납니다.
                       </p>
                       <div className="flex items-center gap-2 text-sm text-[#c9a96e]/80">
                         <Star className="w-4 h-4" />

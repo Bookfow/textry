@@ -49,7 +49,7 @@ export default function SeriesPage() {
   const [seriesDescription, setSeriesDescription] = useState('')
   const [saving, setSaving] = useState(false)
 
-  // 시리즈 문서 관리
+  // 시리즈 콘텐츠 관리
   const [managingSeries, setManagingSeries] = useState<Series | null>(null)
   const [seriesDocs, setSeriesDocs] = useState<SeriesDoc[]>([])
   const [showAddDocDialog, setShowAddDocDialog] = useState(false)
@@ -216,7 +216,7 @@ export default function SeriesPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">시리즈 관리</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">문서를 시리즈로 묶어 순서대로 제공하세요</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">콘텐츠를 시리즈로 묶어 순서대로 제공하세요</p>
             </div>
             <Button onClick={() => { setShowCreateDialog(true); setEditingSeries(null); setSeriesTitle(''); setSeriesDescription('') }}>
               <Plus className="w-4 h-4 mr-2" /> 새 시리즈
@@ -244,12 +244,12 @@ export default function SeriesPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-4">
-                          <span>{series.documents_count}개 문서</span>
+                          <span>{series.documents_count}개 콘텐츠</span>
                           <span>{new Date(series.created_at).toLocaleDateString()}</span>
                         </div>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" className="flex-1" onClick={() => loadSeriesDocs(series)}>
-                            <Edit2 className="w-3 h-3 mr-1" /> 문서 관리
+                            <Edit2 className="w-3 h-3 mr-1" /> 콘텐츠 관리
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => { setEditingSeries(series); setSeriesTitle(series.title); setSeriesDescription(series.description); setShowCreateDialog(true) }}>
                             <Edit2 className="w-3 h-3" />
@@ -265,25 +265,25 @@ export default function SeriesPage() {
               )}
             </>
           ) : (
-            /* 시리즈 문서 관리 */
+            /* 시리즈 콘텐츠 관리 */
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <Button variant="outline" size="sm" onClick={() => setManagingSeries(null)}>← 목록으로</Button>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">{managingSeries.title}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{seriesDocs.length}개 문서</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{seriesDocs.length}개 콘텐츠</p>
                 </div>
                 <div className="ml-auto">
                   <Button size="sm" onClick={() => setShowAddDocDialog(true)}>
-                    <Plus className="w-4 h-4 mr-1" /> 문서 추가
+                    <Plus className="w-4 h-4 mr-1" /> 콘텐츠 추가
                   </Button>
                 </div>
               </div>
 
               {seriesDocs.length === 0 ? (
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-12 text-center">
-                  <p className="text-gray-500 dark:text-gray-400 mb-4">시리즈에 문서를 추가해주세요</p>
-                  <Button onClick={() => setShowAddDocDialog(true)}>문서 추가</Button>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">시리즈에 콘텐츠를 추가해주세요</p>
+                  <Button onClick={() => setShowAddDocDialog(true)}>콘텐츠 추가</Button>
                 </div>
               ) : (
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
@@ -316,7 +316,7 @@ export default function SeriesPage() {
                       {/* 정보 */}
                       <div className="flex-1 min-w-0">
                         <Link href={`/read/${sd.document_id}`}>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate hover:text-blue-600">{sd.document?.title || '알 수 없는 문서'}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate hover:text-blue-600">{sd.document?.title || '알 수 없는 콘텐츠'}</p>
                         </Link>
                         <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
                           <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{sd.document?.view_count?.toLocaleString() || 0}</span>
@@ -369,15 +369,15 @@ export default function SeriesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 문서 추가 다이얼로그 */}
+      {/* 콘텐츠 추가 다이얼로그 */}
       <Dialog open={showAddDocDialog} onOpenChange={setShowAddDocDialog}>
         <DialogContent className="max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>문서 추가</DialogTitle>
+            <DialogTitle>콘텐츠 추가</DialogTitle>
           </DialogHeader>
           <div className="overflow-y-auto max-h-[60vh] space-y-2 pt-2">
             {availableDocs.length === 0 ? (
-              <p className="text-center text-gray-400 py-8">추가 가능한 문서가 없습니다</p>
+              <p className="text-center text-gray-400 py-8">추가 가능한 콘텐츠가 없습니다</p>
             ) : (
               availableDocs.map(doc => (
                 <button

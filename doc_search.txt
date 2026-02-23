@@ -1,0 +1,169 @@
+C:\Users\user\textry\app\(main)\admin\page.tsx:131: // 신고된 문서 + 신고자 정보 매칭
+C:\Users\user\textry\app\(main)\admin\page.tsx:262: { label: '총 문서', value: formatNumber(stats.totalDocuments), icon: FileText, color: 'text-green-500', sub: `큐레이터당 ${stats.totalAuthors > 0 ? (stats.totalDocuments / stats.totalAuthors).toFixed(1) : 0}개` },
+C:\Users\user\textry\app\(main)\admin\page.tsx:263: { label: '총 조회수', value: formatNumber(stats.totalViews), icon: Eye, color: 'text-purple-500', sub: `문서당 ${stats.totalDocuments > 0 ? Math.round(stats.totalViews / stats.totalDocuments) : 0}회` },
+C:\Users\user\textry\app\(main)\admin\page.tsx:420: <h3 className="font-bold text-gray-900 dark:text-white mb-4">인기 문서 TOP 10 (전체)</h3>
+C:\Users\user\textry\app\(main)\admin\page.tsx:498: <input type="text" placeholder="문서 검색" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+C:\Users\user\textry\app\(main)\admin\page.tsx:512: <div className="col-span-5">문서</div>
+C:\Users\user\textry\app\(main)\admin\page.tsx:530: <p className="text-xs text-gray-400">총 {filteredDocs.length}개 문서 (상위 50개 표시)</p>
+C:\Users\user\textry\app\(main)\admin\page.tsx:675: ?? {report.documents?.title || '삭제된 문서'}
+C:\Users\user\textry\app\(main)\admin\page.tsx:692: <ExternalLink className="w-3 h-3" /> 문서 보기
+C:\Users\user\textry\app\(main)\admin\page.tsx:708: if (!confirm('해당 문서를 삭제하고 신고를 처리하시겠습니까?')) return
+C:\Users\user\textry\app\(main)\admin\page.tsx:710: if (delErr) { toast.error('문서 삭제 실패'); return }
+C:\Users\user\textry\app\(main)\admin\page.tsx:712: if (!error) { setReports(prev => prev.map(r => r.id === report.id ? { ...r, status: 'resolved' } : r)); toast.success('문서 삭제 및 신고 처리 완료') }
+C:\Users\user\textry\app\(main)\admin\page.tsx:714: <Trash2 className="w-3 h-3" /> 문서 삭제
+C:\Users\user\textry\app\(main)\author\[authorId]\page.tsx:211: <span>문서 {documents.length}개</span>
+C:\Users\user\textry\app\(main)\author\[authorId]\page.tsx:245: 문서
+C:\Users\user\textry\app\(main)\author\[authorId]\page.tsx:260: {/* 문서 탭 */}
+C:\Users\user\textry\app\(main)\author\[authorId]\page.tsx:275: <p className="text-gray-500 dark:text-gray-400">아직 업로드한 문서가 없습니다</p>
+C:\Users\user\textry\app\(main)\author\[authorId]\page.tsx:301: <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">총 문서</p>
+C:\Users\user\textry\app\(main)\browse\layout.tsx:5: description: '카테고리별, 언어별로 문서를 탐색하세요. 인기순, 최신순 정렬로 원하는 콘텐츠를 쉽게 찾을 수 있습니다.',
+C:\Users\user\textry\app\(main)\browse\layout.tsx:8: description: '카테고리별, 언어별로 문서를 탐색하세요.',
+C:\Users\user\textry\app\(main)\browse\page.tsx:197: {authorFilter ? `${authorFilter}의 문서` : authorIdFilter ? `${authorIdName || '큐레이터'}의 문서` : category === 'all' ? '전체 문서' : `${getCategoryIcon(category)} ${getCategoryLabel(category)}`}
+C:\Users\user\textry\app\(main)\browse\page.tsx:220: {/* ━━━ 문서 그리드 ━━━ */}
+C:\Users\user\textry\app\(main)\browse\page.tsx:229: <p className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-2">문서가 없습니다</p>
+C:\Users\user\textry\app\(main)\browse\page.tsx:232: ? `${getCategoryLabel(category)} 카테고리에 아직 문서가 없습니다.`
+C:\Users\user\textry\app\(main)\browse\page.tsx:233: : '새로운 문서가 곧 등록될 예정입니다.'
+C:\Users\user\textry\app\(main)\continue-reading\layout.tsx:5: description: '이전에 읽던 문서를 이어서 읽어보세요.',
+C:\Users\user\textry\app\(main)\continue-reading\page.tsx:194: <p className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-2">아직 읽고 있는 문서가 없어요</p>
+C:\Users\user\textry\app\(main)\continue-reading\page.tsx:195: <p className="text-sm text-[#9C8B7A] mb-6 text-center max-w-xs">문서를 읽기 시작하면 여기에 표시됩니다.<br />지금 새로운 문서를 발견해보세요!</p>
+C:\Users\user\textry\app\(main)\continue-reading\page.tsx:198: 문서 둘러보기
+C:\Users\user\textry\app\(main)\dashboard\layout.tsx:5: description: '내 문서의 조회수, 수익, 통계를 확인하세요.',
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:120: // 문서별 뷰어 내 광고 노출 수 조회
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:175: if (!confirm(`"${doc.title}" 문서를 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:184: toast.success('문서가 삭제되었습니다.')
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:189: toast.error('문서 삭제에 실패했습니다.')
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:237: toast.success('문서가 수정되었습니다.')
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:244: toast.error('문서 수정에 실패했습니다.')
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:257: // 문서별 예상 수익 계산 (뷰어 내 광고 노출 기반)
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:332: <Button className="bg-blue-600 hover:bg-blue-700">새 문서 업로드</Button>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:444: <h3 className="font-bold text-gray-900 dark:text-white">인기 문서 TOP 5</h3>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:473: <p className="text-center text-gray-400 dark:text-gray-500 py-8">아직 업로드한 문서가 없습니다</p>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:485: 내 문서 ({documents.length}개)
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:505: <p className="text-gray-500 dark:text-gray-400 mb-4">아직 업로드한 문서가 없습니다</p>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:506: <Link href="/upload"><Button>첫 문서 업로드하기</Button></Link>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:511: <div className="col-span-5">문서</div>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:598: <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">독자가 문서를 끝까지 읽는 비율</p>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:624: <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 읽기 완료율</h3>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:655: <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 조회수</h3>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:676: <h3 className="font-bold text-gray-900 dark:text-white mb-4">문서별 읽기 시간</h3>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:731: <p className="text-xs text-gray-500 dark:text-gray-400">{count}개 문서</p>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:900: {/* ━━━ 문서 수정 다이얼로그 ━━━ */}
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:905: <DialogHeader><DialogTitle>문서 수정</DialogTitle></DialogHeader>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:913: <Label htmlFor="edit-title">문서 제목</Label>
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:918: placeholder="문서 제목"
+C:\Users\user\textry\app\(main)\dashboard\page.tsx:928: placeholder="문서에 대한 간단한 설명"
+C:\Users\user\textry\app\(main)\document\[id]\layout.tsx:43: || `${authorName}님의 ${doc.category || '문서'} · ${doc.page_count || 0}페이지 · 조회 ${doc.view_count?.toLocaleString() || 0}회 ? Textry에서 무료로 읽기`
+C:\Users\user\textry\app\(main)\document\[id]\layout.tsx:118: { name: jsonLdProps?.title || '문서', url: `${baseUrl}/document/${id}` },
+C:\Users\user\textry\app\(main)\document\[id]\page.tsx:221: // ━━━ 이 문서를 읽은 사람이 본 다른 문서 ━━━
+C:\Users\user\textry\app\(main)\document\[id]\page.tsx:308: <p className="text-[#9C8B7A] mb-4">문서를 찾을 수 없습니다</p>
+C:\Users\user\textry\app\(main)\document\[id]\page.tsx:717: <p className="text-xs text-[#9C8B7A]/60 mt-1">문서에 챕터/장 구분이 포함된 경우 자동으로 표시됩니다.</p>
+C:\Users\user\textry\app\(main)\document\[id]\page.tsx:770: {/* 이 문서를 읽은 사람이 본 */}
+C:\Users\user\textry\app\(main)\document\[id]\page.tsx:774: 이 문서를 읽은 사람이 본
+C:\Users\user\textry\app\(main)\help\page.tsx:15: a: 'Textry는 PDF 문서를 유튜브처럼 쉽게 공유하고 소비할 수 있는 플랫폼입니다. 큐레이터는 콘텐츠를 업로드하여 수익을 얻고, 독자는 무료로 다양한 콘텐츠를 읽을 수 있습니다.'
+C:\Users\user\textry\app\(main)\help\page.tsx:23: a: '네! 모든 사용자가 무료로 문서를 읽을 수 있으며, 큐레이터 역시 무료로 콘텐츠를 업로드할 수 있습니다.'
+C:\Users\user\textry\app\(main)\help\page.tsx:28: category: '문서 업로드',
+C:\Users\user\textry\app\(main)\help\page.tsx:35: q: '문서를 업로드하면 바로 공개되나요?',
+C:\Users\user\textry\app\(main)\help\page.tsx:39: q: '업로드한 문서를 삭제할 수 있나요?',
+C:\Users\user\textry\app\(main)\help\page.tsx:40: a: '네, 대시보드에서 언제든지 삭제할 수 있습니다. 삭제된 문서는 복구할 수 없으니 신중하게 결정해주세요.'
+C:\Users\user\textry\app\(main)\help\page.tsx:49: a: '문서 조회수와 읽기 시간을 기반으로 광고 수익이 계산됩니다. 조회수당 $0.01, 읽기 시간(분)당 $0.05의 수익이 발생합니다.'
+C:\Users\user\textry\app\(main)\help\page.tsx:66: a: '나중에 읽고 싶은 문서를 저장해두는 기능입니다. 문서 카드의 북마크 버튼을 클릭하면 읽기 목록에 추가됩니다.'
+C:\Users\user\textry\app\(main)\help\page.tsx:70: a: '상단 검색바 또는 사이드바에서 원하는 카테고리와 언어를 선택하면 해당 조건에 맞는 문서만 볼 수 있습니다.'
+C:\Users\user\textry\app\(main)\home\layout.tsx:5: description: 'Textry에서 다양한 분야의 문서를 발견하고 읽어보세요. 기술, 인문, 과학, 예술 등 수천 편의 콘텐츠가 기다리고 있습니다.',
+C:\Users\user\textry\app\(main)\home\layout.tsx:8: description: 'Textry에서 다양한 분야의 문서를 발견하고 읽어보세요.',
+C:\Users\user\textry\app\(main)\home\page.tsx:109: // 문서별 가장 최근 세션만 유지
+C:\Users\user\textry\app\(main)\home\page.tsx:148: // 문서별 읽기 시간 합산
+C:\Users\user\textry\app\(main)\home\page.tsx:192: // 전체 문서 수
+C:\Users\user\textry\app\(main)\home\page.tsx:549: <p className="text-[#9C8B7A] mb-4">추천할 문서가 없습니다</p>
+C:\Users\user\textry\app\(main)\home\page.tsx:550: <Link href="/browse" className="text-[#B2967D] hover:underline">문서 둘러보기</Link>
+C:\Users\user\textry\app\(main)\library\page.tsx:359: {activeTab === 'reading' ? '읽고 있는 문서가 없어요' : '찜한 문서가 없어요'}
+C:\Users\user\textry\app\(main)\library\page.tsx:362: {activeTab === 'reading' ? '문서를 읽기 시작하면 여기에 표시됩니다' : '마음에 드는 문서를 찜해보세요'}
+C:\Users\user\textry\app\(main)\policies\about\page.tsx:16: <p>Textry는 전 세계 큐레이터와 독자를 연결하는 디지털 콘텐츠 플랫폼입니다. 누구나 자신의 문서를 업로드하고, 다양한 분야의 지식과 이야기를 공유할 수 있습니다.</p>
+C:\Users\user\textry\app\(main)\policies\about\page.tsx:25: <p className="text-sm text-gray-600 dark:text-gray-400">PDF, TXT, DOCX, MD 형식의 문서를 쉽게 업로드하고 전 세계와 공유하세요.</p>
+C:\Users\user\textry\app\(main)\policies\about\page.tsx:57: <li><strong>문서 업로드:</strong> 본인의 콘텐츠를 업로드하고 카테고리, 설명을 설정합니다.</li>
+C:\Users\user\textry\app\(main)\policies\privacy\page.tsx:18: <li>서비스 제공: 문서 업로드·열람·공유 서비스, 맞춤형 콘텐츠 추천, 구독 및 알림 서비스</li>
+C:\Users\user\textry\app\(main)\policies\safety\page.tsx:61: <li>해당 문서의 댓글 섹션 하단에 있는 <strong>"신고"</strong> 버튼을 클릭합니다.</li>
+C:\Users\user\textry\app\(main)\policies\terms\page.tsx:15: <p>이 약관은 Textry(이하 "회사")가 제공하는 문서 스트리밍 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+C:\Users\user\textry\app\(main)\policies\terms\page.tsx:21: <li><strong>"서비스"</strong>란 회사가 제공하는 PDF 문서 업로드, 열람, 공유, 구독, 댓글 등의 온라인 플랫폼을 말합니다.</li>
+C:\Users\user\textry\app\(main)\policies\terms\page.tsx:52: <li>PDF 문서 업로드 및 공유 서비스</li>
+C:\Users\user\textry\app\(main)\policies\terms\page.tsx:53: <li>문서 열람 및 PDF 뷰어 서비스</li>
+C:\Users\user\textry\app\(main)\premium\page.tsx:101: { icon: Sparkles, label: '문서 업로드 및 열람', free: true, premium: true },
+C:\Users\user\textry\app\(main)\premium\page.tsx:259: { q: '프리미엄을 구독하면 어떤 혜택이 있나요?', a: '모든 광고(전면 광고, 배너, 사이드바)가 완전히 제거되어 깨끗한 환경에서 문서를 읽을 수 있습니다.' },
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:214: if (err?.code === '23505') toast.warning('이미 포함된 문서입니다')
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:241: // ━━━ 문서 카드 ━━━
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:472: <p className="text-[10px] sm:text-xs text-[#9C8B7A]">읽은 문서</p>
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:525: {/* 문서 탭 */}
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:574: <p className="text-xs text-[#9C8B7A] mb-3">{s.documents_count || 0}개 문서</p>
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:578: <Pencil className="w-3 h-3 mr-1" /> 문서 관리
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:604: <p className="text-xs text-[#9C8B7A]">{seriesDocs.length}개 문서</p>
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:608: <Plus className="w-4 h-4 mr-1" /> 문서 추가
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:615: <p className="text-[#9C8B7A] mb-3">시리즈에 문서를 추가하세요</p>
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:616: <Button size="sm" onClick={() => setShowAddDocDialog(true)} className="bg-[#B2967D] hover:bg-[#a67c52] text-white">문서 추가</Button>
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:701: <p className="text-xs text-[#9C8B7A] mt-0.5">총 문서</p>
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:760: {/* ━━━ 문서 추가 다이얼로그 ━━━ */}
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:763: <DialogHeader><DialogTitle>문서 추가</DialogTitle></DialogHeader>
+C:\Users\user\textry\app\(main)\profile\[userId]\page.tsx:766: <p className="text-center text-[#9C8B7A] py-8">추가 가능한 문서가 없습니다</p>
+C:\Users\user\textry\app\(main)\reading-list\page.tsx:124: <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">아직 찜한 문서가 없어요</p>
+C:\Users\user\textry\app\(main)\reading-list\page.tsx:125: <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 text-center max-w-xs">문서를 읽으면서 하트 버튼을 눌러<br />나만의 컬렉션을 만들어보세요!</p>
+C:\Users\user\textry\app\(main)\reading-list\page.tsx:128: 문서 둘러보기
+C:\Users\user\textry\app\(main)\series\layout.tsx:5: description: '시리즈를 만들고 문서를 묶어서 관리하세요.',
+C:\Users\user\textry\app\(main)\series\page.tsx:52: // 시리즈 문서 관리
+C:\Users\user\textry\app\(main)\series\page.tsx:158: // 문서 수 업데이트
+C:\Users\user\textry\app\(main)\series\page.tsx:168: if (err?.code === '23505') toast.warning('이미 시리즈에 포함된 문서입니다.')
+C:\Users\user\textry\app\(main)\series\page.tsx:219: <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">문서를 시리즈로 묶어 순서대로 제공하세요</p>
+C:\Users\user\textry\app\(main)\series\page.tsx:247: <span>{series.documents_count}개 문서</span>
+C:\Users\user\textry\app\(main)\series\page.tsx:252: <Edit2 className="w-3 h-3 mr-1" /> 문서 관리
+C:\Users\user\textry\app\(main)\series\page.tsx:268: /* 시리즈 문서 관리 */
+C:\Users\user\textry\app\(main)\series\page.tsx:274: <p className="text-sm text-gray-500 dark:text-gray-400">{seriesDocs.length}개 문서</p>
+C:\Users\user\textry\app\(main)\series\page.tsx:278: <Plus className="w-4 h-4 mr-1" /> 문서 추가
+C:\Users\user\textry\app\(main)\series\page.tsx:285: <p className="text-gray-500 dark:text-gray-400 mb-4">시리즈에 문서를 추가해주세요</p>
+C:\Users\user\textry\app\(main)\series\page.tsx:286: <Button onClick={() => setShowAddDocDialog(true)}>문서 추가</Button>
+C:\Users\user\textry\app\(main)\series\page.tsx:319: <p className="text-sm font-medium text-gray-900 dark:text-white truncate hover:text-blue-600">{sd.document?.title || '알 수 없는 문서'}</p>
+C:\Users\user\textry\app\(main)\series\page.tsx:372: {/* 문서 추가 다이얼로그 */}
+C:\Users\user\textry\app\(main)\series\page.tsx:376: <DialogTitle>문서 추가</DialogTitle>
+C:\Users\user\textry\app\(main)\series\page.tsx:380: <p className="text-center text-gray-400 py-8">추가 가능한 문서가 없습니다</p>
+C:\Users\user\textry\app\(main)\upload\layout.tsx:4: title: '문서 업로드 | Textry',
+C:\Users\user\textry\app\(main)\upload\layout.tsx:5: description: 'PDF 문서를 업로드하고 전 세계 독자들과 공유하세요.',
+C:\Users\user\textry\app\(main)\upload\page.tsx:277: setProgress(60); setProgressMessage('문서 정보 저장 중...')
+C:\Users\user\textry\app\(main)\upload\page.tsx:311: <h1 className="text-2xl md:text-3xl font-bold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">문서 업로드</h1>
+C:\Users\user\textry\app\(main)\upload\page.tsx:312: <p className="text-[#9C8B7A]">새로운 문서를 공유하세요</p>
+C:\Users\user\textry\app\(main)\upload\page.tsx:317: <h2 className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1]">문서 정보</h2>
+C:\Users\user\textry\app\(main)\upload\page.tsx:318: <p className="text-sm text-[#9C8B7A] mt-1">문서의 기본 정보를 입력해주세요</p>
+C:\Users\user\textry\app\(main)\upload\page.tsx:324: <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="문서 제목을 입력하세요" required className={inputClass} />
+C:\Users\user\textry\app\(main)\upload\page.tsx:328: <Textarea id="description" value={description} onChange={(e) => { if (e.target.value.length <= 50) setDescription(e.target.value) }} placeholder="문서에 대한 간단한 설명 (최대 50자)" rows={2} maxLength={50} className={`${inputClass} resize-none`} />
+C:\Users\user\textry\app\(main)\upload\page.tsx:356: <Label htmlFor="file" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">문서 파일 *</Label>
+C:\Users\user\textry\app\(main)\upload\page.tsx:379: <p className="text-[#9C8B7A] mt-1">본인이 이 문서의 저작권을 보유하고 있거나, 저작권자로부터 배포 권한을 부여받았음을 확인합니다. 타인의 저작권을 침해하는 콘텐츠를 업로드할 경우 계정 정지 및 법적 책임이 발생할 수 있습니다.</p>
+C:\Users\user\textry\app\(main)\page.tsx:98: // 1. 좋아할 만한 콘텐츠: 좋아요한 문서의 카테고리/큐레이터 기반
+C:\Users\user\textry\app\(main)\page.tsx:118: // 읽은 문서들의 카테고리와 큐레이터 파악
+C:\Users\user\textry\app\(main)\page.tsx:137: // 좋아할 만한 콘텐츠: 같은 카테고리 + 아직 안 읽은 문서
+C:\Users\user\textry\app\(main)\page.tsx:153: // 2. 이 문서를 읽은 사람들이 본 문서
+C:\Users\user\textry\app\(main)\page.tsx:154: // 내가 읽은 문서를 읽은 다른 사용자들 찾기
+C:\Users\user\textry\app\(main)\page.tsx:166: // 그 사람들이 읽은 다른 문서
+C:\Users\user\textry\app\(main)\page.tsx:174: // 빈도 기반 정렬 (많이 겹치는 문서 우선)
+C:\Users\user\textry\app\(main)\page.tsx:266: <p className="text-gray-500 dark:text-gray-400 mb-4">추천할 문서가 없습니다</p>
+C:\Users\user\textry\app\(main)\page.tsx:267: <Link href="/browse" className="text-blue-600 hover:underline">문서 둘러보기</Link>
+C:\Users\user\textry\app\(main)\page.tsx:273: <ShelfSection title="이 문서를 읽은 사람들이 본" icon={Compass} docs={alsoReadDocs} />
+C:\Users\user\textry\app\api\cron\settle\route.ts:62: // ━━━ 2. 해당 큐레이터 문서의 뷰어 내 광고 노출 수 ━━━
+C:\Users\user\textry\app\api\cron\settle\route.ts:88: // 해당 큐레이터 문서의 프리미엄 사용자 읽기 시간
+C:\Users\user\textry\app\login\page.tsx:56: <p className="text-sm text-[#9C8B7A] mt-1">문서를 스트리밍하다</p>
+C:\Users\user\textry\app\read\[id]\layout.tsx:47: const description = doc.description || `${authorName}님의 문서 ? Textry에서 읽기`
+C:\Users\user\textry\app\read\[id]\layout.tsx:129: { name: jsonLdProps?.title || '문서', url: `${baseUrl}/read/${id}` },
+C:\Users\user\textry\app\read\[id]\page.tsx:203: // 문서의 page_count 가져오기
+C:\Users\user\textry\app\read\[id]\page.tsx:617: // ─── 문서 로드 ───
+C:\Users\user\textry\app\read\[id]\page.tsx:762: alert('문서를 불러오는데 실패했습니다.')
+C:\Users\user\textry\app\read\[id]\page.tsx:811: title: titleMap.get(d.document_id) || '알 수 없는 문서',
+C:\Users\user\textry\app\read\[id]\page.tsx:908: <p className="text-[#C4A882]">문서를 불러오는 중...</p>
+C:\Users\user\textry\app\layout.tsx:16: description: "문서를 업로드하고, 읽고, 공유하세요. Textry는 큐레이터와 독자를 연결하는 콘텐츠 스트리밍 플랫폼입니다.",
+C:\Users\user\textry\app\layout.tsx:17: keywords: ["문서", "PDF", "읽기", "스트리밍", "큐레이터", "출판", "Textry"],
+C:\Users\user\textry\app\layout.tsx:30: description: "문서를 업로드하고, 읽고, 공유하세요. Textry는 큐레이터와 독자를 연결하는 콘텐츠 스트리밍 플랫폼입니다.",
+C:\Users\user\textry\app\layout.tsx:44: description: "문서를 업로드하고, 읽고, 공유하세요.",
+C:\Users\user\textry\app\page.tsx:277: 콘텐츠를 직접 창작한 원작 창작자입니다. 문서, 시, 소설, 논문, 에세이, 웹툰 등 자신의 작품이 Textry에서 독자를 만납니다.
+C:\Users\user\textry\app\sitemap.ts:22: // 최근 문서 1000개
+C:\Users\user\textry\components\ad-overlay.tsx:92: start: '잠시 후 문서가 시작됩니다',
+C:\Users\user\textry\components\ad-overlay.tsx:179: {/* 끝 광고일 때 추천 문서 영역 */}
+C:\Users\user\textry\components\ad-overlay.tsx:182: <p className="text-xs font-medium text-white mb-2">이런 문서도 있어요</p>
+C:\Users\user\textry\components\ad-overlay.tsx:192: <p className="text-[10px] text-gray-600 text-center mt-1.5">추천 문서는 추후 연동됩니다</p>
+C:\Users\user\textry\components\json-ld.tsx:7: description: '지식을 스트리밍하다 ? PDF 문서를 읽고, 공유하고, 발견하는 플랫폼',
+C:\Users\user\textry\components\loading-skeleton.tsx:11: // ─── 문서 카드 스켈레톤 (그리드용) ───
+C:\Users\user\textry\components\main-header.tsx:193: <div className="px-4 py-2 bg-gray-50 dark:bg-[#2E2620] text-xs font-medium text-[#9C8B7A]">문서</div>
+C:\Users\user\textry\components\reflow-viewer.tsx:807: 이 문서는 리플로우 모드를 지원하지 않습니다
+C:\Users\user\textry\components\subscribe-button.tsx:94: // 본인 문서면 구독 버튼 안 보임
