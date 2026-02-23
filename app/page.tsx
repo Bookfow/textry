@@ -198,7 +198,7 @@ export default function LandingPage() {
 
               {/* 서브 카피 */}
               <p className="text-lg md:text-xl font-medium text-white/50 max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
-                나의 글과 지식을 세상에 공유하고, 독자는 벽 없이 만납니다.
+                나의 글과 지식을 세상에 공유하고, 누구나 자유롭게 읽을 수 있습니다.
                 <br className="hidden md:block" />
                 당신의 콘텐츠가 수익이 되는 플랫폼, Textry.
               </p>
@@ -383,7 +383,7 @@ export default function LandingPage() {
               {/* 티어 시스템 */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto mb-16">
                 {[
-                  { tier: 'Tier 0', label: '시작', desc: '가입 후 콘텐츠 업로드', share: '—', condition: '누구나', color: 'from-white/5 to-white/[0.02]', borderColor: 'border-white/[0.06]', textColor: 'text-white/30' },
+                  { tier: 'Tier 0', label: '시작', desc: '가입 후 콘텐츠 업로드', share: '누구나 시작', condition: '가입 즉시', color: 'from-white/5 to-white/[0.02]', borderColor: 'border-white/[0.06]', textColor: 'text-white/30' },
                   { tier: 'Tier 1', label: '파트너', desc: '수익화 시작', share: '70%', condition: '100시간 + 30일', color: 'from-blue-500/10 to-blue-600/5', borderColor: 'border-blue-500/20', textColor: 'text-blue-400' },
                   { tier: 'Tier 2', label: '프로', desc: '최고 수익 배분', share: '80%', condition: '1,000시간', color: 'from-[#c9a96e]/15 to-[#a67c52]/8', borderColor: 'border-[#c9a96e]/30', textColor: 'text-[#c9a96e]' },
                 ].map((t, i) => (
@@ -399,9 +399,9 @@ export default function LandingPage() {
                       <p className="text-sm font-medium text-white/35 mb-4">{t.desc}</p>
                       <div className="border-t border-white/[0.06] pt-4">
                         <p className="text-3xl font-black text-white mb-1">
-                          {t.share === '—' ? <span className="text-white/20">—</span> : t.share}
+                          {t.share}
                         </p>
-                        <p className="text-xs text-white/30">수익 배분</p>
+                        <p className="text-xs text-white/30">{t.share === '누구나 시작' ? '' : '수익 배분'}</p>
                         <p className="text-xs text-white/20 mt-2">{t.condition}</p>
                       </div>
                     </div>
