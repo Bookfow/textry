@@ -546,13 +546,7 @@ export default function HomePage() {
             </div>
           ) : (
             <>
-              {/* 이어 읽기 */}
-              {user && continueReading.length > 0 && (
-                <CarouselSection title="이어서 읽기" icon={BookOpen} docs={filterByCategory(continueReading)} />
-              )}
-              {!user && (
-                <LoginPromptCard icon={BookOpen} title="이어서 읽기" description="로그인하면 읽던 곳에서 이어서 읽을 수 있어요" />
-              )}
+              {/* 이어 읽기: reading_sessions 기반으로 통합 (하단 "이어서 읽을 콘텐츠"에서 표시) */}
 
               {/* 랭킹 */}
               <RankingSection docs={filteredPopular} />
