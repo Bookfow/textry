@@ -324,7 +324,7 @@ export default function UploadPage() {
                   ? 'bg-[#B2967D] text-white'
                   : 'bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] text-[#5C4A38] dark:text-[#C4A882] hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620]'
               }`}>
-              <FileText className="w-4 h-4" /> 문서
+              <FileText className="w-4 h-4" /> 콘텐츠
             </button>
             <button onClick={() => setUploadTab('webtoon')}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
@@ -332,7 +332,7 @@ export default function UploadPage() {
                   ? 'bg-[#B2967D] text-white'
                   : 'bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] text-[#5C4A38] dark:text-[#C4A882] hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620]'
               }`}>
-              <Palette className="w-4 h-4" /> 🎨 웹툰
+              🎨 웹툰
             </button>
           </div>
 
@@ -361,13 +361,6 @@ export default function UploadPage() {
                     <Select value={category} onValueChange={setCategory}>
                       <SelectTrigger id="category" className={`${inputClass} min-w-[100px]`}><SelectValue>{CATEGORIES.find(cat => cat.value === category)?.icon} {CATEGORIES.find(cat => cat.value === category)?.label}</SelectValue></SelectTrigger>
                       <SelectContent>{CATEGORIES.map((cat) => (<SelectItem key={cat.value} value={cat.value}>{cat.icon} {cat.label}</SelectItem>))}</SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2 md:w-1/2">
-                    <Label htmlFor="language" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">언어 *</Label>
-                    <Select value={language} onValueChange={setLanguage}>
-                      <SelectTrigger id="language" className={inputClass}><SelectValue /></SelectTrigger>
-                      <SelectContent>{LANGUAGES.map((lang) => (<SelectItem key={lang.value} value={lang.value}>{lang.flag} {lang.label}</SelectItem>))}</SelectContent>
                     </Select>
                   </div>
                 </div>

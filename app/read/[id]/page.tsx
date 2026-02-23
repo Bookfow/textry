@@ -1290,6 +1290,7 @@ export default function ReadPage() {
                 onProgress={(current, total) => {
                   setPageNumber(current)
                   setNumPages(total)
+                  if (!documentReady && total > 0) setDocumentReady(true) // webtoon
                 }}
               />
             ) : viewMode === 'reflow' ? (
