@@ -167,7 +167,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ━━━ 히어로 ━━━ */}
-      <section ref={hero.ref} className="relative min-h-[100dvh] flex items-center justify-center px-0 pt-20 pb-12 md:pt-0 md:pb-0">
+      <section ref={hero.ref} className="relative flex items-center justify-center px-0 pt-24 pb-16 md:min-h-screen md:pt-0 md:pb-0">
         {/* 배경 글로우 */}
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-[#a67c52]/20 rounded-full blur-[120px]"
