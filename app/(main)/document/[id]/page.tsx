@@ -15,7 +15,7 @@ import { CommentsSection } from '@/components/comments-section'
 import { DocumentCard } from '@/components/document-card'
 import { PageAdBanner } from '@/components/page-ad-banner'
 
-type SeriesDoc = { documentId: string; position: number; title: string }
+type SeriesDoc = { documentId: string; position: number; title: string; episodeTitle?: string; thumbnailUrl?: string | null }
 type TocItem = { title: string; pageNumber: number; level: number }
 
 export default function DocumentDetailPage() {
@@ -30,13 +30,14 @@ export default function DocumentDetailPage() {
   const [alsoReadDocs, setAlsoReadDocs] = useState<Document[]>([])
   const [seriesDocs, setSeriesDocs] = useState<SeriesDoc[]>([])
   const [seriesTitle, setSeriesTitle] = useState('')
+  const [seriesContentType, setSeriesContentType] = useState<string>('document')
   const [loading, setLoading] = useState(true)
   const [progress, setProgress] = useState<number | null>(null)
   const [readerCount, setReaderCount] = useState(0)
   const [completionRate, setCompletionRate] = useState<number | null>(null)
 
   // ━━━ 탭 상태 ━━━
-  const [activeTab, setActiveTab] = useState<'intro' | 'info' | 'author' | 'toc'>('intro')
+  const [activeTab, setActiveTab] = useState<'intro' | 'info' | 'author' | 'toc' | 'episodes'>('intro')
   const [toc, setToc] = useState<TocItem[]>([])
   const [tocLoading, setTocLoading] = useState(false)
   const [tocLoaded, setTocLoaded] = useState(false)
@@ -173,15 +174,16 @@ export default function DocumentDetailPage() {
       if (seriesDoc) {
         const { data: series } = await supabase
           .from('document_series')
-          .select('id, title')
+          .select('id, title, content_type')
           .eq('id', seriesDoc.series_id)
           .single()
 
         if (series) {
           setSeriesTitle(series.title)
+          setSeriesContentType(series.content_type || 'document')
           const { data: allDocs } = await supabase
             .from('series_documents')
-            .select('document_id, position')
+            .select('document_id, position, episode_title')
             .eq('series_id', series.id)
             .order('position', { ascending: true })
 
@@ -189,14 +191,17 @@ export default function DocumentDetailPage() {
             const docIds = allDocs.map(d => d.document_id)
             const { data: docTitles } = await supabase
               .from('documents')
-              .select('id, title')
+              .select('id, title, thumbnail_url')
               .in('id', docIds)
             const titleMap = new Map((docTitles || []).map(d => [d.id, d.title]))
+            const thumbMap = new Map((docTitles || []).map(d => [d.id, (d as any).thumbnail_url]))
 
             setSeriesDocs(allDocs.map(d => ({
               documentId: d.document_id,
               position: d.position,
               title: titleMap.get(d.document_id) || '',
+              episodeTitle: (d as any).episode_title || undefined,
+              thumbnailUrl: thumbMap.get(d.document_id) || null,
             })))
           }
         }
@@ -447,7 +452,7 @@ export default function DocumentDetailPage() {
                   href={`/read/${doc.id}`}
                   className="px-8 py-3 bg-[#B2967D] hover:bg-[#a67c52] text-white font-semibold rounded-full transition-colors shadow-lg shadow-[#B2967D]/25 text-base text-center"
                 >
-                  {progress !== null && progress > 0 ? `이어서 읽기 (${progress}%)` : '바로 읽기'}
+                  {progress !== null && progress > 0 ? `이어서 읽기 (${progress}%)` : (seriesDocs.length > 0 && seriesContentType === 'webtoon' ? '이 회차 읽기' : '바로 읽기')}
                 </Link>
                 <ReadingListButton documentId={documentId} />
                 <ShareButton documentId={documentId} title={doc.title} />
@@ -464,9 +469,10 @@ export default function DocumentDetailPage() {
         <div className="flex border-b border-[#E7D8C9] dark:border-[#3A302A] mb-5 gap-1 overflow-x-auto scrollbar-hide">
           {[
             { key: 'intro' as const, label: '소개' },
-            { key: 'info' as const, label: '도서정보' },
+            ...(seriesDocs.length > 0 && seriesContentType === 'webtoon' ? [{ key: 'episodes' as const, label: `회차 (${seriesDocs.length})` }] : []),
+            { key: 'info' as const, label: doc.content_type === 'webtoon' ? '웹툰정보' : '도서정보' },
             { key: 'author' as const, label: (doc as any).author_name && (doc as any).author_name !== author?.username ? '창작자·큐레이터' : '큐레이터' },
-            { key: 'toc' as const, label: '목차' },
+            ...(doc.content_type !== 'webtoon' ? [{ key: 'toc' as const, label: '목차' }] : []),
           ].map((tab) => (
             <button
               key={tab.key}
@@ -680,6 +686,54 @@ export default function DocumentDetailPage() {
             </div>
           )}
 
+
+          {/* 회차 목록 탭 (웹툰 시리즈) */}
+          {activeTab === 'episodes' && (
+            <div>
+              <div className="space-y-1">
+                {seriesDocs.map((sd, i) => (
+                  <div
+                    key={sd.documentId}
+                    onClick={() => { if (sd.documentId !== documentId) router.push(`/document/${sd.documentId}`) }}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-colors ${
+                      sd.documentId === documentId
+                        ? 'bg-[#B2967D]/10 border border-[#B2967D]/30'
+                        : 'hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer border border-transparent'
+                    }`}
+                  >
+                    {/* 썸네일 */}
+                    <div className="w-12 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-[#EEE4E1] dark:bg-[#2E2620]">
+                      {sd.thumbnailUrl ? (
+                        <img src={sd.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[#9C8B7A] text-xs">
+                          {sd.position}화
+                        </div>
+                      )}
+                    </div>
+                    {/* 정보 */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-medium truncate ${
+                        sd.documentId === documentId
+                          ? 'text-[#B2967D]'
+                          : 'text-[#2D2016] dark:text-[#EEE4E1]'
+                      }`}>
+                        {sd.position}화{sd.episodeTitle ? ` - ${sd.episodeTitle}` : ''}
+                      </p>
+                      <p className="text-xs text-[#9C8B7A] mt-0.5 truncate">{sd.title}</p>
+                    </div>
+                    {/* 현재 표시 */}
+                    {sd.documentId === documentId ? (
+                      <span className="text-[10px] bg-[#B2967D]/20 text-[#B2967D] px-2 py-1 rounded-full flex-shrink-0 font-medium">읽는 중</span>
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-[#E7D8C9] dark:text-[#3A302A] flex-shrink-0" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 목차 탭 */}
           {activeTab === 'toc' && (
             <div>
@@ -721,8 +775,8 @@ export default function DocumentDetailPage() {
           )}
         </div>
 
-        {/* 시리즈 */}
-        {seriesDocs.length > 0 && (
+        {/* 시리즈 (문서 시리즈만 표시, 웹툰은 탭으로 이동) */}
+        {seriesDocs.length > 0 && seriesContentType !== 'webtoon' && (
           <div className="mb-6 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
             <h2 className="text-sm font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-3">📚 {seriesTitle}</h2>
             <div className="space-y-1">

@@ -1,0 +1,3389 @@
+
+================================================================================
+FILE: lib/supabase.ts (84 lines)
+================================================================================
+import { createClient } from '@supabase/supabase-js'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export type Profile = {
+  id: string
+  email: string
+  username: string | null
+  avatar_url: string | null
+  bio: string
+  banner_url: string | null
+  role: 'reader' | 'author'
+  subscribers_count: number
+  is_premium: boolean
+  premium_expires_at: string | null
+  author_tier: number
+  total_revenue_usd: number
+  pending_payout_usd: number
+  created_at: string
+}
+export type Document = {
+  id: string
+  title: string
+  description: string | null
+  category: string
+  language: string
+  file_path: string
+  thumbnail_url: string | null
+  author_id: string
+  file_size: number
+  total_reading_time: number
+  view_count: number
+  likes_count: number
+  dislikes_count: number
+  page_count: number
+  is_published: boolean
+  created_at: string
+  updated_at: string
+  author_name: string | null
+  author_bio: string | null
+  content_type: 'document' | 'webtoon'
+}
+
+export type WebtoonImage = {
+  id: string
+  document_id: string
+  image_url: string
+  image_order: number
+  width: number | null
+  height: number | null
+  created_at: string
+}
+export type Comment = {
+  id: string
+  document_id: string
+  user_id: string
+  content: string
+  parent_id: string | null
+  likes_count: number
+  created_at: string
+}
+export type CommentWithProfile = Comment & {
+  profile: Profile
+  replies?: CommentWithProfile[]
+}
+export type ReadingProgress = {
+  id: string
+  user_id: string
+  document_id: string
+  progress: number
+  last_position: number
+  updated_at: string
+}
+export type Notification = {
+  id: string
+  user_id: string
+  type: string
+  title: string
+  message: string
+  link: string | null
+  is_read: boolean
+  created_at: string
+}
+
+
+================================================================================
+FILE: app/(main)/upload/page.tsx (416 lines)
+================================================================================
+'use client'
+
+import { useState } from 'react'
+import { useAuth } from '@/lib/auth-context'
+import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CATEGORIES } from '@/lib/categories'
+import { LANGUAGES } from '@/lib/languages'
+import { FileText, Upload as UploadIcon, LogIn, Palette } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+const WebtoonUploadForm = dynamic(() => import('@/components/webtoon-upload-form'), { ssr: false })
+import { useToast } from '@/components/toast'
+
+export default function UploadPage() {
+  const { user } = useAuth()
+  const router = useRouter()
+  const { toast } = useToast()
+  const [uploadTab, setUploadTab] = useState<'document' | 'webtoon'>('document')
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('technology')
+  const [language, setLanguage] = useState('ko')
+  const [file, setFile] = useState<File | null>(null)
+  const [thumbnail, setThumbnail] = useState<File | null>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [progressMessage, setProgressMessage] = useState('')
+  const [copyrightAgreed, setCopyrightAgreed] = useState(false)
+  const [convertNotice, setConvertNotice] = useState<string | null>(null)
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F2EF] dark:bg-[#1A1410]">
+        <div className="text-center">
+          <div className="w-14 h-14 bg-[#B2967D]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <LogIn className="w-7 h-7 text-[#B2967D]" />
+          </div>
+          <p className="text-[#5C4A38] dark:text-[#C4A882] font-medium mb-2">로그인이 필요합니다.</p>
+          <button onClick={() => router.push('/login')} className="px-4 py-2 bg-[#B2967D] hover:bg-[#a67c52] text-white rounded-xl text-sm transition-colors">로그인하기</button>
+        </div>
+      </div>
+    )
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (selectedFile) {
+      if (selectedFile.size > 100 * 1024 * 1024) { toast.warning('파일 크기는 100MB 이하여야 합니다.'); return }
+      setFile(selectedFile)
+
+      // txt/docx 변환 안내
+      const ext = selectedFile.name.split('.').pop()?.toLowerCase() || ''
+      if (ext === 'docx') {
+        setConvertNotice('docx 파일은 텍스트 위주로 변환됩니다. 표, 이미지 등 복잡한 서식은 일부 손실될 수 있습니다.')
+      } else if (ext === 'txt') {
+        setConvertNotice('txt 파일은 자동으로 EPUB 형식으로 변환되어 리플로우 뷰어로 열립니다.')
+      } else {
+        setConvertNotice(null)
+      }
+    }
+  }
+
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (selectedFile) {
+      if (selectedFile.size > 5 * 1024 * 1024) { toast.warning('썸네일 크기는 5MB 이하여야 합니다.'); return }
+      if (!selectedFile.type.startsWith('image/')) { toast.warning('이미지 파일만 업로드 가능합니다.'); return }
+      setThumbnail(selectedFile)
+      const reader = new FileReader()
+      reader.onloadend = () => setThumbnailPreview(reader.result as string)
+      reader.readAsDataURL(selectedFile)
+    }
+  }
+
+  function isBrokenText(text: string): boolean {
+    if (!text || text.trim().length === 0) return true
+    const cleaned = text.replace(/\s/g, '')
+    if (cleaned.length === 0) return true
+    let meaningfulCount = 0
+    for (let i = 0; i < cleaned.length; i++) {
+      const code = cleaned.charCodeAt(i)
+      if ((code >= 0xAC00 && code <= 0xD7AF) || (code >= 0x3131 && code <= 0x318E)) meaningfulCount++
+      else if ((code >= 0x0041 && code <= 0x005A) || (code >= 0x0061 && code <= 0x007A)) meaningfulCount++
+    }
+    if (cleaned.length >= 10 && meaningfulCount / cleaned.length < 0.15) return true
+    if (cleaned.length >= 30 && meaningfulCount / cleaned.length < 0.25) return true
+    let normalCount = 0
+    for (let i = 0; i < cleaned.length; i++) {
+      const code = cleaned.charCodeAt(i)
+      if ((code >= 0xAC00 && code <= 0xD7AF) || (code >= 0x3131 && code <= 0x318E) || (code >= 0x0041 && code <= 0x005A) || (code >= 0x0061 && code <= 0x007A) || (code >= 0x0030 && code <= 0x0039) || (code >= 0x0020 && code <= 0x007E) || (code >= 0x2000 && code <= 0x206F) || (code >= 0x3000 && code <= 0x303F) || (code >= 0xFF01 && code <= 0xFF5E)) normalCount++
+    }
+    if (cleaned.length >= 5 && normalCount / cleaned.length < 0.4) return true
+    let brokenCount = 0
+    for (let i = 0; i < cleaned.length; i++) {
+      const code = cleaned.charCodeAt(i)
+      if ((code >= 0xE000 && code <= 0xF8FF) || (code < 0x0020 && code !== 0x0009 && code !== 0x000A && code !== 0x000D) || code === 0xFFFD || (code >= 0x2400 && code <= 0x243F)) brokenCount++
+    }
+    if (brokenCount / cleaned.length > 0.3) return true
+    if (/[□▯○◻◼■▪▫]{3,}/.test(cleaned)) return true
+    if (/^[\d$&*%#@!^+=\/\\|<>.,;:'"(){}\[\]\-_~`]{8,}$/.test(cleaned)) return true
+    return false
+  }
+
+  function extractPageText(items: any[]): string {
+    if (items.length === 0) return ''
+    interface LineInfo { text: string; fontSize: number; y: number }
+    const lines: LineInfo[] = []
+    let lastY: number | null = null
+    let currentLine = ''
+    let currentFontSizes: number[] = []
+    let currentY = 0
+    for (const item of items) {
+      if (!('str' in item) || !item.str) continue
+      const y = Math.round(item.transform[5])
+      const fs = Math.round(Math.abs(item.transform[3]) || Math.abs(item.transform[0]) || 12)
+      if (lastY !== null && Math.abs(y - lastY) > 3) {
+        const trimmed = currentLine.trim()
+        if (trimmed) {
+          const avgFs = currentFontSizes.length > 0 ? currentFontSizes.reduce((a, b) => a + b, 0) / currentFontSizes.length : 12
+          lines.push({ text: trimmed, fontSize: Math.round(avgFs), y: currentY })
+        }
+        currentLine = ''; currentFontSizes = []
+      }
+      currentLine += item.str; currentFontSizes.push(fs); currentY = y; lastY = y
+    }
+    const trimmedLast = currentLine.trim()
+    if (trimmedLast) {
+      const avgFs = currentFontSizes.length > 0 ? currentFontSizes.reduce((a, b) => a + b, 0) / currentFontSizes.length : 12
+      lines.push({ text: trimmedLast, fontSize: Math.round(avgFs), y: currentY })
+    }
+    if (lines.length === 0) return ''
+    const cleanLines = lines.filter(l => !isBrokenText(l.text))
+    if (cleanLines.length === 0) return ''
+    const fsCount = new Map<number, number>()
+    for (const l of cleanLines) fsCount.set(l.fontSize, (fsCount.get(l.fontSize) || 0) + l.text.length)
+    let bodyFontSize = 12; let maxWeight = 0
+    for (const [fs, weight] of fsCount) { if (weight > maxWeight) { maxWeight = weight; bodyFontSize = fs } }
+    const parts: string[] = []; let currentParagraph = ''; let lastLineY: number | null = null
+    const avgLineGap = cleanLines.length > 1 ? cleanLines.slice(1).reduce((sum, l, i) => sum + Math.abs(l.y - cleanLines[i].y), 0) / (cleanLines.length - 1) : 20
+    for (let i = 0; i < cleanLines.length; i++) {
+      const line = cleanLines[i]; const fsDiff = line.fontSize - bodyFontSize
+      if (lastLineY !== null) { const gap = Math.abs(line.y - lastLineY); if (gap > avgLineGap * 2.5 && currentParagraph) { parts.push(currentParagraph); currentParagraph = ''; parts.push('<hr>') } }
+      if (fsDiff >= 4 && line.text.length < 80) { if (currentParagraph) { parts.push(currentParagraph); currentParagraph = '' }; if (fsDiff >= 8) parts.push(`<h1>${line.text}</h1>`); else parts.push(`<h2>${line.text}</h2>`) }
+      else if (fsDiff >= 2 && line.text.length < 50) { if (currentParagraph) { parts.push(currentParagraph); currentParagraph = '' }; parts.push(`<h3>${line.text}</h3>`) }
+      else { if (currentParagraph) currentParagraph += ' '; currentParagraph += line.text }
+      lastLineY = line.y
+    }
+    if (currentParagraph) parts.push(currentParagraph)
+    return parts.join('\n\n')
+  }
+
+  // ━━━ txt/docx → epub 변환 ━━━
+  async function convertFileToEpub(originalFile: File): Promise<{ epubBlob: Blob; epubData: any } | null> {
+    const ext = originalFile.name.split('.').pop()?.toLowerCase() || ''
+
+    if (ext === 'txt') {
+      setProgressMessage('TXT → EPUB 변환 중...')
+      const text = await originalFile.text()
+      if (!text.trim()) { toast.error('텍스트 파일이 비어있습니다.'); return null }
+
+      const { convertTxtToEpub } = await import('@/lib/text-to-epub')
+      const authorName = user?.email?.split('@')[0] || '작자 미상'
+      const epubBlob = await convertTxtToEpub(text, title.trim() || originalFile.name.replace(/\.txt$/i, ''), authorName)
+
+      // 변환된 epub 파싱
+      const { parseEpub } = await import('@/lib/epub-parser')
+      const arrayBuffer = await epubBlob.arrayBuffer()
+      const epubData = await parseEpub(arrayBuffer)
+
+      return { epubBlob, epubData }
+    }
+
+    if (ext === 'docx') {
+      setProgressMessage('DOCX → EPUB 변환 중...')
+      const arrayBuffer = await originalFile.arrayBuffer()
+
+      const { convertDocxToEpub } = await import('@/lib/text-to-epub')
+      const authorName = user?.email?.split('@')[0] || '작자 미상'
+      const epubBlob = await convertDocxToEpub(arrayBuffer, title.trim() || originalFile.name.replace(/\.docx$/i, ''), authorName)
+
+      // 변환된 epub 파싱
+      const { parseEpub } = await import('@/lib/epub-parser')
+      const epubArrayBuffer = await epubBlob.arrayBuffer()
+      const epubData = await parseEpub(epubArrayBuffer)
+
+      return { epubBlob, epubData }
+    }
+
+    return null
+  }
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!file || !title.trim()) { toast.warning('제목과 파일을 입력해주세요.'); return }
+    setUploading(true); setProgress(10); setProgressMessage('파일 준비 중...')
+    try {
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || ''
+      const isTxtOrDocx = fileExt === 'txt' || fileExt === 'docx'
+
+      // ━━━ txt/docx → epub 변환 ━━━
+      let uploadFile: File | Blob = file
+      let uploadFileName: string
+      let convertedEpubData: any = null
+
+      if (isTxtOrDocx) {
+        setProgress(15)
+        try {
+          const result = await convertFileToEpub(file)
+          if (!result) { setUploading(false); setProgress(0); setProgressMessage(''); return }
+          uploadFile = result.epubBlob
+          convertedEpubData = result.epubData
+          uploadFileName = `${user.id}/${Date.now()}.epub`
+          setProgress(30)
+          setProgressMessage('변환 완료! 업로드 중...')
+        } catch (convertErr: any) {
+          console.error('변환 실패:', convertErr)
+          toast.error(`파일 변환 실패: ${convertErr.message}`)
+          setUploading(false); setProgress(0); setProgressMessage(''); return
+        }
+      } else {
+        uploadFileName = `${user.id}/${Date.now()}.${fileExt}`
+      }
+
+      setProgress(20); setProgressMessage('파일 업로드 중...')
+      const { error: uploadError } = await supabase.storage.from('documents').upload(uploadFileName, uploadFile)
+      if (uploadError) throw uploadError
+
+      setProgress(40); setProgressMessage('썸네일 처리 중...')
+      let thumbnailUrl = null
+      if (thumbnail) {
+        const thumbExt = thumbnail.name.split('.').pop()
+        const thumbFileName = `${user.id}/${Date.now()}.${thumbExt}`
+        const { error: thumbError } = await supabase.storage.from('thumbnails').upload(thumbFileName, thumbnail)
+        if (thumbError) throw thumbError
+        const { data: thumbUrlData } = supabase.storage.from('thumbnails').getPublicUrl(thumbFileName)
+        thumbnailUrl = thumbUrlData.publicUrl
+      }
+      setProgress(50)
+
+      const isPdf = file.type === 'application/pdf' || fileExt === 'pdf'
+      const isEpub = fileExt === 'epub' || file.type === 'application/epub+zip'
+      const isConvertedEpub = isTxtOrDocx && convertedEpubData
+
+      let pageCount = 0; let pdfDoc: any = null
+
+      if (isPdf) {
+        setProgressMessage('PDF 분석 중...')
+        try {
+          const { pdfjs } = await import('react-pdf')
+          pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+          const arrayBuffer = await file.arrayBuffer()
+          pdfDoc = await pdfjs.getDocument({ data: arrayBuffer, cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`, cMapPacked: true }).promise
+          pageCount = pdfDoc.numPages
+        } catch (e) { console.warn('PDF 페이지 수 읽기 실패:', e) }
+      }
+
+      let epubData: any = null
+      if (isEpub) {
+        setProgressMessage('EPUB 분석 중...')
+        try {
+          const { parseEpub } = await import('@/lib/epub-parser')
+          const arrayBuffer = await file.arrayBuffer()
+          epubData = await parseEpub(arrayBuffer)
+          pageCount = epubData.chapters.length
+          if (!title.trim() && epubData.title && epubData.title !== '제목 없음') setTitle(epubData.title)
+        } catch (e) { console.warn('EPUB 파싱 실패:', e); toast.error('EPUB 파일 파싱에 실패했습니다.'); setUploading(false); setProgress(0); setProgressMessage(''); return }
+      }
+
+      // 변환된 epub 데이터 사용
+      if (isConvertedEpub) {
+        epubData = convertedEpubData
+        pageCount = epubData.chapters.length
+      }
+
+      setProgress(60); setProgressMessage('콘텐츠 정보 저장 중...')
+      const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, category, language, file_path: uploadFileName, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: Math.floor(file.size / 1000), page_count: pageCount || null, is_published: true }).select('id').single()
+      if (dbError) throw dbError
+
+      setProgress(70)
+
+      if (isPdf && pdfDoc && docData?.id) {
+        try {
+          setProgressMessage('텍스트 추출 중...')
+          let scanPageCount = 0; const checkPages = Math.min(3, pageCount)
+          for (let i = 1; i <= checkPages; i++) { try { const page = await pdfDoc.getPage(i); const ops = await page.getOperatorList(); let hasImage = false; let textOpCount = 0; for (let j = 0; j < ops.fnArray.length; j++) { const fn = ops.fnArray[j]; if (fn === 85 || fn === 82) hasImage = true; if (fn === 44 || fn === 45) textOpCount++ }; if (hasImage && textOpCount < 5) scanPageCount++ } catch {} }
+          const isScannedPdf = scanPageCount >= checkPages
+          if (isScannedPdf) { const rows: any[] = []; for (let i = 1; i <= pageCount; i++) { rows.push({ document_id: docData.id, page_number: i, text_content: `(${i}페이지: 스캔 이미지)` }); if (rows.length >= 50 || i === pageCount) { await supabase.from('document_pages_text').insert(rows); rows.length = 0 } }; setProgressMessage('스캔 PDF 감지') }
+          else { const batchSize = 10; const rows: any[] = []; for (let i = 1; i <= pageCount; i++) { try { const page = await pdfDoc.getPage(i); const textContent = await page.getTextContent(); const text = extractPageText(textContent.items as any[]); rows.push({ document_id: docData.id, page_number: i, text_content: text }); if (rows.length >= batchSize || i === pageCount) { await supabase.from('document_pages_text').insert(rows); rows.length = 0 }; setProgress(70 + Math.round((i / pageCount) * 25)); setProgressMessage(`텍스트 추출 중... ${i}/${pageCount}`) } catch (pageErr) { console.warn(`${i}페이지 실패:`, pageErr) } } }
+        } catch (extractErr) { console.warn('텍스트 추출 전체 실패:', extractErr) }
+      }
+
+      // EPUB 챕터 저장 (기존 epub + 변환된 epub 모두)
+      if ((isEpub || isConvertedEpub) && epubData && docData?.id) {
+        try { setProgressMessage('챕터 저장 중...'); const batchSize = 10; const rows: any[] = []; for (let i = 0; i < epubData.chapters.length; i++) { rows.push({ document_id: docData.id, page_number: i + 1, text_content: epubData.chapters[i].content }); if (rows.length >= batchSize || i === epubData.chapters.length - 1) { await supabase.from('document_pages_text').insert(rows); rows.length = 0 }; setProgress(70 + Math.round(((i + 1) / epubData.chapters.length) * 25)); setProgressMessage(`챕터 저장 중... ${i + 1}/${epubData.chapters.length}`) } } catch (extractErr) { console.warn('챕터 저장 실패:', extractErr) }
+      }
+
+      setProgress(100); setProgressMessage('완료!'); toast.success('업로드가 완료되었습니다!'); router.push('/dashboard')
+    } catch (error: any) { console.error('Upload error:', error); toast.error(`업로드 실패: ${error.message}`) }
+    finally { setUploading(false); setProgress(0); setProgressMessage('') }
+  }
+
+  const inputClass = "rounded-xl bg-[#EEE4E1]/50 dark:bg-[#2E2620] border-[#E7D8C9] dark:border-[#3A302A] text-[#2D2016] dark:text-[#EEE4E1] placeholder:text-[#9C8B7A] focus:border-[#B2967D] focus:ring-[#B2967D]"
+
+  return (
+    <div className="min-h-screen bg-[#F7F2EF] dark:bg-[#1A1410]">
+      <main className="p-4 md:p-6 lg:p-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2 text-[#2D2016] dark:text-[#EEE4E1]">콘텐츠 업로드</h1>
+            <p className="text-[#9C8B7A]">새로운 콘텐츠를 공유하세요</p>
+          </div>
+
+          {/* 문서/웹툰 탭 */}
+          <div className="flex gap-2 mb-4">
+            <button onClick={() => setUploadTab('document')}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
+                uploadTab === 'document'
+                  ? 'bg-[#B2967D] text-white'
+                  : 'bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] text-[#5C4A38] dark:text-[#C4A882] hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620]'
+              }`}>
+              <FileText className="w-4 h-4" /> 콘텐츠
+            </button>
+            <button onClick={() => setUploadTab('webtoon')}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
+                uploadTab === 'webtoon'
+                  ? 'bg-[#B2967D] text-white'
+                  : 'bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] text-[#5C4A38] dark:text-[#C4A882] hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620]'
+              }`}>
+              🎨 웹툰
+            </button>
+          </div>
+
+          {uploadTab === 'webtoon' ? (
+            <WebtoonUploadForm />
+          ) : (
+          <div className="bg-white dark:bg-[#241E18] rounded-2xl border border-[#E7D8C9] dark:border-[#3A302A] shadow-sm">
+            <div className="px-6 pt-6 pb-2">
+              <h2 className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1]">콘텐츠 정보</h2>
+              <p className="text-sm text-[#9C8B7A] mt-1">콘텐츠의 기본 정보를 입력해주세요</p>
+            </div>
+            <div className="px-6 pb-6">
+              <form onSubmit={handleUpload} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">제목 *</Label>
+                  <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="콘텐츠 제목을 입력하세요" required className={inputClass} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">설명</Label>
+                  <Textarea id="description" value={description} onChange={(e) => { if (e.target.value.length <= 50) setDescription(e.target.value) }} placeholder="콘텐츠에 대한 간단한 설명 (최대 50자)" rows={2} maxLength={50} className={`${inputClass} resize-none`} />
+                  <p className="text-xs text-[#9C8B7A] text-right">{description.length}/50</p>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="category" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">카테고리 *</Label>
+                    <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger id="category" className={`${inputClass} min-w-[100px]`}><SelectValue>{CATEGORIES.find(cat => cat.value === category)?.icon} {CATEGORIES.find(cat => cat.value === category)?.label}</SelectValue></SelectTrigger>
+                      <SelectContent>{CATEGORIES.map((cat) => (<SelectItem key={cat.value} value={cat.value}>{cat.icon} {cat.label}</SelectItem>))}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="thumbnail" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">썸네일 이미지 (선택)</Label>
+                  <div className="flex flex-col gap-4">
+                    <Input id="thumbnail" type="file" accept="image/*" onChange={handleThumbnailChange} disabled={uploading} className={inputClass} />
+                    <p className="text-xs text-[#9C8B7A]">권장: 600x800px (3:4 비율), 최대 5MB</p>
+                    {thumbnailPreview && (<div className="w-48 aspect-[3/4] rounded-xl overflow-hidden border border-[#E7D8C9] dark:border-[#3A302A]"><img src={thumbnailPreview} alt="썸네일 미리보기" className="w-full h-full object-cover" /></div>)}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="file" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">콘텐츠 파일 *</Label>
+                  <Input id="file" type="file" onChange={handleFileChange} disabled={uploading} accept=".pdf,.epub,.txt,.docx" required className={inputClass} />
+                  <p className="text-xs text-[#9C8B7A]">지원 형식: PDF, EPUB, TXT, DOCX (최대 100MB)</p>
+                  {file && (<div className="flex items-center gap-2 text-sm text-[#5C4A38] dark:text-[#C4A882]"><FileText className="w-4 h-4" /><span>{file.name}</span><span className="text-xs">({(file.size / 1024 / 1024).toFixed(2)} MB)</span></div>)}
+                  {convertNotice && (
+                    <div className="bg-[#B2967D]/10 border border-[#B2967D]/30 rounded-lg px-3 py-2 mt-2">
+                      <p className={`text-xs ${convertNotice?.includes('docx') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-[#5C4A38] dark:text-[#C4A882]'}`}>💡 {convertNotice}</p>
+                    </div>
+                  )}
+                </div>
+                {uploading && (
+                  <div className="space-y-2">
+                    <div className="w-full bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full h-2 overflow-hidden">
+                      <div className="bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] h-full transition-all duration-300" style={{ width: `${progress}%` }} />
+                    </div>
+                    <p className="text-sm text-[#9C8B7A] text-center">{progressMessage || `업로드 중... ${progress}%`}</p>
+                  </div>
+                )}
+                <div className="bg-[#B2967D]/10 border border-[#B2967D]/20 rounded-xl p-4">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" checked={copyrightAgreed} onChange={(e) => setCopyrightAgreed(e.target.checked)} className="mt-1 w-4 h-4 rounded border-[#E7D8C9] dark:border-[#3A302A] text-[#B2967D] focus:ring-[#B2967D]" />
+                    <div className="text-sm">
+                      <p className="font-medium text-[#5C4A38] dark:text-[#C4A882]">저작권 확인 *</p>
+                      <p className="text-[#9C8B7A] mt-1">본인이 이 콘텐츠의 저작권을 보유하고 있거나, 저작권자로부터 배포 권한을 부여받았음을 확인합니다. 타인의 저작권을 침해하는 콘텐츠를 업로드할 경우 계정 정지 및 법적 책임이 발생할 수 있습니다.</p>
+                    </div>
+                  </label>
+                </div>
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => router.push('/dashboard')} disabled={uploading} className="flex-1 h-11 rounded-xl border border-[#E7D8C9] dark:border-[#3A302A] bg-white dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] font-medium text-sm hover:bg-[#EEE4E1] dark:hover:bg-[#3A302A] transition-colors disabled:opacity-50">취소</button>
+                  <button type="submit" disabled={uploading || !file || !title.trim() || !copyrightAgreed} className="flex-1 h-11 rounded-xl bg-[#B2967D] hover:bg-[#a67c52] text-white font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"><UploadIcon className="w-4 h-4" />{uploading ? '업로드 중...' : '업로드'}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+                  )}
+        </div>
+      </main>
+    </div>
+  )
+}
+
+
+================================================================================
+FILE: components/webtoon-upload-form.tsx (345 lines)
+================================================================================
+'use client'
+
+import { useState, useRef } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth-context'
+import { useRouter } from 'next/navigation'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CATEGORIES } from '@/lib/categories'
+import { LANGUAGES } from '@/lib/languages'
+import { Upload as UploadIcon, X, GripVertical, ImagePlus } from 'lucide-react'
+import { useToast } from '@/components/toast'
+
+interface ImageItem {
+  id: string
+  file: File
+  preview: string
+  order: number
+}
+
+export default function WebtoonUploadForm() {
+  const { user } = useAuth()
+  const router = useRouter()
+  const { toast } = useToast()
+
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('webtoon')
+  const [language, setLanguage] = useState('ko')
+  const [images, setImages] = useState<ImageItem[]>([])
+  const [thumbnail, setThumbnail] = useState<File | null>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [progressMessage, setProgressMessage] = useState('')
+  const [copyrightAgreed, setCopyrightAgreed] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const dragItemRef = useRef<number | null>(null)
+
+  const webtoonCategories = [
+    { value: 'webtoon', label: '웹툰', icon: '🎨' },
+    { value: 'manga', label: '만화', icon: '📖' },
+    { value: 'illustration', label: '일러스트', icon: '🖼️' },
+  ]
+
+  // 이미지 추가
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    const imageFiles = files.filter(f => f.type.startsWith('image/'))
+    if (imageFiles.length === 0) return
+
+    const newImages: ImageItem[] = imageFiles.map((file, i) => ({
+      id: `${Date.now()}_${i}_${Math.random().toString(36).slice(2)}`,
+      file,
+      preview: URL.createObjectURL(file),
+      order: images.length + i,
+    }))
+
+    setImages(prev => [...prev, ...newImages])
+    if (e.target) e.target.value = ''
+  }
+
+  // 이미지 삭제
+  const removeImage = (id: string) => {
+    setImages(prev => {
+      const filtered = prev.filter(img => img.id !== id)
+      return filtered.map((img, i) => ({ ...img, order: i }))
+    })
+  }
+
+  // 드래그 순서 변경
+  const handleDragStart = (index: number) => { dragItemRef.current = index }
+  const handleDragOver = (e: React.DragEvent, index: number) => { e.preventDefault(); setDragOverIndex(index) }
+  const handleDragEnd = () => {
+    if (dragItemRef.current === null || dragOverIndex === null) { setDragOverIndex(null); return }
+    const newImages = [...images]
+    const [removed] = newImages.splice(dragItemRef.current, 1)
+    newImages.splice(dragOverIndex, 0, removed)
+    setImages(newImages.map((img, i) => ({ ...img, order: i })))
+    dragItemRef.current = null
+    setDragOverIndex(null)
+  }
+
+  // 썸네일
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { toast.warning('썸네일은 5MB 이하'); return }
+    setThumbnail(file)
+    setThumbnailPreview(URL.createObjectURL(file))
+  }
+
+  // 업로드
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user || images.length === 0 || !title.trim()) {
+      toast.warning('제목과 이미지를 입력해주세요.')
+      return
+    }
+    setUploading(true); setProgress(10); setProgressMessage('준비 중...')
+
+    try {
+      // 1. 썸네일 업로드
+      let thumbnailUrl: string | null = null
+      if (thumbnail) {
+        setProgressMessage('썸네일 업로드 중...')
+        const thumbExt = thumbnail.name.split('.').pop()
+        const thumbPath = `${user.id}/${Date.now()}.${thumbExt}`
+        const { error } = await supabase.storage.from('thumbnails').upload(thumbPath, thumbnail)
+        if (!error) {
+          const { data } = supabase.storage.from('thumbnails').getPublicUrl(thumbPath)
+          thumbnailUrl = data.publicUrl
+        }
+      } else if (images.length > 0) {
+        // 첫 이미지를 썸네일로
+        setProgressMessage('첫 이미지로 썸네일 생성...')
+        const firstImg = images[0].file
+        const thumbExt = firstImg.name.split('.').pop()
+        const thumbPath = `${user.id}/${Date.now()}_thumb.${thumbExt}`
+        const { error } = await supabase.storage.from('thumbnails').upload(thumbPath, firstImg)
+        if (!error) {
+          const { data } = supabase.storage.from('thumbnails').getPublicUrl(thumbPath)
+          thumbnailUrl = data.publicUrl
+        }
+      }
+      setProgress(20)
+
+      // 2. 이미지들 업로드
+      setProgressMessage('이미지 업로드 중...')
+      const uploadedImages: { url: string; order: number; width: number | null; height: number | null }[] = []
+
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i]
+        const ext = img.file.name.split('.').pop() || 'jpg'
+        const storagePath = `webtoons/${user.id}/${Date.now()}_${i}.${ext}`
+
+        const { error } = await supabase.storage.from('documents').upload(storagePath, img.file)
+        if (error) { console.error('Image upload error:', error); continue }
+
+        const { data: urlData } = supabase.storage.from('documents').getPublicUrl(storagePath)
+        uploadedImages.push({
+          url: urlData.publicUrl,
+          order: i,
+          width: null,
+          height: null,
+        })
+
+        setProgress(20 + Math.round((i / images.length) * 50))
+        setProgressMessage(`이미지 업로드 중... ${i + 1}/${images.length}`)
+      }
+
+      if (uploadedImages.length === 0) {
+        toast.error('이미지 업로드에 실패했습니다.')
+        setUploading(false); setProgress(0); return
+      }
+
+      setProgress(75); setProgressMessage('콘텐츠 정보 저장 중...')
+
+      // 3. documents 테이블에 레코드 생성
+      const { data: docData, error: docError } = await supabase.from('documents').insert({
+        title: title.trim(),
+        description: description.trim() || null,
+        category,
+        language,
+        file_path: `webtoons/${user.id}`,
+        thumbnail_url: thumbnailUrl,
+        author_id: user.id,
+        file_size: images.reduce((sum, img) => sum + img.file.size, 0),
+        total_reading_time: images.length * 5,
+        page_count: images.length,
+        is_published: true,
+        content_type: 'webtoon',
+      }).select('id').single()
+
+      if (docError) throw docError
+
+      setProgress(85); setProgressMessage('이미지 순서 저장 중...')
+
+      // 4. webtoon_images 테이블에 이미지 저장
+      const imageRows = uploadedImages.map(img => ({
+        document_id: docData.id,
+        image_url: img.url,
+        image_order: img.order,
+        width: img.width,
+        height: img.height,
+      }))
+
+      const { error: imgError } = await supabase.from('webtoon_images').insert(imageRows)
+      if (imgError) console.error('webtoon_images insert error:', imgError)
+
+      setProgress(100); setProgressMessage('완료!')
+      toast.success('웹툰이 업로드되었습니다!')
+      router.push('/dashboard')
+
+    } catch (error: any) {
+      console.error('Upload error:', error)
+      toast.error(`업로드 실패: ${error.message}`)
+    } finally {
+      setUploading(false); setProgress(0); setProgressMessage('')
+    }
+  }
+
+  const inputClass = "rounded-xl bg-[#EEE4E1]/50 dark:bg-[#2E2620] border-[#E7D8C9] dark:border-[#3A302A] text-[#2D2016] dark:text-[#EEE4E1] placeholder:text-[#9C8B7A] focus:border-[#B2967D] focus:ring-[#B2967D]"
+
+  return (
+    <div className="bg-white dark:bg-[#241E18] rounded-2xl border border-[#E7D8C9] dark:border-[#3A302A] shadow-sm">
+      <div className="px-6 pt-6 pb-2">
+        <h2 className="text-lg font-semibold text-[#2D2016] dark:text-[#EEE4E1]">웹툰 정보</h2>
+        <p className="text-sm text-[#9C8B7A] mt-1">웹툰 이미지를 순서대로 업로드하세요</p>
+      </div>
+      <div className="px-6 pb-6">
+        <form onSubmit={handleUpload} className="space-y-6">
+          {/* 제목 */}
+          <div className="space-y-2">
+            <Label className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">제목 *</Label>
+            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="웹툰 제목" required className={inputClass} />
+          </div>
+
+          {/* 설명 */}
+          <div className="space-y-2">
+            <Label className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">설명</Label>
+            <Textarea value={description} onChange={e => { if (e.target.value.length <= 50) setDescription(e.target.value) }}
+              placeholder="간단한 설명 (최대 50자)" rows={2} maxLength={50} className={`${inputClass} resize-none`} />
+            <p className="text-xs text-[#9C8B7A] text-right">{description.length}/50</p>
+          </div>
+
+          {/* 카테고리/언어 */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">카테고리 *</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className={`${inputClass} min-w-[100px]`}>
+                  <SelectValue>{webtoonCategories.find(c => c.value === category)?.icon} {webtoonCategories.find(c => c.value === category)?.label}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {webtoonCategories.map(c => (
+                    <SelectItem key={c.value} value={c.value}>{c.icon} {c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+          </div>
+
+          {/* 썸네일 */}
+          <div className="space-y-2">
+            <Label className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">썸네일 (선택, 미지정 시 첫 이미지)</Label>
+            <Input type="file" accept="image/*" onChange={handleThumbnailChange} disabled={uploading} className={inputClass} />
+            {thumbnailPreview && (
+              <div className="w-32 aspect-[3/4] rounded-lg overflow-hidden border border-[#E7D8C9] dark:border-[#3A302A]">
+                <img src={thumbnailPreview} alt="썸네일" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
+
+          {/* 이미지 업로드 */}
+          <div className="space-y-2">
+            <Label className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">웹툰 이미지 * ({images.length}장)</Label>
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-[#E7D8C9] dark:border-[#3A302A] rounded-xl p-6 text-center cursor-pointer hover:border-[#B2967D] transition-colors"
+            >
+              <ImagePlus className="w-8 h-8 text-[#9C8B7A] mx-auto mb-2" />
+              <p className="text-sm text-[#9C8B7A]">클릭하여 이미지 선택</p>
+              <p className="text-xs text-[#9C8B7A]/60 mt-1">여러 장 선택 가능 · JPG, PNG, WEBP</p>
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageSelect}
+              className="hidden" disabled={uploading} />
+          </div>
+
+          {/* 이미지 목록 (드래그 순서 변경) */}
+          {images.length > 0 && (
+            <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
+              {images.map((img, index) => (
+                <div
+                  key={img.id}
+                  draggable
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`flex items-center gap-3 p-2 rounded-lg border transition-colors ${
+                    dragOverIndex === index
+                      ? 'border-[#B2967D] bg-[#B2967D]/10'
+                      : 'border-[#E7D8C9] dark:border-[#3A302A] bg-[#EEE4E1]/30 dark:bg-[#2E2620]/30'
+                  }`}
+                >
+                  <GripVertical className="w-4 h-4 text-[#9C8B7A] cursor-grab flex-shrink-0" />
+                  <span className="text-xs text-[#9C8B7A] w-6 text-center flex-shrink-0">{index + 1}</span>
+                  <div className="w-12 h-16 rounded overflow-hidden flex-shrink-0 bg-gray-200 dark:bg-gray-700">
+                    <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <span className="text-xs text-[#5C4A38] dark:text-[#C4A882] truncate flex-1">{img.file.name}</span>
+                  <span className="text-[10px] text-[#9C8B7A] flex-shrink-0">{(img.file.size / 1024).toFixed(0)}KB</span>
+                  <button type="button" onClick={() => removeImage(img.id)}
+                    className="p-1 rounded hover:bg-red-500/20 text-[#9C8B7A] hover:text-red-400 transition-colors flex-shrink-0">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 진행률 */}
+          {uploading && (
+            <div className="space-y-2">
+              <div className="w-full bg-[#EEE4E1] dark:bg-[#2E2620] rounded-full h-2 overflow-hidden">
+                <div className="bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] h-full transition-all duration-300" style={{ width: `${progress}%` }} />
+              </div>
+              <p className="text-sm text-[#9C8B7A] text-center">{progressMessage || `업로드 중... ${progress}%`}</p>
+            </div>
+          )}
+
+          {/* 저작권 */}
+          <div className="bg-[#B2967D]/10 border border-[#B2967D]/20 rounded-xl p-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" checked={copyrightAgreed} onChange={e => setCopyrightAgreed(e.target.checked)}
+                className="mt-1 w-4 h-4 rounded border-[#E7D8C9] dark:border-[#3A302A] text-[#B2967D] focus:ring-[#B2967D]" />
+              <div className="text-sm">
+                <p className="font-medium text-[#5C4A38] dark:text-[#C4A882]">저작권 확인 *</p>
+                <p className="text-[#9C8B7A] mt-1">본인이 이 콘텐츠의 저작권을 보유하고 있거나, 저작권자로부터 배포 권한을 부여받았음을 확인합니다.</p>
+              </div>
+            </label>
+          </div>
+
+          {/* 버튼 */}
+          <div className="flex gap-3">
+            <button type="button" onClick={() => router.push('/dashboard')} disabled={uploading}
+              className="flex-1 h-11 rounded-xl border border-[#E7D8C9] dark:border-[#3A302A] bg-white dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] font-medium text-sm hover:bg-[#EEE4E1] dark:hover:bg-[#3A302A] transition-colors disabled:opacity-50">
+              취소
+            </button>
+            <button type="submit" disabled={uploading || images.length === 0 || !title.trim() || !copyrightAgreed}
+              className="flex-1 h-11 rounded-xl bg-[#B2967D] hover:bg-[#a67c52] text-white font-medium text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+              <UploadIcon className="w-4 h-4" />
+              {uploading ? '업로드 중...' : `업로드 (${images.length}장)`}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+
+================================================================================
+FILE: app/(main)/document/[id]/page.tsx (828 lines)
+================================================================================
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
+import { supabase, Document, Profile } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth-context'
+import { Eye, ThumbsUp, Clock, BookOpen, ChevronRight, FileText, Users } from 'lucide-react'
+import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
+import { SubscribeButton } from '@/components/subscribe-button'
+import { ShareButton } from '@/components/share-button'
+import { ReadingListButton } from '@/components/reading-list-button'
+import { CommentsSection } from '@/components/comments-section'
+import { DocumentCard } from '@/components/document-card'
+import { PageAdBanner } from '@/components/page-ad-banner'
+
+type SeriesDoc = { documentId: string; position: number; title: string }
+type TocItem = { title: string; pageNumber: number; level: number }
+
+export default function DocumentDetailPage() {
+  const params = useParams()
+  const router = useRouter()
+  const { user } = useAuth()
+  const documentId = params.id as string
+
+  const [doc, setDoc] = useState<Document | null>(null)
+  const [author, setAuthor] = useState<Profile | null>(null)
+  const [moreDocs, setMoreDocs] = useState<Document[]>([])
+  const [alsoReadDocs, setAlsoReadDocs] = useState<Document[]>([])
+  const [seriesDocs, setSeriesDocs] = useState<SeriesDoc[]>([])
+  const [seriesTitle, setSeriesTitle] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [progress, setProgress] = useState<number | null>(null)
+  const [readerCount, setReaderCount] = useState(0)
+  const [completionRate, setCompletionRate] = useState<number | null>(null)
+
+  // ━━━ 탭 상태 ━━━
+  const [activeTab, setActiveTab] = useState<'intro' | 'info' | 'author' | 'toc'>('intro')
+  const [toc, setToc] = useState<TocItem[]>([])
+  const [tocLoading, setTocLoading] = useState(false)
+  const [tocLoaded, setTocLoaded] = useState(false)
+
+  useEffect(() => {
+    loadDocument()
+  }, [documentId])
+
+  // ━━━ 목차 자동 추출 ━━━
+  const loadToc = async () => {
+    if (tocLoaded) return
+    setTocLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('document_pages_text')
+        .select('page_number, text_content')
+        .eq('document_id', documentId)
+        .order('page_number', { ascending: true })
+
+      if (error || !data) { setTocLoaded(true); return }
+
+      const items: TocItem[] = []
+      const seenTitles = new Set<string>()
+
+      for (const row of data) {
+        const text = row.text_content || ''
+
+        // HTML heading 태그에서 추출
+        const headingRegex = /<h([1-3])[^>]*>(.*?)<\/h[1-3]>/gi
+        let match
+        while ((match = headingRegex.exec(text)) !== null) {
+          const level = parseInt(match[1])
+          const title = match[2].replace(/<[^>]+>/g, '').trim()
+          if (title && title.length > 1 && title.length < 100 && !seenTitles.has(title)) {
+            seenTitles.add(title)
+            items.push({ title, pageNumber: row.page_number, level })
+          }
+        }
+
+        // heading이 없으면 페이지 첫 줄에서 챕터/장/편 패턴 추출
+        if (items.filter(i => i.pageNumber === row.page_number).length === 0) {
+          const clean = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+          const lines = clean.split(/[.!?\n]/).map((l: string) => l.trim()).filter((l: string) => l.length > 0)
+          if (lines.length > 0) {
+            const firstLine = lines[0]
+            // 패턴: "제1장", "Chapter 1", "1장", "제1편", "PART 1", "목차", "서론", "결론" 등
+            const chapterPattern = /^(제?\s*\d+\s*[장절편부화회]|chapter\s*\d+|part\s*\d+|서론|결론|에필로그|프롤로그|머리말|맺음말|들어가며|나가며|\d+\.\s+\S)/i
+            if (chapterPattern.test(firstLine) && firstLine.length < 80 && !seenTitles.has(firstLine)) {
+              seenTitles.add(firstLine)
+              items.push({ title: firstLine, pageNumber: row.page_number, level: 2 })
+            }
+          }
+        }
+      }
+
+      setToc(items)
+    } catch (err) {
+      console.error('Error loading TOC:', err)
+    } finally {
+      setTocLoading(false)
+      setTocLoaded(true)
+    }
+  }
+
+  // 목차 탭 클릭 시 로드
+  useEffect(() => {
+    if (activeTab === 'toc' && !tocLoaded) {
+      loadToc()
+    }
+  }, [activeTab])
+
+  const loadDocument = async () => {
+    try {
+      const { data: docData, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('id', documentId)
+        .single()
+      if (error) throw error
+      setDoc(docData)
+
+      const { data: authorData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', docData.author_id)
+        .single()
+      if (authorData) setAuthor(authorData)
+
+      const { data: otherDocs } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('author_name', docData.author_name)
+        .eq('is_published', true)
+        .neq('id', documentId)
+        .order('created_at', { ascending: false })
+        .limit(6)
+      if (otherDocs) setMoreDocs(otherDocs)
+
+      // ━━━ 독자 수 & 완독률 ━━━
+      try {
+        const { data: readers } = await supabase
+          .from('reading_sessions')
+          .select('reader_id, current_page')
+          .eq('document_id', documentId)
+
+        if (readers && readers.length > 0) {
+          const uniqueReaders = new Set(readers.map(r => r.reader_id))
+          setReaderCount(uniqueReaders.size)
+
+          if (docData.page_count > 0) {
+            const readerMaxPages = new Map<string, number>()
+            readers.forEach(r => {
+              const prev = readerMaxPages.get(r.reader_id) || 0
+              if (r.current_page > prev) readerMaxPages.set(r.reader_id, r.current_page)
+            })
+            let completedCount = 0
+            readerMaxPages.forEach((maxPage) => {
+              if (maxPage >= docData.page_count * 0.9) completedCount++
+            })
+            if (uniqueReaders.size > 0) {
+              setCompletionRate(Math.round((completedCount / uniqueReaders.size) * 100))
+            }
+          }
+        }
+      } catch {}
+
+      // ━━━ 시리즈 ━━━
+      const { data: seriesDoc } = await supabase
+        .from('series_documents')
+        .select('series_id, position')
+        .eq('document_id', documentId)
+        .maybeSingle()
+
+      if (seriesDoc) {
+        const { data: series } = await supabase
+          .from('document_series')
+          .select('id, title')
+          .eq('id', seriesDoc.series_id)
+          .single()
+
+        if (series) {
+          setSeriesTitle(series.title)
+          const { data: allDocs } = await supabase
+            .from('series_documents')
+            .select('document_id, position')
+            .eq('series_id', series.id)
+            .order('position', { ascending: true })
+
+          if (allDocs) {
+            const docIds = allDocs.map(d => d.document_id)
+            const { data: docTitles } = await supabase
+              .from('documents')
+              .select('id, title')
+              .in('id', docIds)
+            const titleMap = new Map((docTitles || []).map(d => [d.id, d.title]))
+
+            setSeriesDocs(allDocs.map(d => ({
+              documentId: d.document_id,
+              position: d.position,
+              title: titleMap.get(d.document_id) || '',
+            })))
+          }
+        }
+      }
+
+      // ━━━ 읽기 진행도 (로그인 사용자) ━━━
+      if (user) {
+        const { data: session } = await supabase
+          .from('reading_sessions')
+          .select('current_page')
+          .eq('document_id', documentId)
+          .eq('reader_id', user.id)
+          .order('last_read_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        if (session && docData.page_count > 0) {
+          setProgress(Math.round((session.current_page / docData.page_count) * 100))
+        }
+      }
+
+      // ━━━ 이 콘텐츠를 읽은 사람이 본 다른 문서 ━━━
+      try {
+        const { data: otherReaders } = await supabase
+          .from('reading_sessions')
+          .select('reader_id')
+          .eq('document_id', documentId)
+          .limit(50)
+
+        if (otherReaders && otherReaders.length > 0) {
+          const otherUserIds = [...new Set(otherReaders.map(r => r.reader_id))].slice(0, 20)
+
+          const { data: otherReadDocs } = await supabase
+            .from('reading_sessions')
+            .select('document_id')
+            .in('reader_id', otherUserIds)
+            .neq('document_id', documentId)
+            .limit(100)
+
+          if (otherReadDocs && otherReadDocs.length > 0) {
+            const docFreq: Record<string, number> = {}
+            otherReadDocs.forEach(r => {
+              docFreq[r.document_id] = (docFreq[r.document_id] || 0) + 1
+            })
+            const topDocIds = Object.entries(docFreq)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 6)
+              .map(([id]) => id)
+
+            if (topDocIds.length > 0) {
+              const { data: alsoDocs } = await supabase
+                .from('documents')
+                .select('*, profiles!documents_author_id_fkey(username, email, avatar_url)')
+                .in('id', topDocIds)
+                .eq('is_published', true)
+
+              if (alsoDocs) {
+                const sorted = topDocIds
+                  .map(id => alsoDocs.find((d: any) => d.id === id))
+                  .filter(Boolean) as Document[]
+                setAlsoReadDocs(sorted)
+              }
+            }
+          }
+        }
+      } catch {}
+
+    } catch (err) {
+      console.error('Error loading document:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatReadingTime = (seconds: number) => {
+    if (seconds < 60) return '1분 미만'
+    const mins = Math.floor(seconds / 60)
+    if (mins < 60) return `${mins}분`
+    const hours = Math.floor(mins / 60)
+    return `${hours}시간 ${mins % 60}분`
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes}B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
+  }
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr)
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[#9C8B7A]">로딩 중...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!doc) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-[#9C8B7A] mb-4">콘텐츠를 찾을 수 없습니다</p>
+          <button onClick={() => router.push('/home')} className="text-[#B2967D] hover:underline">홈으로 돌아가기</button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen pb-24 lg:pb-8">
+
+      {/* ━━━ 블러 배경 히어로 ━━━ */}
+      <div className="relative overflow-hidden">
+        {/* 블러 배경 이미지 */}
+        <div className="absolute inset-0 -inset-x-10">
+          {doc.thumbnail_url ? (
+            <Image src={doc.thumbnail_url} alt="" fill className="object-cover scale-110" sizes="100vw" priority />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-[#B2967D] to-[#E6BEAE]" />
+          )}
+          <div className="absolute inset-0 backdrop-blur-3xl" />
+          <div className="absolute inset-0 bg-[#F7F2EF]/70 dark:bg-[#1A1410]/80" />
+        </div>
+
+        {/* 히어로 콘텐츠 */}
+        <div className="relative max-w-4xl mx-auto px-4 md:px-6 pt-6 md:pt-10 pb-8 md:pb-12">
+          <div className="flex flex-col sm:flex-row gap-6 md:gap-8">
+
+            {/* 표지 */}
+            <div className="flex-shrink-0 mx-auto sm:mx-0">
+              <div className="relative w-[180px] md:w-[220px] aspect-[3/4] rounded-xl overflow-hidden shadow-2xl shadow-black/20 bg-[#EEE4E1] dark:bg-[#2E2620] ring-1 ring-white/10">
+                {doc.thumbnail_url ? (
+                  <Image src={doc.thumbnail_url} alt={doc.title} fill className="object-cover" sizes="220px" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <BookOpen className="w-16 h-16 text-[#E7D8C9] dark:text-[#3A302A]" />
+                  </div>
+                )}
+                {progress !== null && progress > 0 && (
+                  <div className="absolute bottom-0 left-0 right-0">
+                    <div className="h-1.5 bg-black/20">
+                      <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE]" style={{ width: `${progress}%` }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 정보 */}
+            <div className="flex-1 min-w-0 text-center sm:text-left">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/60 dark:bg-[#2E2620]/60 backdrop-blur-sm text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-full mb-3">
+                {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
+              </span>
+
+              <h1 className="text-2xl md:text-3xl font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-3 leading-tight">
+                {doc.title}
+              </h1>
+
+              {author && (
+                <div className="mb-4">
+                  {/* 창작자 + 큐레이터 */}
+                  <div className="flex flex-col gap-2">
+                    {/* 창작자 (author_name이 있고 업로더와 다를 때) */}
+                    {(doc as any).author_name && (doc as any).author_name !== author.username && (
+                      <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name)}`}>
+                        <div className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                          <div className="w-8 h-8 bg-gradient-to-br from-[#5C4A38] to-[#8B7049] rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            {((doc as any).author_name)[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">{(doc as any).author_name}</span>
+                            <span className="text-[10px] text-[#9C8B7A] ml-1.5">창작자</span>
+                          </div>
+                        </div>
+                      </Link>
+                    )}
+
+                    {/* 큐레이터 (업로드한 사람) */}
+                    <div className="flex items-center justify-center sm:justify-between gap-3">
+                      <Link href={`/profile/${author.id}`}>
+                        <div className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                          {author.avatar_url ? (
+                            <Image src={author.avatar_url} alt="" width={32} height={32} className="rounded-full object-cover" />
+                          ) : (
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-xs">
+                              {(author.username || author.email)[0].toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1]">{author.username || author.email}</span>
+                            <span className="text-[10px] text-[#9C8B7A] ml-1.5">{(doc as any).author_name && (doc as any).author_name === (author.username || author.email) ? '창작자 · 큐레이터' : '큐레이터'}</span>
+                          </div>
+                        </div>
+                      </Link>
+                      {user && user.id !== author.id && (
+                        <div className="hidden sm:block">
+                          <SubscribeButton
+                            authorId={author.id}
+                            authorName={author.username || author.email}
+                            initialSubscribersCount={author.subscribers_count}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 통계 */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-sm text-[#9C8B7A] mb-5">
+                <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {doc.view_count.toLocaleString()}</span>
+                <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> {doc.likes_count.toLocaleString()}</span>
+                {doc.page_count > 0 && (
+                  <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {doc.page_count}p</span>
+                )}
+                {doc.total_reading_time > 0 && (
+                  <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatReadingTime(doc.total_reading_time)}</span>
+                )}
+                {readerCount > 0 && (
+                  <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {readerCount}명 읽는 중</span>
+                )}
+              </div>
+
+              {/* 완독률 바 */}
+              {completionRate !== null && readerCount >= 3 && (
+                <div className="mb-5">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs text-[#9C8B7A]">완독률</span>
+                    <span className="text-xs font-semibold text-[#5C4A38] dark:text-[#C4A882]">{completionRate}%</span>
+                  </div>
+                  <div className="h-2 bg-[#EEE4E1]/60 dark:bg-[#2E2620]/60 rounded-full overflow-hidden backdrop-blur-sm">
+                    <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] rounded-full transition-all duration-500"
+                      style={{ width: `${completionRate}%` }} />
+                  </div>
+                </div>
+              )}
+
+              {/* 데스크톱 CTA */}
+              <div className="hidden sm:flex items-center gap-3">
+                <Link
+                  href={`/read/${doc.id}`}
+                  className="px-8 py-3 bg-[#B2967D] hover:bg-[#a67c52] text-white font-semibold rounded-full transition-colors shadow-lg shadow-[#B2967D]/25 text-base text-center"
+                >
+                  {progress !== null && progress > 0 ? `이어서 읽기 (${progress}%)` : '바로 읽기'}
+                </Link>
+                <ReadingListButton documentId={documentId} />
+                <ShareButton documentId={documentId} title={doc.title} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ━━━ 본문 영역 ━━━ */}
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
+
+        {/* ━━━ 탭 네비게이션 ━━━ */}
+        <div className="flex border-b border-[#E7D8C9] dark:border-[#3A302A] mb-5 gap-1 overflow-x-auto scrollbar-hide">
+          {[
+            { key: 'intro' as const, label: '소개' },
+            { key: 'info' as const, label: '도서정보' },
+            { key: 'author' as const, label: (doc as any).author_name && (doc as any).author_name !== author?.username ? '창작자·큐레이터' : '큐레이터' },
+            { key: 'toc' as const, label: '목차' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors relative ${
+                activeTab === tab.key
+                  ? 'text-[#B2967D]'
+                  : 'text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'
+              }`}
+            >
+              {tab.label}
+              {activeTab === tab.key && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#B2967D] rounded-full" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* ━━━ 탭 콘텐츠 ━━━ */}
+        <div className="mb-6 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl min-h-[120px]">
+
+          {/* 소개 탭 */}
+          {activeTab === 'intro' && (
+            <div>
+              {doc.description ? (
+                <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{doc.description}</p>
+              ) : (
+                <p className="text-sm text-[#9C8B7A] italic">소개가 등록되지 않았습니다.</p>
+              )}
+            </div>
+          )}
+
+          {/* 도서정보 탭 */}
+          {activeTab === 'info' && (
+            <div>
+              <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                <div>
+                  <p className="text-xs text-[#9C8B7A] mb-1">카테고리</p>
+                  <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">
+                    {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
+                  </p>
+                </div>
+                {doc.page_count > 0 && (
+                  <div>
+                    <p className="text-xs text-[#9C8B7A] mb-1">페이지</p>
+                    <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{doc.page_count}페이지</p>
+                  </div>
+                )}
+                {doc.file_size > 0 && (
+                  <div>
+                    <p className="text-xs text-[#9C8B7A] mb-1">파일 크기</p>
+                    <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{formatFileSize(doc.file_size)}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs text-[#9C8B7A] mb-1">언어</p>
+                  <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">
+                    {doc.language === 'ko' ? '한국어' : doc.language === 'en' ? 'English' : doc.language}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#9C8B7A] mb-1">등록일</p>
+                  <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{formatDate(doc.created_at)}</p>
+                </div>
+                {doc.updated_at !== doc.created_at && (
+                  <div>
+                    <p className="text-xs text-[#9C8B7A] mb-1">최종 수정</p>
+                    <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{formatDate(doc.updated_at)}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs text-[#9C8B7A] mb-1">조회수</p>
+                  <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{doc.view_count.toLocaleString()}회</p>
+                </div>
+                {doc.total_reading_time > 0 && (
+                  <div>
+                    <p className="text-xs text-[#9C8B7A] mb-1">총 읽기 시간</p>
+                    <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{formatReadingTime(doc.total_reading_time)}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 파일 형식 */}
+              <div className="mt-5 pt-4 border-t border-[#E7D8C9] dark:border-[#3A302A]">
+                <p className="text-xs text-[#9C8B7A] mb-2">지원 형식</p>
+                <div className="flex gap-2">
+                  <span className="px-2.5 py-1 bg-[#EEE4E1] dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-md font-medium">
+                    {doc.file_path?.endsWith('.epub') ? 'EPUB' : 'PDF'}
+                  </span>
+                  <span className="px-2.5 py-1 bg-[#EEE4E1] dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-md font-medium">
+                    리플로우
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 창작자/큐레이터 탭 */}
+          {activeTab === 'author' && author && (
+            <div>
+              {/* 창작자 정보 (author_name이 있고 업로더와 다를 때) */}
+              {(doc as any).author_name && (doc as any).author_name !== author.username && (
+                <div className="mb-5 pb-5 border-b border-[#E7D8C9] dark:border-[#3A302A]">
+                  <p className="text-[10px] uppercase tracking-wider text-[#9C8B7A] font-semibold mb-3">창작자</p>
+                  <div className="flex items-center gap-4 mb-3">
+                    <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name)}`}>
+                      <div className="w-14 h-14 bg-gradient-to-br from-[#5C4A38] to-[#8B7049] rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        {((doc as any).author_name)[0].toUpperCase()}
+                      </div>
+                    </Link>
+                    <div className="flex-1">
+                      <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name)}`}>
+                        <p className="text-base font-semibold text-[#2D2016] dark:text-[#EEE4E1] hover:underline">{(doc as any).author_name}</p>
+                      </Link>
+                    </div>
+                  </div>
+                  {(doc as any).author_bio ? (
+                    <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{(doc as any).author_bio}</p>
+                  ) : (
+                    <p className="text-sm text-[#9C8B7A] italic">창작자 소개가 등록되지 않았습니다.</p>
+                  )}
+                  {/* 이 창작자의 다른 작품 */}
+                  {moreDocs.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs text-[#9C8B7A] mb-2">이 창작자의 다른 작품 ({moreDocs.length})</p>
+                      <div className="space-y-1.5">
+                        {moreDocs.slice(0, 4).map(d => (
+                          <div key={d.id} onClick={() => router.push(`/document/${d.id}`)}
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer transition-colors">
+                            <div className="w-8 h-10 flex-shrink-0 rounded overflow-hidden bg-[#EEE4E1] dark:bg-[#2E2620]">
+                              {d.thumbnail_url ? (
+                                <Image src={d.thumbnail_url} alt="" width={32} height={40} className="object-cover w-full h-full" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-3 h-3 text-[#9C8B7A]" /></div>
+                              )}
+                            </div>
+                            <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] truncate flex-1">{d.title}</span>
+                            <ChevronRight className="w-4 h-4 text-[#E7D8C9] dark:text-[#3A302A] flex-shrink-0" />
+                          </div>
+                        ))}
+                      </div>
+                      {moreDocs.length > 4 && (
+                        <Link href={`/browse?author=${encodeURIComponent((doc as any).author_name)}`} className="block mt-2 text-center text-xs text-[#B2967D] hover:underline">전체 보기 →</Link>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 큐레이터 정보 (업로드한 사람) */}
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-[#9C8B7A] font-semibold mb-3">
+                  {(doc as any).author_name && (doc as any).author_name === (author.username || author.email) ? '창작자 · 큐레이터' : '큐레이터'}
+                </p>
+                <div className="flex items-center gap-4 mb-3">
+                  <Link href={`/profile/${author.id}`}>
+                    {author.avatar_url ? (
+                      <Image src={author.avatar_url} alt="" width={56} height={56} className="rounded-full object-cover" />
+                    ) : (
+                      <div className="w-14 h-14 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-lg">
+                        {(author.username || author.email)[0].toUpperCase()}
+                      </div>
+                    )}
+                  </Link>
+                  <div className="flex-1">
+                    <Link href={`/profile/${author.id}`}>
+                      <p className="text-base font-semibold text-[#2D2016] dark:text-[#EEE4E1] hover:underline">{author.username || author.email}</p>
+                    </Link>
+                    <p className="text-xs text-[#9C8B7A] mt-0.5">구독자 {author.subscribers_count.toLocaleString()}명</p>
+                  </div>
+                  {user && user.id !== author.id && (
+                    <SubscribeButton
+                      authorId={author.id}
+                      authorName={author.username || author.email}
+                      initialSubscribersCount={author.subscribers_count}
+                    />
+                  )}
+                </div>
+                {author.bio ? (
+                  <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{author.bio}</p>
+                ) : (
+                  <p className="text-sm text-[#9C8B7A] italic">큐레이터 소개가 등록되지 않았습니다.</p>
+                )}
+
+                {/* 창작자=큐레이터인 경우 다른 도서 목록 */}
+                {(!(doc as any).author_name || (doc as any).author_name === author.username) && moreDocs.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-[#E7D8C9] dark:border-[#3A302A]">
+                    <p className="text-xs text-[#9C8B7A] mb-2">다른 콘텐츠 ({moreDocs.length})</p>
+                    <div className="space-y-1.5">
+                      {moreDocs.slice(0, 4).map(d => (
+                        <div key={d.id} onClick={() => router.push(`/document/${d.id}`)}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer transition-colors">
+                          <div className="w-8 h-10 flex-shrink-0 rounded overflow-hidden bg-[#EEE4E1] dark:bg-[#2E2620]">
+                            {d.thumbnail_url ? (
+                              <Image src={d.thumbnail_url} alt="" width={32} height={40} className="object-cover w-full h-full" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-3 h-3 text-[#9C8B7A]" /></div>
+                            )}
+                          </div>
+                          <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] truncate flex-1">{d.title}</span>
+                          <ChevronRight className="w-4 h-4 text-[#E7D8C9] dark:text-[#3A302A] flex-shrink-0" />
+                        </div>
+                      ))}
+                    </div>
+                    {moreDocs.length > 4 && (
+                      <Link href={`/browse?author_id=${author.id}`} className="block mt-2 text-center text-xs text-[#B2967D] hover:underline">전체 보기 →</Link>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 목차 탭 */}
+          {activeTab === 'toc' && (
+            <div>
+              {tocLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin mr-3" />
+                  <span className="text-sm text-[#9C8B7A]">목차를 추출하는 중...</span>
+                </div>
+              ) : toc.length > 0 ? (
+                <div className="space-y-1">
+                  {toc.map((item, i) => (
+                    <div
+                      key={i}
+                      onClick={() => router.push(`/read/${documentId}`)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer transition-colors"
+                      style={{ paddingLeft: `${(item.level - 1) * 16 + 12}px` }}
+                    >
+                      <span className="text-xs text-[#9C8B7A] flex-shrink-0 w-8 text-right tabular-nums">{item.pageNumber}p</span>
+                      <span className={`text-sm truncate ${
+                        item.level === 1
+                          ? 'text-[#2D2016] dark:text-[#EEE4E1] font-semibold'
+                          : item.level === 2
+                            ? 'text-[#5C4A38] dark:text-[#C4A882] font-medium'
+                            : 'text-[#9C8B7A]'
+                      }`}>
+                        {item.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="w-8 h-8 text-[#E7D8C9] dark:text-[#3A302A] mx-auto mb-3" />
+                  <p className="text-sm text-[#9C8B7A]">자동 추출된 목차가 없습니다.</p>
+                  <p className="text-xs text-[#9C8B7A]/60 mt-1">문서에 챕터/장 구분이 포함된 경우 자동으로 표시됩니다.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 시리즈 */}
+        {seriesDocs.length > 0 && (
+          <div className="mb-6 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
+            <h2 className="text-sm font-semibold text-[#2D2016] dark:text-[#EEE4E1] mb-3">📚 {seriesTitle}</h2>
+            <div className="space-y-1">
+              {seriesDocs.map((sd, i) => (
+                <div
+                  key={sd.documentId}
+                  onClick={() => { if (sd.documentId !== documentId) router.push(`/document/${sd.documentId}`) }}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                    sd.documentId === documentId
+                      ? 'bg-[#B2967D]/10 text-[#B2967D] font-medium'
+                      : 'text-[#5C4A38] dark:text-[#C4A882] hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer'
+                  }`}
+                >
+                  <span className="w-6 text-center text-[#9C8B7A] text-xs">{i + 1}</span>
+                  <span className="flex-1 truncate">{sd.title}</span>
+                  {sd.documentId === documentId && (
+                    <span className="text-[10px] bg-[#B2967D]/20 px-2 py-0.5 rounded-full">현재</span>
+                  )}
+                  {sd.documentId !== documentId && (
+                    <ChevronRight className="w-4 h-4 text-[#E7D8C9] dark:text-[#3A302A]" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 광고 배너 */}
+        <div className="mb-6">
+          <PageAdBanner position="detail_page" documentId={documentId} authorId={doc?.author_id} />
+        </div>
+
+        {/* 댓글 */}
+        <div className="mb-6 p-5 bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] rounded-xl">
+          <CommentsSection documentId={documentId} />
+        </div>
+
+        {/* 추천 영역 광고 */}
+        {alsoReadDocs.length > 0 && (
+          <div className="mb-6">
+            <PageAdBanner position="detail_page" documentId={documentId} authorId={doc?.author_id} />
+          </div>
+        )}
+
+        {/* 이 콘텐츠를 읽은 사람이 본 */}
+        {alsoReadDocs.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-4">
+              이 콘텐츠를 읽은 사람이 본
+            </h2>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+              {alsoReadDocs.map(d => (
+                <DocumentCard
+                  key={d.id}
+                  doc={d}
+                  authorName={(d as any).author_name || (d as any).profiles?.username || (d as any).profiles?.email}
+                  variant="grid"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 이 큐레이터의 다른 콘텐츠 */}
+        {moreDocs.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-[#2D2016] dark:text-[#EEE4E1]">
+                {(doc as any).author_name || author?.username || '큐레이터'}의 다른 콘텐츠
+              </h2>
+              <Link href={`${(doc as any).author_name ? `/browse?author=${encodeURIComponent((doc as any).author_name)}` : `/browse?author_id=${author?.id}`}`} className="flex items-center gap-1 text-sm text-[#B2967D] hover:text-[#a67c52]">
+                전체보기 <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {moreDocs.map(d => (
+                <DocumentCard key={d.id} doc={d} authorName={(doc as any).author_name || author?.username || author?.email} variant="grid" />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ━━━ 모바일 하단 고정 CTA ━━━ */}
+      <div className="fixed bottom-16 left-0 right-0 z-30 sm:hidden">
+        <div className="bg-white/90 dark:bg-[#241E18]/90 backdrop-blur-md border-t border-[#E7D8C9] dark:border-[#3A302A] px-4 py-3">
+          <div className="flex items-center gap-3">
+            <ReadingListButton documentId={documentId} />
+            <ShareButton documentId={documentId} title={doc.title} />
+            <Link
+              href={`/read/${doc.id}`}
+              className="flex-1 py-3 bg-[#B2967D] hover:bg-[#a67c52] text-white font-semibold rounded-full transition-colors shadow-md shadow-[#B2967D]/20 text-sm text-center"
+            >
+              {progress !== null && progress > 0 ? `이어서 읽기 (${progress}%)` : '바로 읽기'}
+            </Link>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
+
+================================================================================
+FILE: app/read/[id]/page.tsx (1499 lines)
+================================================================================
+'use client'
+
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
+import dynamic from 'next/dynamic'
+import { supabase, Document, Profile } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth-context'
+import {
+  Home,
+  MessageSquare,
+  X,
+  Maximize,
+  Minimize,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  BookOpen,
+  ScrollText,
+  BookOpenCheck,
+  Sun,
+  Bookmark,
+  Trash2,
+  AlignLeft,
+  LogIn,
+  Search,
+  ChevronUp,
+  ChevronDown,
+  Play,
+} from 'lucide-react'
+import { AdBanner } from '@/components/ad-banner'
+import { AdOverlay } from '@/components/ad-overlay'
+import { ReactionButtons } from '@/components/reaction-buttons'
+import { SubscribeButton } from '@/components/subscribe-button'
+import { ShareButton } from '@/components/share-button'
+import { ReadingListButton } from '@/components/reading-list-button'
+import { CommentsSection } from '@/components/comments-section'
+
+import type { ViewMode } from '@/components/pdf-viewer'
+
+type SeriesInfo = {
+  seriesId: string
+  seriesTitle: string
+  currentPosition: number
+  totalDocs: number
+  docs: { documentId: string; position: number; title: string }[]
+  prevDocId: string | null
+  nextDocId: string | null
+}
+
+const PDFViewer = dynamic(() => import('@/components/pdf-viewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[#C4A882]">PDF 뷰어 로딩 중...</p>
+      </div>
+    </div>
+  ),
+})
+
+const WebtoonViewer = dynamic(() => import('@/components/webtoon-viewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[#C4A882]">웹툰 뷰어 로딩 중...</p>
+      </div>
+    </div>
+  ),
+})
+
+const ReflowViewer = dynamic(() => import('@/components/reflow-viewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[#C4A882]">리플로우 뷰어 로딩 중...</p>
+      </div>
+    </div>
+  ),
+})
+
+// ─── 광고 Tier 설정 ───
+type AdTier = 'micro' | 'short' | 'medium' | 'long' | 'extra'
+
+interface TierConfig {
+  showStartAd: boolean
+  showEndAd: boolean
+  pageInterval: number
+  minTimeBetweenAds: number
+  maxAdsPerSession: number
+}
+
+function getAdTier(numPages: number): AdTier {
+  if (numPages <= 5) return 'micro'
+  if (numPages <= 20) return 'short'
+  if (numPages <= 100) return 'medium'
+  if (numPages <= 300) return 'long'
+  return 'extra'
+}
+
+function getTierConfig(tier: AdTier): TierConfig {
+  switch (tier) {
+    case 'micro':
+      return { showStartAd: false, showEndAd: true, pageInterval: 0, minTimeBetweenAds: 0, maxAdsPerSession: 1 }
+    case 'short':
+      return { showStartAd: true, showEndAd: true, pageInterval: 0, minTimeBetweenAds: 0, maxAdsPerSession: 2 }
+    case 'medium':
+      return { showStartAd: true, showEndAd: true, pageInterval: 25, minTimeBetweenAds: 300, maxAdsPerSession: 10 }
+    case 'long':
+      return { showStartAd: true, showEndAd: true, pageInterval: 30, minTimeBetweenAds: 300, maxAdsPerSession: 10 }
+    case 'extra':
+      return { showStartAd: true, showEndAd: true, pageInterval: 40, minTimeBetweenAds: 420, maxAdsPerSession: 10 }
+  }
+}
+
+// ─── 배경 테마 ───
+type BgTheme = 'default' | 'sepia' | 'dark'
+
+const BG_THEMES: Record<BgTheme, { label: string; previewColor: string; bgColor: string }> = {
+  default: { label: '기본', previewColor: '#1A1410', bgColor: '#1A1410' },
+  sepia: { label: '세피아', previewColor: '#f4ecd8', bgColor: '#f4ecd8' },
+  dark: { label: '다크', previewColor: '#121212', bgColor: '#121212' },
+}
+
+// ─── 검색 결과 타입 ───
+type SearchResult = {
+  pageNumber: number
+  snippet: string
+  matchIndex: number
+}
+
+export default function ReadPage() {
+  const params = useParams()
+  const router = useRouter()
+  const { user, profile, loading: authLoading } = useAuth()
+  const documentId = params.id as string
+
+  const [document, setDocument] = useState<Document | null>(null)
+  const [authorProfile, setAuthorProfile] = useState<Profile | null>(null)
+  const [pdfUrl, setPdfUrl] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+
+  // ★ 파일 타입 감지
+  const [fileType, setFileType] = useState<'pdf' | 'epub'>('pdf')
+
+  // ★ 로그인 유도 팝업
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [loginPromptMessage, setLoginPromptMessage] = useState('')
+
+  // 프리미엄 여부
+  const isPremium = profile?.is_premium && profile?.premium_expires_at
+    ? new Date(profile.premium_expires_at) > new Date()
+    : false
+
+  // PDF 상태
+  const [pageNumber, setPageNumber] = useState<number>(1)
+  const [numPages, setNumPages] = useState<number>(0)
+  const [scale, setScale] = useState<number>(1.0)
+  const [viewMode, setViewMode] = useState<ViewMode>('page')
+  const [pageInputValue, setPageInputValue] = useState('')
+  const [showPageInput, setShowPageInput] = useState(false)
+
+  // UI 상태
+  const [showSidePanel, setShowSidePanel] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showControls, setShowControls] = useState(true)
+  const controlsTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // ━━━ 배경 테마 & 밝기 ━━━
+  const [bgTheme, setBgTheme] = useState<BgTheme>('default')
+  const [brightness, setBrightness] = useState<number>(100)
+  const [contrast, setContrast] = useState<number>(100)
+  const [showThemePopup, setShowThemePopup] = useState(false)
+  const themePopupRef = useRef<HTMLDivElement>(null)
+
+  // ━━━ 북마크 ━━━
+  type BookmarkItem = { id: string; page_number: number; memo: string; created_at: string }
+  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([])
+  const [bookmarkLoading, setBookmarkLoading] = useState(false)
+
+  // ━━━ 본문 검색 ━━━
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [searchIndex, setSearchIndex] = useState(0)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [pageTextsCache, setPageTextsCache] = useState<Map<number, string> | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  // 시리즈 상태
+  const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null)
+
+  // 읽기 시간 추적
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [startTime] = useState<number>(Date.now())
+  const [totalTime, setTotalTime] = useState<number>(0)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const viewerRef = useRef<HTMLDivElement>(null)
+  const pageInputRef = useRef<HTMLInputElement>(null)
+
+  // ★ 마지막 읽은 페이지 복원
+  useEffect(() => {
+    if (!user || !documentId || loading) return
+    const restorePosition = async () => {
+      try {
+        // 문서의 page_count 가져오기
+        const { data: docInfo } = await supabase
+          .from('documents')
+          .select('page_count')
+          .eq('id', documentId)
+          .single()
+
+        const { data } = await supabase
+          .from('reading_sessions')
+          .select('current_page')
+          .eq('document_id', documentId)
+          .eq('reader_id', user.id)
+          .order('last_read_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (data?.current_page && data.current_page > 1) {
+          // 완독 상태(마지막 페이지)면 처음부터 다시
+          if (docInfo?.page_count && data.current_page >= docInfo.page_count) {
+            setPageNumber(1)
+          } else {
+            setPageNumber(data.current_page)
+          }
+        }
+      } catch {}
+    }
+    restorePosition()
+  }, [user, documentId, loading])
+
+  // ─── 광고 상태 ───
+  const [showAdOverlay, setShowAdOverlay] = useState(false)
+  const [adType, setAdType] = useState<'start' | 'middle' | 'end'>('middle')
+  const [adCount, setAdCount] = useState(0)
+  const [lastAdTime, setLastAdTime] = useState<number>(0)
+  const [lastAdPage, setLastAdPage] = useState<number>(0)
+  const [startAdShown, setStartAdShown] = useState(false)
+  const [endAdShown, setEndAdShown] = useState(false)
+  const [restoredFromComplete, setRestoredFromComplete] = useState(false)
+  const [documentReady, setDocumentReady] = useState(false)
+  const [isRewardAdFree, setIsRewardAdFree] = useState(false)
+  const [rewardExpiresAt, setRewardExpiresAt] = useState<number>(0)
+  const [showRewardAd, setShowRewardAd] = useState(false)
+  const prevPageRef = useRef<number>(1)
+
+  // ━━━ 보상형 무광고 체크 ━━━
+  useEffect(() => {
+    try {
+      const expires = Number(localStorage.getItem('textry_reward_expires') || '0')
+      if (expires > Date.now()) {
+        setIsRewardAdFree(true)
+        setRewardExpiresAt(expires)
+      }
+    } catch {}
+  }, [])
+
+  // 보상형 무광고 타이머 (만료 시 자동 해제)
+  useEffect(() => {
+    if (!isRewardAdFree || !rewardExpiresAt) return
+    const remaining = rewardExpiresAt - Date.now()
+    if (remaining <= 0) { setIsRewardAdFree(false); return }
+    const timer = setTimeout(() => setIsRewardAdFree(false), remaining)
+    return () => clearTimeout(timer)
+  }, [isRewardAdFree, rewardExpiresAt])
+
+  // 보상형 광고 완료 핸들러
+  const handleRewardComplete = () => {
+    const expires = Date.now() + 60 * 60 * 1000 // 1시간
+    try { localStorage.setItem('textry_reward_expires', String(expires)) } catch {}
+    setIsRewardAdFree(true)
+    setRewardExpiresAt(expires)
+    setShowRewardAd(false)
+  }
+
+  // 보상형 남은 시간 포맷
+  const getRewardRemainingMin = () => {
+    if (!isRewardAdFree || !rewardExpiresAt) return 0
+    return Math.max(0, Math.ceil((rewardExpiresAt - Date.now()) / 60000))
+  }
+
+  const tier = numPages > 0 ? getAdTier(numPages) : 'micro'
+  const tierConfig = getTierConfig(tier)
+
+  // ★ EPUB 여부
+  const isEpub = fileType === 'epub'
+
+  // ★ 로그인 필요 기능 가드
+  const requireLogin = (actionName: string): boolean => {
+    if (user) return true
+    setLoginPromptMessage(actionName)
+    setShowLoginPrompt(true)
+    return false
+  }
+
+  // ━━━ 본문 검색: 텍스트 캐시 로드 ━━━
+  const loadPageTexts = useCallback(async () => {
+    if (pageTextsCache) return pageTextsCache
+    try {
+      const { data, error } = await supabase
+        .from('document_pages_text')
+        .select('page_number, text_content')
+        .eq('document_id', documentId)
+        .order('page_number', { ascending: true })
+      if (error || !data) return null
+      const map = new Map<number, string>()
+      for (const row of data) {
+        // HTML 태그 제거해서 순수 텍스트만
+        const clean = (row.text_content || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+        map.set(row.page_number, clean)
+      }
+      setPageTextsCache(map)
+      return map
+    } catch {
+      return null
+    }
+  }, [documentId, pageTextsCache])
+
+  // ━━━ 본문 검색: 실행 ━━━
+  const executeSearch = useCallback(async (query: string) => {
+    if (!query.trim() || query.trim().length < 2) {
+      setSearchResults([])
+      setSearchIndex(0)
+      return
+    }
+    setSearchLoading(true)
+    try {
+      const texts = await loadPageTexts()
+      if (!texts) { setSearchResults([]); return }
+
+      const results: SearchResult[] = []
+      const lowerQuery = query.toLowerCase()
+
+      for (const [pageNum, text] of texts) {
+        const lowerText = text.toLowerCase()
+        let startIdx = 0
+        while (true) {
+          const idx = lowerText.indexOf(lowerQuery, startIdx)
+          if (idx === -1) break
+          // 앞뒤 30자 스니펫 생성
+          const snippetStart = Math.max(0, idx - 30)
+          const snippetEnd = Math.min(text.length, idx + query.length + 30)
+          const snippet = (snippetStart > 0 ? '...' : '') +
+            text.slice(snippetStart, idx) +
+            '【' + text.slice(idx, idx + query.length) + '】' +
+            text.slice(idx + query.length, snippetEnd) +
+            (snippetEnd < text.length ? '...' : '')
+          results.push({ pageNumber: pageNum, snippet, matchIndex: results.length })
+          startIdx = idx + 1
+          // 한 페이지에서 최대 3개까지
+          const pageResults = results.filter(r => r.pageNumber === pageNum)
+          if (pageResults.length >= 3) break
+        }
+      }
+      setSearchResults(results)
+      setSearchIndex(0)
+      // 첫 결과로 이동
+      if (results.length > 0) {
+        setPageNumber(results[0].pageNumber)
+      }
+    } finally {
+      setSearchLoading(false)
+    }
+  }, [loadPageTexts])
+
+  // ━━━ 본문 검색: 디바운스 ━━━
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    if (!showSearch) return
+    searchDebounceRef.current = setTimeout(() => {
+      executeSearch(searchQuery)
+    }, 300)
+    return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current) }
+  }, [searchQuery, showSearch, executeSearch])
+
+  // ━━━ 검색: 이전/다음 결과로 이동 ━━━
+  const goToSearchResult = (index: number) => {
+    if (searchResults.length === 0) return
+    const newIndex = ((index % searchResults.length) + searchResults.length) % searchResults.length
+    setSearchIndex(newIndex)
+    setPageNumber(searchResults[newIndex].pageNumber)
+  }
+
+  // ━━━ 검색 열기/닫기 ━━━
+  const toggleSearch = () => {
+    setShowSearch(prev => {
+      if (!prev) {
+        setTimeout(() => searchInputRef.current?.focus(), 100)
+      } else {
+        setSearchQuery('')
+        setSearchResults([])
+        setSearchIndex(0)
+      }
+      return !prev
+    })
+  }
+
+  // ━━━ 배경 테마/밝기: localStorage 복원 & 저장 ━━━
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('textry_bg_theme') as BgTheme | null
+      const savedBrightness = localStorage.getItem('textry_brightness')
+      if (savedTheme && BG_THEMES[savedTheme]) setBgTheme(savedTheme)
+        if (savedBrightness) setBrightness(Number(savedBrightness))
+          const savedContrast = localStorage.getItem('textry_contrast')
+          if (savedContrast) setContrast(Number(savedContrast))
+        } catch {}
+  }, [])
+
+  useEffect(() => {
+    try { localStorage.setItem('textry_bg_theme', bgTheme) } catch {}
+  }, [bgTheme])
+
+  useEffect(() => {
+    try { localStorage.setItem('textry_brightness', String(brightness)) } catch {}
+  }, [brightness])
+
+  useEffect(() => {
+    try { localStorage.setItem('textry_contrast', String(contrast)) } catch {}
+  }, [contrast])
+
+  useEffect(() => {
+    if (!showThemePopup) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (themePopupRef.current && !themePopupRef.current.contains(e.target as Node)) {
+        setShowThemePopup(false)
+      }
+    }
+    window.document.addEventListener('mousedown', handleClickOutside)
+    return () => window.document.removeEventListener('mousedown', handleClickOutside)
+  }, [showThemePopup])
+
+  // ━━━ 모바일 감지 ━━━
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      if (mobile && viewMode === 'book') {
+        setViewMode('page')
+      }
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [viewMode])
+
+  // ━━━ 모바일: 첫 터치 시 전체화면 요청 ━━━
+  const requestedFullscreenRef = useRef(false)
+  useEffect(() => {
+    if (!isMobile) return
+    const requestFullscreenOnce = () => {
+      if (requestedFullscreenRef.current) return
+      requestedFullscreenRef.current = true
+      try {
+        const el = window.document.documentElement as any
+        const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen
+        if (rfs && !window.document.fullscreenElement) {
+          rfs.call(el).catch(() => {})
+        }
+      } catch {}
+      window.removeEventListener('touchstart', requestFullscreenOnce)
+    }
+    window.addEventListener('touchstart', requestFullscreenOnce, { once: true })
+    return () => window.removeEventListener('touchstart', requestFullscreenOnce)
+  }, [isMobile])
+
+  // ━━━ 컨트롤바 auto-hide ━━━
+  const resetControlsTimer = useCallback(() => {
+    setShowControls(true)
+    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
+    controlsTimerRef.current = setTimeout(() => {
+      if (!showSidePanel && !showPageInput && !showThemePopup && !showSearch) {
+        setShowControls(false)
+      }
+    }, 3000)
+  }, [showSidePanel, showPageInput, showThemePopup, showSearch])
+
+  useEffect(() => {
+    const handleActivity = () => resetControlsTimer()
+    window.addEventListener('mousemove', handleActivity)
+    window.addEventListener('touchstart', handleActivity)
+    window.addEventListener('keydown', handleActivity)
+    resetControlsTimer()
+    return () => {
+      window.removeEventListener('mousemove', handleActivity)
+      window.removeEventListener('touchstart', handleActivity)
+      window.removeEventListener('keydown', handleActivity)
+      if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current)
+    }
+  }, [resetControlsTimer])
+
+  useEffect(() => {
+    if (showSidePanel || showPageInput || showThemePopup || showSearch) setShowControls(true)
+  }, [showSidePanel, showPageInput, showThemePopup, showSearch])
+
+  const handleScaleChange = useCallback((newScale: number) => {
+    setScale(newScale)
+  }, [])
+
+  // ━━━ 북마크 ━━━
+  const loadBookmarks = useCallback(async () => {
+    if (!user) return
+    try {
+      const { data, error } = await supabase
+        .from('bookmarks')
+        .select('id, page_number, memo, created_at')
+        .eq('user_id', user.id)
+        .eq('document_id', documentId)
+        .order('page_number', { ascending: true })
+      if (error) throw error
+      setBookmarks(data || [])
+    } catch (err) {
+      console.error('Error loading bookmarks:', err)
+    }
+  }, [user, documentId])
+
+  useEffect(() => {
+    if (user && documentId) loadBookmarks()
+  }, [user, documentId, loadBookmarks])
+
+  const isCurrentPageBookmarked = bookmarks.some(b => b.page_number === pageNumber)
+
+  const toggleBookmark = async () => {
+    if (!requireLogin('북마크를 추가하려면 로그인이 필요합니다')) return
+    if (bookmarkLoading) return
+    setBookmarkLoading(true)
+    try {
+      if (isCurrentPageBookmarked) {
+        const bm = bookmarks.find(b => b.page_number === pageNumber)
+        if (bm) {
+          await supabase.from('bookmarks').delete().eq('id', bm.id)
+          setBookmarks(prev => prev.filter(b => b.id !== bm.id))
+        }
+      } else {
+        const { data, error } = await supabase
+          .from('bookmarks')
+          .insert({ user_id: user!.id, document_id: documentId, page_number: pageNumber })
+          .select('id, page_number, memo, created_at')
+          .single()
+        if (error) throw error
+        setBookmarks(prev => [...prev, data].sort((a, b) => a.page_number - b.page_number))
+      }
+    } catch (err) {
+      console.error('Error toggling bookmark:', err)
+    } finally {
+      setBookmarkLoading(false)
+    }
+  }
+
+  const deleteBookmark = async (id: string) => {
+    try {
+      await supabase.from('bookmarks').delete().eq('id', id)
+      setBookmarks(prev => prev.filter(b => b.id !== id))
+    } catch (err) {
+      console.error('Error deleting bookmark:', err)
+    }
+  }
+
+  // ─── 광고 ───
+  useEffect(() => {
+    if (isPremium || isRewardAdFree) return
+    if (documentReady && numPages > 0 && !startAdShown) {
+      const config = getTierConfig(getAdTier(numPages))
+      if (config.showStartAd) {
+        setAdType('start')
+        setShowAdOverlay(true)
+        setStartAdShown(true)
+        setAdCount(1)
+        setLastAdTime(Date.now())
+      }
+    }
+  }, [documentReady, numPages, startAdShown])
+
+  useEffect(() => {
+    if (isPremium || isRewardAdFree) return
+    if (numPages === 0 || showAdOverlay || !documentReady) return
+
+    const prevPage = prevPageRef.current
+    prevPageRef.current = pageNumber
+
+    // 완독 복원 후 사용자가 페이지를 넘기면 플래그 해제
+    if (restoredFromComplete && pageNumber > 1) {
+      setRestoredFromComplete(false)
+    }
+
+    if (pageNumber === numPages && !endAdShown && !restoredFromComplete && tierConfig.showEndAd) {
+      const timeSinceLastAd = (Date.now() - lastAdTime) / 1000
+      if (timeSinceLastAd >= tierConfig.minTimeBetweenAds / 2 || adCount === 0) {
+        setAdType('end')
+        setShowAdOverlay(true)
+        setEndAdShown(true)
+        setAdCount((prev) => prev + 1)
+        setLastAdTime(Date.now())
+      }
+      return
+    }
+
+    if (tierConfig.pageInterval === 0) return
+    if (adCount >= tierConfig.maxAdsPerSession) return
+    if (pageNumber <= prevPage) return
+
+    const crossedAdPage = Math.floor(pageNumber / tierConfig.pageInterval) > Math.floor(prevPage / tierConfig.pageInterval)
+    if (!crossedAdPage) return
+
+    const timeSinceLastAd = (Date.now() - lastAdTime) / 1000
+    if (timeSinceLastAd < tierConfig.minTimeBetweenAds) return
+    if (Math.abs(pageNumber - lastAdPage) < 3) return
+
+    setAdType('middle')
+    setShowAdOverlay(true)
+    setAdCount((prev) => prev + 1)
+    setLastAdTime(Date.now())
+    setLastAdPage(pageNumber)
+  }, [pageNumber, numPages, showAdOverlay, documentReady, tierConfig, adCount, lastAdTime, lastAdPage, endAdShown])
+
+  const handleAdClose = () => { setShowAdOverlay(false) }
+
+  // ─── 문서 로드 ───
+  useEffect(() => {
+    loadDocument()
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      saveReadingSession()
+    }
+  }, [documentId])
+
+  useEffect(() => {
+    if (user && document) {
+      createReadingSession()
+      intervalRef.current = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000)
+        setTotalTime(elapsed)
+        updateReadingTime(elapsed)
+      }, 10000)
+    }
+  }, [user, document])
+
+  useEffect(() => {
+    const handleChange = () => setIsFullscreen(!!window.document.fullscreenElement)
+    window.document.addEventListener('fullscreenchange', handleChange)
+    return () => window.document.removeEventListener('fullscreenchange', handleChange)
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showPageInput || showAdOverlay) return
+
+      // 검색 단축키
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault()
+        toggleSearch()
+        return
+      }
+      if (e.key === 'Escape' && showSearch) {
+        setShowSearch(false)
+        setSearchQuery('')
+        setSearchResults([])
+        setSearchIndex(0)
+        return
+      }
+      // 검색 중 Enter로 다음/이전 결과
+      if (showSearch && e.key === 'Enter') {
+        e.preventDefault()
+        if (e.shiftKey) goToSearchResult(searchIndex - 1)
+        else goToSearchResult(searchIndex + 1)
+        return
+      }
+
+      if (showSearch) return // 검색 입력 중이면 다른 키보드 무시
+
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return
+
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          e.preventDefault()
+          if (viewMode === 'page' || viewMode === 'reflow') goToPrevPage()
+          else if (viewMode === 'book') setPageNumber((prev) => Math.max(prev - 2, 1))
+          break
+        case 'ArrowRight':
+        case 'ArrowDown':
+        case ' ':
+          e.preventDefault()
+          if (viewMode === 'page' || viewMode === 'reflow') goToNextPage()
+          else if (viewMode === 'book') setPageNumber((prev) => Math.min(prev + 2, numPages))
+          break
+        case 'Escape':
+          if (showLoginPrompt) setShowLoginPrompt(false)
+          else if (isFullscreen) toggleFullscreen()
+          else if (showSidePanel) setShowSidePanel(false)
+          break
+        case 'f':
+        case 'F':
+          if (!e.ctrlKey && !e.metaKey) toggleFullscreen()
+          break
+        case '+':
+        case '=':
+          e.preventDefault()
+          if (!isEpub) zoomIn()
+          break
+        case '-':
+          e.preventDefault()
+          if (!isEpub) zoomOut()
+          break
+        case 'g':
+        case 'G':
+          e.preventDefault()
+          if (!isEpub) setShowPageInput(true)
+          break
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [viewMode, numPages, pageNumber, isFullscreen, showSidePanel, showPageInput, showAdOverlay, isEpub, showLoginPrompt, showSearch, searchIndex, searchResults])
+
+  useEffect(() => {
+    if (showPageInput && pageInputRef.current) pageInputRef.current.focus()
+  }, [showPageInput])
+
+  const loadDocument = async () => {
+    try {
+      const { data: docData, error: docError } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('id', documentId)
+        .single()
+      if (docError) throw docError
+      setDocument(docData)
+
+      const filePath = docData.file_path || ''
+      const detectedFileType = filePath.toLowerCase().endsWith('.epub') ? 'epub' : 'pdf'
+      setFileType(detectedFileType as 'pdf' | 'epub')
+
+      if (detectedFileType === 'epub') {
+        setViewMode('reflow')
+      }
+
+      const { data: authorData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', docData.author_id)
+        .single()
+      if (authorData) setAuthorProfile(authorData)
+
+      const viewKey = `viewed_${documentId}`
+      if (!sessionStorage.getItem(viewKey)) {
+        await supabase
+          .from('documents')
+          .update({ view_count: docData.view_count + 1 })
+          .eq('id', documentId)
+        sessionStorage.setItem(viewKey, '1')
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('documents')
+        .getPublicUrl(docData.file_path)
+      setPdfUrl(urlData.publicUrl)
+
+      loadSeriesInfo(documentId)
+    } catch (err) {
+      console.error('Error loading document:', err)
+      alert('콘텐츠를 불러오는데 실패했습니다.')
+      router.push('/browse')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadSeriesInfo = async (docId: string) => {
+    try {
+      const { data: seriesDoc } = await supabase
+        .from('series_documents')
+        .select('series_id, position')
+        .eq('document_id', docId)
+        .maybeSingle()
+      if (!seriesDoc) return
+
+      const { data: series } = await supabase
+        .from('document_series')
+        .select('id, title')
+        .eq('id', seriesDoc.series_id)
+        .single()
+      if (!series) return
+
+      const { data: allDocs } = await supabase
+        .from('series_documents')
+        .select('document_id, position')
+        .eq('series_id', series.id)
+        .order('position', { ascending: true })
+      if (!allDocs) return
+
+      const docIds = allDocs.map(d => d.document_id)
+      const { data: docTitles } = await supabase
+        .from('documents')
+        .select('id, title')
+        .in('id', docIds)
+      const titleMap = new Map((docTitles || []).map(d => [d.id, d.title]))
+
+      const currentIndex = allDocs.findIndex(d => d.document_id === docId)
+      const prevDoc = currentIndex > 0 ? allDocs[currentIndex - 1] : null
+      const nextDoc = currentIndex < allDocs.length - 1 ? allDocs[currentIndex + 1] : null
+
+      setSeriesInfo({
+        seriesId: series.id,
+        seriesTitle: series.title,
+        currentPosition: currentIndex + 1,
+        totalDocs: allDocs.length,
+        docs: allDocs.map(d => ({
+          documentId: d.document_id,
+          position: d.position,
+          title: titleMap.get(d.document_id) || '알 수 없는 콘텐츠',
+        })),
+        prevDocId: prevDoc?.document_id || null,
+        nextDocId: nextDoc?.document_id || null,
+      })
+    } catch (err) {
+      console.error('Error loading series info:', err)
+    }
+  }
+
+  const createReadingSession = async () => {
+    if (!user || !document) return
+    try {
+      const { data, error } = await supabase
+        .from('reading_sessions')
+        .insert({ document_id: documentId, reader_id: user.id, current_page: pageNumber })
+        .select()
+        .single()
+      if (error) throw error
+      setSessionId(data.id)
+    } catch (err) {
+      console.error('Error creating session:', err)
+    }
+  }
+
+  const updateReadingTime = async (elapsed: number) => {
+    if (!sessionId) return
+    try {
+      await supabase
+        .from('reading_sessions')
+        .update({ reading_time: elapsed, current_page: pageNumber, last_read_at: new Date().toISOString() })
+        .eq('id', sessionId)
+      if (document) {
+        await supabase
+          .from('documents')
+          .update({ total_reading_time: document.total_reading_time + 10 })
+          .eq('id', documentId)
+      }
+    } catch (err) {
+      console.error('Error updating reading time:', err)
+    }
+  }
+
+  const saveReadingSession = async () => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000)
+    await updateReadingTime(elapsed)
+  }
+
+  const goToPrevPage = () => setPageNumber((prev) => Math.max(prev - 1, 1))
+  const goToNextPage = () => setPageNumber((prev) => Math.min(prev + 1, numPages))
+  const goToPage = (page: number) => {
+    setPageNumber(Math.max(1, Math.min(page, numPages)))
+    setShowPageInput(false)
+    setPageInputValue('')
+  }
+  const zoomIn = () => setScale((prev) => Math.min(prev + 0.05, 3.0))
+  const zoomOut = () => setScale((prev) => Math.max(prev - 0.05, 0.5))
+  const resetZoom = () => setScale(1.0)
+
+  const toggleFullscreen = async () => {
+    if (!viewerRef.current) return
+    try {
+      if (!window.document.fullscreenElement) await viewerRef.current.requestFullscreen()
+      else await window.document.exitFullscreen()
+    } catch (err) {
+      console.error('Fullscreen error:', err)
+    }
+  }
+
+  const handlePageChange = (page: number, total: number) => {
+    setPageNumber(page)
+    setNumPages(total)
+  }
+
+  const handleDocumentLoad = (total: number) => {
+    setNumPages(total)
+    setDocumentReady(true)
+  }
+
+  const progress = numPages > 0 ? (pageNumber / numPages) * 100 : 0
+
+  const viewerFilterStyle: React.CSSProperties = viewMode === 'reflow' ? {} : {
+    filter: [
+      brightness !== 100 ? `brightness(${brightness / 100})` : '',
+      contrast !== 100 ? `contrast(${contrast / 100})` : '',
+      bgTheme === 'sepia' ? 'sepia(0.35) saturate(1.2)' : '',
+      bgTheme === 'dark' ? 'brightness(0.85) contrast(1.1)' : '',
+    ].filter(Boolean).join(' ') || 'none',
+  }
+
+  const viewerBgColor = viewMode === 'reflow' ? 'transparent' : BG_THEMES[bgTheme].bgColor
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#1A1410]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[#C4A882]">콘텐츠를 불러오는 중...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div ref={viewerRef} className="h-screen w-screen bg-[#1A1410] flex flex-col overflow-hidden select-none">
+
+      {/* ━━━ 로그인 유도 팝업 ━━━ */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowLoginPrompt(false)}>
+          <div className="bg-[#241E18] border border-[#3A302A] rounded-2xl shadow-2xl p-6 mx-4 max-w-sm w-full text-center"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="w-14 h-14 bg-[#B2967D]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <LogIn className="w-7 h-7 text-[#C4A882]" />
+            </div>
+            <h3 className="text-[#EEE4E1] font-semibold text-lg mb-2">로그인이 필요합니다</h3>
+            <p className="text-[#9C8B7A] text-sm mb-6">{loginPromptMessage}</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowLoginPrompt(false)}
+                className="flex-1 px-4 py-2.5 bg-[#2E2620] hover:bg-[#3A302A] rounded-xl text-[#C4A882] text-sm transition-colors">
+                나중에
+              </button>
+              <button onClick={() => router.push(`/login?redirect=/read/${documentId}`)}
+                className="flex-1 px-4 py-2.5 bg-[#B2967D] hover:bg-[#C4A882] rounded-xl text-[#1A1410] text-sm font-medium transition-colors">
+                로그인하기
+              </button>
+            </div>
+            <button onClick={() => router.push(`/signup?redirect=/read/${documentId}`)}
+              className="mt-3 text-xs text-[#9C8B7A] hover:text-[#EEE4E1] transition-colors">
+              아직 계정이 없으신가요? 회원가입
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ━━━ 광고 오버레이 ━━━ */}
+      {/* ━━━ 일반 광고 오버레이 ━━━ */}
+      <AdOverlay
+        isVisible={showAdOverlay}
+        onClose={handleAdClose}
+        skipDelay={5}
+        type={adType}
+        documentId={documentId}
+        authorId={document?.author_id}
+        viewerId={user?.id || null}
+        pageNumber={pageNumber}
+        sessionId={sessionId}
+      />
+
+      {/* ━━━ 보상형 광고 오버레이 ━━━ */}
+      <AdOverlay
+        isVisible={showRewardAd}
+        onClose={() => setShowRewardAd(false)}
+        skipDelay={30}
+        type="reward"
+        documentId={documentId}
+        authorId={document?.author_id}
+        viewerId={user?.id || null}
+        pageNumber={pageNumber}
+        sessionId={sessionId}
+        onRewardComplete={handleRewardComplete}
+      />
+
+      {/* ━━━ 배경/밝기 팝업 (PDF 모드에서만, EPUB 제외) ━━━ */}
+      {showThemePopup && viewMode !== 'reflow' && !isEpub && document?.content_type !== 'webtoon' && (
+        <div ref={themePopupRef} className="fixed top-[62px] left-1/2 -translate-x-1/2 w-56 bg-[#241E18] border border-[#3A302A] rounded-xl shadow-2xl p-4 z-[9999]">
+          <p className="text-xs text-[#9C8B7A] mb-2 font-medium">배경 테마</p>
+          <div className="flex gap-2 mb-4">
+            {(Object.keys(BG_THEMES) as BgTheme[]).map((key) => (
+              <button
+                key={key}
+                onClick={() => setBgTheme(key)}
+                className={`flex-1 flex flex-col items-center gap-1.5 p-2 rounded-lg border-2 transition-all ${
+                  bgTheme === key
+                    ? 'border-[#B2967D] bg-[#B2967D]/10'
+                    : 'border-[#3A302A] hover:border-[#5C4A38]'
+                }`}
+              >
+                <div className="w-8 h-8 rounded-full border border-[#3A302A] shadow-inner" style={{ backgroundColor: BG_THEMES[key].previewColor }} />
+                <span className="text-[10px] text-[#C4A882]">{BG_THEMES[key].label}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-[#9C8B7A] mb-2 font-medium">밝기 {brightness}%</p>
+          <input type="range" min={50} max={150} value={brightness} onChange={(e) => setBrightness(Number(e.target.value))}
+            className="w-full h-1.5 bg-[#2E2620] rounded-full appearance-none cursor-pointer accent-[#B2967D]" />
+          <div className="flex justify-between text-[10px] text-[#9C8B7A] mt-1">
+            <span>어둡게</span>
+            <button onClick={() => setBrightness(100)} className="hover:text-[#EEE4E1] transition-colors">초기화</button>
+            <span>밝게</span>
+          </div>
+          <p className="text-xs text-[#9C8B7A] mb-2 mt-4 font-medium">선명도 {contrast}%</p>
+          <input type="range" min={50} max={150} value={contrast} onChange={(e) => setContrast(Number(e.target.value))}
+            className="w-full h-1.5 bg-[#2E2620] rounded-full appearance-none cursor-pointer accent-[#B2967D]" />
+          <div className="flex justify-between text-[10px] text-[#9C8B7A] mt-1">
+            <span>흐리게</span>
+            <button onClick={() => setContrast(100)} className="hover:text-[#EEE4E1] transition-colors">초기화</button>
+            <span>선명하게</span>
+          </div>
+        </div>
+      )}
+
+      {/* ━━━ 본문 검색 바 ━━━ */}
+      {showSearch && (
+        <div className="fixed top-[62px] left-1/2 -translate-x-1/2 z-[9998] w-full max-w-md px-3">
+          <div className="bg-[#241E18] border border-[#3A302A] rounded-xl shadow-2xl overflow-hidden">
+            {/* 검색 입력 */}
+            <div className="flex items-center gap-2 px-3 py-2">
+              <Search className="w-4 h-4 text-[#9C8B7A] flex-shrink-0" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="본문에서 검색..."
+                className="flex-1 bg-transparent text-sm text-[#EEE4E1] placeholder-[#5C4A38] outline-none"
+                autoComplete="off"
+              />
+              {searchLoading && (
+                <div className="w-4 h-4 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin flex-shrink-0" />
+              )}
+              {searchResults.length > 0 && (
+                <span className="text-[11px] text-[#9C8B7A] flex-shrink-0 tabular-nums">
+                  {searchIndex + 1}/{searchResults.length}
+                </span>
+              )}
+              <div className="flex items-center gap-0.5 flex-shrink-0">
+                <button onClick={() => goToSearchResult(searchIndex - 1)} disabled={searchResults.length === 0}
+                  className="p-1 rounded hover:bg-[#2E2620] text-[#9C8B7A] hover:text-[#EEE4E1] disabled:opacity-30 transition-colors">
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button onClick={() => goToSearchResult(searchIndex + 1)} disabled={searchResults.length === 0}
+                  className="p-1 rounded hover:bg-[#2E2620] text-[#9C8B7A] hover:text-[#EEE4E1] disabled:opacity-30 transition-colors">
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+              <button onClick={toggleSearch}
+                className="p-1 rounded hover:bg-[#2E2620] text-[#9C8B7A] hover:text-[#EEE4E1] transition-colors flex-shrink-0">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 검색 결과 리스트 */}
+            {searchResults.length > 0 && (
+              <div className="border-t border-[#3A302A] max-h-[240px] overflow-y-auto">
+                {searchResults.map((result, i) => (
+                  <button
+                    key={`${result.pageNumber}-${i}`}
+                    onClick={() => { setSearchIndex(i); setPageNumber(result.pageNumber) }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors border-b border-[#3A302A]/50 last:border-b-0 ${
+                      i === searchIndex ? 'bg-[#B2967D]/15' : 'hover:bg-[#2E2620]'
+                    }`}
+                  >
+                    <span className="text-[#B2967D] font-medium mr-2">{result.pageNumber}{isEpub ? '챕터' : 'p'}</span>
+                    <span className="text-[#C4A882]">{result.snippet}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 결과 없음 */}
+            {searchQuery.trim().length >= 2 && !searchLoading && searchResults.length === 0 && (
+              <div className="border-t border-[#3A302A] px-3 py-3 text-center text-xs text-[#9C8B7A]">
+                검색 결과가 없습니다
+              </div>
+            )}
+
+            {/* 안내 */}
+            {searchQuery.trim().length < 2 && (
+              <div className="border-t border-[#3A302A] px-3 py-2 text-center text-[10px] text-[#5C4A38]">
+                2글자 이상 입력 · Enter 다음 결과 · Shift+Enter 이전 결과 · Esc 닫기
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ━━━ 상단 오버레이 ━━━ */}
+      {showControls ? (
+        <div className="absolute top-0 left-0 right-0 z-50">
+        <div className="h-1 bg-[#2E2620] w-full">
+          <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] transition-all duration-300" style={{ width: `${progress}%` }} />
+        </div>
+
+        <div className="bg-[#241E18] border-b border-[#3A302A] px-2 sm:px-3 py-1.5 overflow-hidden">
+          <div className="flex items-center gap-1 sm:gap-2">
+
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <button onClick={() => router.push('/')} className="p-1.5 rounded-lg hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1] transition-colors" title="홈으로">
+                <Home className="w-5 h-5" />
+              </button>
+              <div className="hidden lg:block max-w-[180px]">
+                <h1 className="text-sm font-medium text-[#EEE4E1] truncate">{document?.title}</h1>
+                {seriesInfo && (
+                  <p className="text-[10px] text-[#9C8B7A] truncate">📚 {seriesInfo.seriesTitle} ({seriesInfo.currentPosition}/{seriesInfo.totalDocs})</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5">
+              {/* ━━━ 뷰 모드 버튼 ━━━ */}
+              {document?.content_type === 'webtoon' ? (
+                <div className="flex items-center bg-[#2E2620] rounded-lg px-2 py-1">
+                  <span className="text-xs text-[#C4A882]">🎨 웹툰</span>
+                </div>
+              ) : isEpub ? (
+                <div className="flex items-center bg-[#2E2620] rounded-lg p-0.5">
+                  <button className="p-1.5 rounded-md bg-[#B2967D] text-[#1A1410]" title="리플로우 모드 (EPUB)">
+                    <AlignLeft className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center bg-[#2E2620] rounded-lg p-0.5">
+                  <button onClick={() => setViewMode('page')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1]'}`}
+                    title="페이지 모드">
+                    <BookOpen className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setViewMode('book')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'book' ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1]'}`}
+                    title="책 모드 (2페이지)">
+                    <BookOpenCheck className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setViewMode('scroll')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'scroll' ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1]'}`}
+                    title="스크롤 모드">
+                    <ScrollText className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setViewMode('reflow')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'reflow' ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1]'}`}
+                    title="리플로우 모드">
+                    <AlignLeft className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* ━━━ PDF 전용 컨트롤 ━━━ */}
+              {viewMode !== 'reflow' && !isEpub && document?.content_type !== 'webtoon' && (
+                <>
+                  <div className="w-px h-4 bg-[#3A302A]" />
+
+                  <button onClick={goToPrevPage} disabled={pageNumber <= 1}
+                    className="p-1.5 rounded-lg hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1] disabled:opacity-30 transition-colors">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+
+                  {showPageInput ? (
+                    <form onSubmit={(e) => { e.preventDefault(); const p = parseInt(pageInputValue); if (!isNaN(p)) goToPage(p) }} className="flex items-center">
+                      <input ref={pageInputRef} type="number" min={1} max={numPages} value={pageInputValue}
+                        onChange={(e) => setPageInputValue(e.target.value)}
+                        onBlur={() => { setShowPageInput(false); setPageInputValue('') }}
+                        className="w-12 px-1 py-0.5 bg-[#2E2620] border border-[#3A302A] rounded text-sm text-[#EEE4E1] text-center focus:outline-none focus:border-[#B2967D]"
+                        placeholder={String(pageNumber)} />
+                      <span className="text-[#9C8B7A] text-xs mx-0.5">/</span>
+                      <span className="text-[#C4A882] text-xs">{numPages}</span>
+                    </form>
+                  ) : (
+                    <button onClick={() => setShowPageInput(true)} className="px-2 py-0.5 rounded-lg hover:bg-[#2E2620] transition-colors text-sm" title="페이지 직접 이동 (G키)">
+                      <span className="text-[#EEE4E1] font-medium">{pageNumber}</span>
+                      <span className="text-[#9C8B7A] mx-0.5">/</span>
+                      <span className="text-[#C4A882]">{numPages}</span>
+                    </button>
+                  )}
+
+                  <button onClick={goToNextPage} disabled={pageNumber >= numPages}
+                    className="p-1.5 rounded-lg hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1] disabled:opacity-30 transition-colors">
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+
+                  <div className="w-px h-4 bg-[#3A302A]" />
+
+                  <div className="flex items-center gap-0.5">
+                    <button onClick={zoomOut} className="p-1.5 rounded-lg hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1] transition-colors">
+                      <ZoomOut className="w-4 h-4" />
+                    </button>
+                    <button onClick={resetZoom} className="px-1.5 py-0.5 rounded-lg hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1] transition-colors text-xs font-mono">
+                      {Math.round(scale * 100)}%
+                    </button>
+                    <button onClick={zoomIn} className="p-1.5 rounded-lg hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1] transition-colors">
+                      <ZoomIn className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="w-px h-4 bg-[#3A302A]" />
+                  <div className="relative">
+                    <button onClick={() => setShowThemePopup(!showThemePopup)}
+                      className={`p-1.5 rounded-lg transition-colors ${showThemePopup ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1] hover:bg-[#2E2620]'}`}
+                      title="배경 & 밝기">
+                      <Sun className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {!isPremium && !isRewardAdFree && (
+              <div className="hidden md:flex items-center flex-shrink-0">
+                <div className="h-[50px] w-[200px] lg:w-[300px] overflow-hidden rounded opacity-70 hover:opacity-100 transition-opacity">
+                  <AdBanner position="bottom" documentId={documentId} authorId={document?.author_id} />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {/* ━━━ 보상형 광고 버튼 ━━━ */}
+              {!isPremium && !isRewardAdFree && (
+                <button
+                  onClick={() => setShowRewardAd(true)}
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-gradient-to-r from-amber-600/80 to-amber-500/80 hover:from-amber-500 hover:to-amber-400 text-white text-[11px] font-medium transition-all shadow-lg shadow-amber-900/20"
+                  title="30초 광고를 시청하면 1시간 동안 광고 없이 읽을 수 있습니다"
+                >
+                  <Play className="w-3.5 h-3.5" fill="currentColor" />
+                  <span className="hidden sm:inline">무광고</span>
+                </button>
+              )}
+              {isRewardAdFree && (
+                <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-green-800/50 border border-green-600/30 text-green-400 text-[11px]"
+                  title={'무광고 ' + getRewardRemainingMin() + '분 남음'}>
+                  <span>✓</span>
+                  <span className="hidden sm:inline">{getRewardRemainingMin()}분</span>
+                </div>
+              )}
+              {/* ━━━ 검색 버튼 ━━━ */}
+              <button onClick={toggleSearch}
+                className={`p-2 rounded-lg transition-colors ${showSearch ? 'bg-[#B2967D] text-[#1A1410]' : 'hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1]'}`}
+                title="본문 검색 (Ctrl+F)">
+                <Search className="w-5 h-5" />
+              </button>
+              <button onClick={toggleBookmark}
+                className={`p-2 rounded-lg transition-colors ${isCurrentPageBookmarked ? 'text-amber-400 hover:text-amber-300' : 'text-[#C4A882] hover:text-[#EEE4E1]'} hover:bg-[#2E2620]`}
+                title={isCurrentPageBookmarked ? '북마크 제거' : '이 페이지 북마크'}>
+                <Bookmark className="w-5 h-5" fill={isCurrentPageBookmarked ? 'currentColor' : 'none'} />
+              </button>
+              <ReadingListButton documentId={documentId} compact />
+              <ShareButton documentId={documentId} title={document?.title || ''} />
+              <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1] transition-colors" title="전체화면 (F키)">
+                {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+              </button>
+              <button onClick={() => setShowSidePanel(!showSidePanel)}
+                className={`p-2 rounded-lg transition-colors ${showSidePanel ? 'bg-[#B2967D] text-[#1A1410]' : 'hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1]'}`}
+                title="댓글/정보 패널">
+                <MessageSquare className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+        </div>
+      ) : !isPremium && !isRewardAdFree ? (
+        <div className="absolute top-0 left-0 right-0 z-50 bg-[#241E18]/90 backdrop-blur-sm border-b border-[#3A302A] px-2 py-1 flex items-center justify-center cursor-pointer"
+          onClick={() => resetControlsTimer()}>
+          <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded opacity-90">
+            <AdBanner position="top" documentId={documentId} authorId={document?.author_id} />
+          </div>
+        </div>
+      ) : null}
+
+      {/* ━━━ 메인 컨텐츠 ━━━ */}
+      <div className={`flex flex-1 overflow-hidden pt-[58px] ${!isPremium && !isRewardAdFree ? 'pb-[58px]' : ''}`}>
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidePanel ? 'sm:mr-[380px]' : ''}`}>
+          <div className="flex-1 overflow-hidden transition-[filter,background-color] duration-300"
+            style={{ backgroundColor: viewerBgColor, ...viewerFilterStyle }}>
+            {document?.content_type === 'webtoon' ? (
+              <WebtoonViewer
+                documentId={documentId}
+                authorId={document?.author_id}
+                isPremium={isPremium}
+                isRewardAdFree={isRewardAdFree}
+                onProgress={(current, total) => {
+                  setPageNumber(current)
+                  setNumPages(total)
+                  if (!documentReady && total > 0) setDocumentReady(true) // webtoon
+                }}
+              />
+            ) : viewMode === 'reflow' ? (
+              <ReflowViewer
+                pdfUrl={pdfUrl}
+                documentId={documentId}
+                pageNumber={pageNumber}
+                onPageChange={handlePageChange}
+                onDocumentLoad={handleDocumentLoad}
+                onSwitchToPdf={isEpub ? undefined : () => setViewMode('page')}
+                fileType={fileType}
+              />
+            ) : (
+              pdfUrl && (
+                <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
+                  showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange}
+                  bottomOffset={!isPremium && !isRewardAdFree ? 58 : 0} />
+              )
+            )}
+          </div>
+        </div>
+
+        {/* ━━━ 사이드 패널 오버레이 (배경 클릭으로 닫기) ━━━ */}
+        {showSidePanel && (
+          <div className="fixed inset-0 z-30 bg-black/40 sm:bg-black/20 transition-opacity" onClick={() => setShowSidePanel(false)} />
+        )}
+
+        {/* ━━━ 사이드 패널 ━━━ */}
+        <div className={`fixed right-0 top-0 bottom-0 z-40 bg-[#241E18] border-l border-[#3A302A]
+          transition-all duration-300 ease-in-out flex flex-col
+          ${showSidePanel ? 'translate-x-0' : 'translate-x-full'} w-full sm:w-[380px]`}>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#3A302A]">
+            <h2 className="text-[#EEE4E1] font-medium">정보 & 댓글</h2>
+            <button onClick={() => setShowSidePanel(false)} className="p-1.5 rounded-lg hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1] transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4 border-b border-[#3A302A]">
+              <h3 className="text-[#EEE4E1] font-semibold text-lg mb-1">{document?.title}</h3>
+              {document?.description && <p className="text-[#C4A882] text-sm mb-3">{document.description}</p>}
+              <div className="flex items-center gap-2 text-xs text-[#9C8B7A]">
+                <span>조회수 {document?.view_count.toLocaleString()}회</span>
+                <span>·</span>
+                <span>읽기 시간: {Math.floor(totalTime / 60)}분 {totalTime % 60}초</span>
+                {isEpub && <span>· 📚 EPUB</span>}
+              </div>
+            </div>
+
+            {/* ━━━ 시리즈 정보 ━━━ */}
+            {seriesInfo && (
+              <div className="p-4 border-b border-[#3A302A]">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-base">📚</span>
+                  <div>
+                    <p className="text-[#EEE4E1] font-medium text-sm">{seriesInfo.seriesTitle}</p>
+                    <p className="text-[#C4A882] text-xs">{seriesInfo.currentPosition} / {seriesInfo.totalDocs}편</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1 mb-3 max-h-[200px] overflow-y-auto">
+                  {seriesInfo.docs.map((doc, i) => (
+                    <div key={doc.documentId}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-colors ${
+                        doc.documentId === documentId
+                          ? 'bg-[#B2967D]/20 text-[#C4A882] font-medium'
+                          : 'text-[#9C8B7A] hover:bg-[#2E2620] hover:text-[#EEE4E1] cursor-pointer'
+                      }`}
+                      onClick={() => { if (doc.documentId !== documentId) router.push(`/read/${doc.documentId}`) }}>
+                      <span className="w-5 text-center flex-shrink-0">{i + 1}</span>
+                      <span className="truncate">{doc.title}</span>
+                      {doc.documentId === documentId && (
+                        <span className="ml-auto text-[10px] bg-[#B2967D]/30 px-1.5 py-0.5 rounded">현재</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-2">
+                  {seriesInfo.prevDocId && (
+                    <button onClick={() => router.push(`/read/${seriesInfo.prevDocId}`)}
+                      className="flex-1 px-3 py-2 bg-[#2E2620] hover:bg-[#3A302A] rounded-lg text-xs text-[#C4A882] transition-colors text-center">
+                      ← 이전편
+                    </button>
+                  )}
+                  {seriesInfo.nextDocId && (
+                    <button onClick={() => router.push(`/read/${seriesInfo.nextDocId}`)}
+                      className="flex-1 px-3 py-2 bg-[#B2967D] hover:bg-[#C4A882] rounded-lg text-xs text-[#1A1410] transition-colors text-center">
+                      다음편 →
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {authorProfile && (
+              <div className="p-4 border-b border-[#3A302A]">
+                <div className="flex items-center justify-between">
+                  <Link href={`/profile/${authorProfile.id}`}>
+                    <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+                      {authorProfile.avatar_url ? (
+                        <Image src={authorProfile.avatar_url} alt={authorProfile.username || ''} width={40} height={40} className="rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] rounded-full flex items-center justify-center text-[#1A1410] font-bold text-sm">
+                          {(authorProfile.username || authorProfile.email)[0].toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-[#EEE4E1] font-medium text-sm">{authorProfile.username || authorProfile.email}</p>
+                        <p className="text-[#9C8B7A] text-xs">구독자 {authorProfile.subscribers_count.toLocaleString()}명</p>
+                      </div>
+                    </div>
+                  </Link>
+                  <SubscribeButton authorId={authorProfile.id} authorName={authorProfile.username || authorProfile.email} initialSubscribersCount={authorProfile.subscribers_count} />
+                </div>
+              </div>
+            )}
+
+            <div className="p-4 border-b border-[#3A302A]">
+              <div className="flex items-center gap-3">
+                <ReactionButtons documentId={documentId} initialLikes={document?.likes_count || 0} initialDislikes={document?.dislikes_count || 0} />
+                <ReadingListButton documentId={documentId} />
+              </div>
+            </div>
+
+            {/* ★ 비로그인 시 로그인 유도 배너 */}
+            {!user && (
+              <div className="p-4 border-b border-[#3A302A]">
+                <div className="bg-[#B2967D]/10 border border-[#B2967D]/20 rounded-xl p-4 text-center">
+                  <LogIn className="w-6 h-6 text-[#C4A882] mx-auto mb-2" />
+                  <p className="text-[#EEE4E1] text-sm font-medium mb-1">로그인하고 더 많은 기능을 이용하세요</p>
+                  <p className="text-[#9C8B7A] text-xs mb-3">좋아요, 북마크, 댓글, 구독 등</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => router.push(`/login?redirect=/read/${documentId}`)}
+                      className="flex-1 px-3 py-2 bg-[#B2967D] hover:bg-[#C4A882] rounded-lg text-xs text-[#1A1410] font-medium transition-colors">
+                      로그인
+                    </button>
+                    <button onClick={() => router.push(`/signup?redirect=/read/${documentId}`)}
+                      className="flex-1 px-3 py-2 bg-[#2E2620] hover:bg-[#3A302A] rounded-lg text-xs text-[#C4A882] transition-colors">
+                      회원가입
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {bookmarks.length > 0 && (
+              <div className="p-4 border-b border-[#3A302A]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-[#EEE4E1] font-medium text-sm flex items-center gap-1.5">
+                    <Bookmark className="w-4 h-4 text-amber-400" fill="currentColor" />
+                    북마크 ({bookmarks.length})
+                  </h3>
+                </div>
+                <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                  {bookmarks.map((bm) => (
+                    <div key={bm.id}
+                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                        bm.page_number === pageNumber
+                          ? 'bg-amber-500/15 text-amber-400'
+                          : 'text-[#C4A882] hover:bg-[#2E2620] hover:text-[#EEE4E1]'
+                      }`}
+                      onClick={() => setPageNumber(bm.page_number)}>
+                      <div className="flex items-center gap-2">
+                        <Bookmark className="w-3.5 h-3.5 flex-shrink-0" fill={bm.page_number === pageNumber ? 'currentColor' : 'none'} />
+                        <span>{bm.page_number}{isEpub ? '챕터' : '페이지'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-[#9C8B7A]">{new Date(bm.created_at).toLocaleDateString()}</span>
+                        <button onClick={(e) => { e.stopPropagation(); deleteBookmark(bm.id) }}
+                          className="p-1 rounded hover:bg-red-500/20 text-[#9C8B7A] hover:text-red-400 transition-colors" title="삭제">
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="p-4 border-b border-[#3A302A]">
+              <CommentsSection documentId={documentId} />
+            </div>
+
+            {!isPremium && !isRewardAdFree && (
+              <div className="p-4">
+                <AdBanner position="sidebar" documentId={documentId} authorId={document?.author_id} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ━━━ 하단 고정 광고 배너 ━━━ */}
+      {!isPremium && !isRewardAdFree && (
+        <div className="fixed bottom-0 left-0 right-0 z-30 bg-[#241E18]/95 backdrop-blur-sm border-t border-[#3A302A] flex items-center justify-center py-1">
+          <div className="h-[50px] w-full max-w-[728px] overflow-hidden rounded">
+            <AdBanner position="bottom" documentId={documentId} authorId={document?.author_id} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+================================================================================
+FILE: components/webtoon-viewer.tsx (144 lines)
+================================================================================
+'use client'
+
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { supabase, WebtoonImage } from '@/lib/supabase'
+import { ChevronUp } from 'lucide-react'
+import { AdBanner } from '@/components/ad-banner'
+
+interface WebtoonViewerProps {
+  documentId: string
+  authorId?: string
+  isPremium?: boolean
+  isRewardAdFree?: boolean
+  onProgress?: (current: number, total: number) => void
+}
+
+export default function WebtoonViewer({
+  documentId,
+  authorId,
+  isPremium = false,
+  isRewardAdFree = false,
+  onProgress,
+}: WebtoonViewerProps) {
+  const [images, setImages] = useState<WebtoonImage[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // 이미지 로드
+  useEffect(() => {
+    const loadImages = async () => {
+      const { data, error } = await supabase
+        .from('webtoon_images')
+        .select('*')
+        .eq('document_id', documentId)
+        .order('image_order', { ascending: true })
+      if (!error && data) {
+        setImages(data)
+        // 초기 로드 시 onProgress 호출 (시작 광고 트리거)
+        if (data.length > 0 && onProgress) {
+          onProgress(1, data.length)
+        }
+      }
+      setLoading(false)
+    }
+    loadImages()
+  }, [documentId])
+
+  // 스크롤 추적
+  const handleScroll = useCallback(() => {
+    const container = containerRef.current
+    if (!container) return
+    const { scrollTop, scrollHeight, clientHeight } = container
+    setShowScrollTop(scrollTop > 500)
+
+    // 진행률
+    if (images.length > 0 && onProgress) {
+      const progress = scrollTop / (scrollHeight - clientHeight)
+      const currentImage = Math.min(
+        Math.ceil(progress * images.length),
+        images.length
+      )
+      onProgress(currentImage, images.length)
+    }
+  }, [images.length, onProgress])
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [handleScroll])
+
+  // 광고 삽입 위치 계산
+  const getAdPositions = (total: number): Set<number> => {
+    if (isPremium || isRewardAdFree || total < 5) return new Set()
+    const interval = total <= 15 ? 12 : total <= 30 ? 10 : 8
+    const positions = new Set<number>()
+    for (let i = interval; i < total; i += interval) {
+      positions.add(i)
+    }
+    return positions
+  }
+
+  const adPositions = getAdPositions(images.length)
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[#C4A882] text-sm">웹툰 로딩 중...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (images.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <p className="text-[#9C8B7A]">이미지가 없습니다</p>
+      </div>
+    )
+  }
+
+  return (
+    <div ref={containerRef} className="h-full overflow-y-auto bg-[#0a0a0a]"
+      style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="max-w-[800px] mx-auto">
+        {images.map((img, index) => (
+          <div key={img.id}>
+            {/* 이미지 */}
+            <img
+              src={img.image_url}
+              alt={`${index + 1}장`}
+              loading={index < 3 ? 'eager' : 'lazy'}
+              className="w-full block"
+              style={{ minHeight: '100px' }}
+            />
+
+            {/* 광고 삽입 */}
+            {adPositions.has(index + 1) && (
+              <div className="py-2 px-4 bg-[#111]">
+                <div className="max-w-[728px] mx-auto h-[90px] overflow-hidden rounded">
+                  <AdBanner position="bottom" documentId={documentId} authorId={authorId} />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* 맨 위로 버튼 */}
+      {showScrollTop && (
+        <button
+          onClick={() => containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-20 right-4 z-20 p-3 bg-[#241E18]/90 border border-[#3A302A] rounded-full text-[#C4A882] hover:text-white transition-colors shadow-lg"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </button>
+      )}
+    </div>
+  )
+}
+
+
+================================================================================
+FILE: lib/categories.ts (37 lines)
+================================================================================
+export const CATEGORIES = [
+  { value: 'business', label: '비즈니스', icon: '💼', color: 'purple' },
+  { value: 'novel', label: '소설', icon: '📖', color: 'pink' },
+  { value: 'essay', label: '에세이', icon: '✍️', color: 'green' },
+  { value: 'science', label: '과학', icon: '🔬', color: 'cyan' },
+  { value: 'art', label: '예술', icon: '🎨', color: 'red' },
+  { value: 'education', label: '교육', icon: '🎓', color: 'yellow' },
+  { value: 'health', label: '건강', icon: '💪', color: 'emerald' },
+  { value: 'food', label: '요리', icon: '🍳', color: 'orange' },
+  { value: 'travel', label: '여행', icon: '✈️', color: 'indigo' },
+  { value: 'technology', label: '기술', icon: '💻', color: 'blue' },
+  { value: 'it', label: 'IT/컴퓨터', icon: '🖥️', color: 'sky' },
+  { value: 'webtoon', label: '웹툰', icon: '🎨', color: 'violet' },
+  { value: 'manga', label: '만화', icon: '📖', color: 'rose' },
+  { value: 'illustration', label: '일러스트', icon: '🖼️', color: 'amber' },
+  { value: 'other', label: '기타', icon: '📝', color: 'gray' },
+] as const
+  
+  export type CategoryValue = typeof CATEGORIES[number]['value']
+  
+  export function getCategoryLabel(value: string | null): string {
+    if (!value) return '카테고리 없음'
+    const category = CATEGORIES.find(c => c.value === value)
+    return category ? category.label : '카테고리 없음'
+  }
+  
+  export function getCategoryColor(value: string | null): string {
+    if (!value) return 'gray'
+    const category = CATEGORIES.find(c => c.value === value)
+    return category ? category.color : 'gray'
+  }
+  
+  export function getCategoryIcon(value: string | null): string {
+    if (!value) return '📄'
+    const category = CATEGORIES.find(c => c.value === value)
+    return category ? category.icon : '📄'
+  }
+
+================================================================================
+FILES CONTAINING "series" or "Series":
+================================================================================
+app/(main)/series/layout.tsx
+app/(main)/series/page.tsx
+app/read/[id]/page.tsx
+components/loading-skeleton.tsx
