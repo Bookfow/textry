@@ -814,12 +814,7 @@ export default function DocumentDetailPage() {
           <CommentsSection documentId={documentId} />
         </div>
 
-        {/* 추천 영역 광고 */}
-        {alsoReadDocs.length > 0 && (
-          <div className="mb-6">
-            <PageAdBanner position="detail_page" documentId={documentId} authorId={doc?.author_id} />
-          </div>
-        )}
+
 
         {/* 이 콘텐츠를 읽은 사람이 본 */}
         {alsoReadDocs.length > 0 && (
