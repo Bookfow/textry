@@ -38,6 +38,7 @@ export function AdOverlay({
   }
   const [countdown, setCountdown] = useState(skipDelay)
   const [canSkip, setCanSkip] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const logAdImpression = async () => {
     try {
@@ -96,6 +97,27 @@ export function AdOverlay({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm">
+      {/* 취소 확인 모달 */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/70"
+          onClick={() => setShowCancelConfirm(false)}>
+          <div className="bg-gray-900 border border-gray-600 rounded-2xl shadow-2xl p-6 mx-4 max-w-xs w-full text-center"
+            onClick={(e) => e.stopPropagation()}>
+            <p className="text-white font-semibold text-base mb-2">광고 시청을 취소할까요?</p>
+            <p className="text-gray-400 text-sm mb-5">무광고 보상이 취소됩니다.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowCancelConfirm(false)}
+                className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-xl text-gray-300 text-sm transition-colors">
+                계속 시청
+              </button>
+              <button onClick={() => { setShowCancelConfirm(false); onClose() }}
+                className="flex-1 px-4 py-2.5 bg-red-600/80 hover:bg-red-500 rounded-xl text-white text-sm font-medium transition-colors">
+                취소하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="relative w-full max-w-lg mx-4">
         {/* 건너뛰기 버튼 */}
         <div className="absolute -top-12 right-0">
@@ -113,7 +135,7 @@ export function AdOverlay({
                 <div className="flex items-center gap-3">
                   <span>🎬 {countdown}초 시청하면 1시간 무광고!</span>
                   <button
-                    onClick={() => { if (confirm('광고 시청을 취소하시겠습니까?\n무광고 보상이 취소됩니다.')) onClose() }}
+                    onClick={() => setShowCancelConfirm(true)}
                     className="px-2 py-0.5 text-xs bg-white/10 hover:bg-white/20 rounded border border-white/20 transition-colors"
                   >
                     취소
