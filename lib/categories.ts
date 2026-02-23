@@ -8,8 +8,8 @@ export const CATEGORIES = [
   { value: 'health', label: '건강', icon: '💪', color: 'emerald' },
   { value: 'food', label: '요리', icon: '🍳', color: 'orange' },
   { value: 'travel', label: '여행', icon: '✈️', color: 'indigo' },
-  { value: 'technology', label: '기술', icon: '💻', color: 'blue' },
-  { value: 'it', label: 'IT/컴퓨터', icon: '🖥️', color: 'sky' },
+  { value: 'technology', label: '기술/IT', icon: '💻', color: 'blue' },
+
   { value: 'webtoon', label: '웹툰', icon: '🎨', color: 'violet' },
   { value: 'manga', label: '만화', icon: '📖', color: 'rose' },
   { value: 'illustration', label: '일러스트', icon: '🖼️', color: 'amber' },

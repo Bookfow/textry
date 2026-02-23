@@ -19,7 +19,6 @@ import {
   ZoomOut,
   BookOpen,
   ScrollText,
-  BookOpenCheck,
   Sun,
   Bookmark,
   Trash2,
@@ -1137,11 +1136,6 @@ export default function ReadPage() {
                     className={`p-1.5 rounded-md transition-colors ${viewMode === 'page' ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1]'}`}
                     title="페이지 모드">
                     <BookOpen className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => setViewMode('book')}
-                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'book' ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1]'}`}
-                    title="책 모드 (2페이지)">
-                    <BookOpenCheck className="w-4 h-4" />
                   </button>
                   <button onClick={() => setViewMode('scroll')}
                     className={`p-1.5 rounded-md transition-colors ${viewMode === 'scroll' ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1]'}`}

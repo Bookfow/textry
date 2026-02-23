@@ -10,9 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
   Dialog,
@@ -24,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { User, LogOut, Settings, HelpCircle, MessageSquare, Globe, BarChart3, BookOpen, Crown, Shield } from 'lucide-react'
+import { User, LogOut, Settings, HelpCircle, MessageSquare, BarChart3, BookOpen, Crown, Shield } from 'lucide-react'
 import { useToast } from '@/components/toast'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -43,10 +40,6 @@ export function ProfileMenu() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
-  }
-
-  const handleLanguage = (lang: string) => {
-    toast.info('언어 변경 기능이 곧 추가됩니다!')
   }
 
   const handleSendFeedback = async () => {
@@ -140,17 +133,6 @@ export function ProfileMenu() {
           )}
 
           <DropdownMenuSeparator />
-
-          {/* 표시 언어 */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <Globe className="w-4 h-4 mr-2" /> 표시 언어
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
-              <DropdownMenuItem onClick={() => handleLanguage('ko')}>🇰🇷 한국어</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleLanguage('en')}>🇺🇸 English</DropdownMenuItem>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
 
           {/* 설정 */}
           <DropdownMenuItem asChild>
