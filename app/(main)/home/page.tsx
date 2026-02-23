@@ -432,7 +432,7 @@ export default function HomePage() {
         <div className="max-w-[1600px] mx-auto">
 
           {/* ━━━ 커뮤니티 읽기 통계 ━━━ */}
-          {communityStats && (
+          {communityStats && user && (
             <div className="mb-6 relative overflow-hidden rounded-2xl shadow-lg border border-[#E7D8C9]/60 dark:border-[#3A302A]">
               {/* 밝은 웜톤 배경 */}
               <div className="absolute inset-0 bg-gradient-to-br from-[#FDF8F4] via-[#F7EDE5] to-[#FFF5EE] dark:from-[#2A2018] dark:via-[#2E2520] dark:to-[#2A2028]" />
