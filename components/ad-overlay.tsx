@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X } from 'lucide-react'
+import { X, BookOpen } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
+import Link from 'next/link'
 
 interface AdOverlayProps {
   isVisible: boolean
@@ -39,6 +41,45 @@ export function AdOverlay({
   const [countdown, setCountdown] = useState(skipDelay)
   const [canSkip, setCanSkip] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [recommendations, setRecommendations] = useState<any[]>([])
+
+  // 추천 콘텐츠 로드
+  const loadRecommendations = useCallback(async () => {
+    if (!documentId) return
+    try {
+      // 현재 문서의 카테고리 조회
+      const { data: currentDoc } = await supabase
+        .from('documents')
+        .select('category, author_id')
+        .eq('id', documentId)
+        .single()
+
+      if (!currentDoc) return
+
+      // 같은 카테고리 + 같은 작가의 다른 콘텐츠 우선, 인기순
+      const { data: docs } = await supabase
+        .from('documents')
+        .select('id, title, thumbnail_url, author_name, view_count, category')
+        .neq('id', documentId)
+        .eq('is_published', true)
+        .order('view_count', { ascending: false })
+        .limit(20)
+
+      if (!docs || docs.length === 0) return
+
+      // 같은 카테고리 우선 정렬
+      const sorted = docs.sort((a, b) => {
+        const aMatch = a.category === currentDoc.category ? 1 : 0
+        const bMatch = b.category === currentDoc.category ? 1 : 0
+        if (aMatch !== bMatch) return bMatch - aMatch
+        return (b.view_count || 0) - (a.view_count || 0)
+      })
+
+      setRecommendations(sorted.slice(0, 3))
+    } catch (err) {
+      console.error('추천 콘텐츠 로드 실패:', err)
+    }
+  }, [documentId])
 
   const logAdImpression = async () => {
     try {
@@ -67,6 +108,11 @@ export function AdOverlay({
     // 광고 노출 로그 기록
     if (documentId) {
       logAdImpression()
+    }
+
+    // end 광고일 때 추천 콘텐츠 로드
+    if (type === 'end') {
+      loadRecommendations()
     }
 
     const actualDelay = type === 'reward' ? 30 : skipDelay
@@ -176,20 +222,42 @@ export function AdOverlay({
           </div>
         </div>
 
-        {/* 끝 광고일 때 추천 문서 영역 */}
-        {(type === 'end') && (
+        {/* 끝 광고일 때 추천 콘텐츠 */}
+        {type === 'end' && recommendations.length > 0 && (
           <div className="mt-3 bg-gray-900 border border-gray-700 rounded-xl p-3">
-            <p className="text-xs font-medium text-white mb-2">이런 콘텐츠도 있어요</p>
+            <p className="text-xs font-medium text-white mb-2.5">이런 콘텐츠는 어떠세요?</p>
             <div className="flex gap-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex-1 p-1.5 rounded-lg bg-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer text-center">
-                  <div className="w-full aspect-[3/4] bg-gray-700 rounded mb-1.5" />
-                  <div className="h-2.5 w-3/4 bg-gray-700 rounded mx-auto mb-1" />
-                  <div className="h-2 w-1/2 bg-gray-700/50 rounded mx-auto" />
-                </div>
+              {recommendations.map((doc) => (
+                <Link
+                  key={doc.id}
+                  href={`/document/${doc.id}`}
+                  onClick={handleClose}
+                  className="flex-1 p-1.5 rounded-lg bg-gray-800/50 hover:bg-gray-700/80 transition-colors cursor-pointer group"
+                >
+                  <div className="relative w-full aspect-[3/4] rounded overflow-hidden mb-1.5">
+                    {doc.thumbnail_url ? (
+                      <Image
+                        src={doc.thumbnail_url}
+                        alt={doc.title}
+                        fill
+                        sizes="120px"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center">
+                        <BookOpen className="w-5 h-5 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-gray-200 font-medium line-clamp-2 leading-tight mb-0.5 group-hover:text-white transition-colors">
+                    {doc.title}
+                  </p>
+                  <p className="text-[10px] text-gray-500 truncate">
+                    {doc.author_name || ''}
+                  </p>
+                </Link>
               ))}
             </div>
-            <p className="text-[10px] text-gray-600 text-center mt-1.5">추천 콘텐츠는 추후 연동됩니다</p>
           </div>
         )}
       </div>
