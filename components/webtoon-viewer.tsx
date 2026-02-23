@@ -33,7 +33,13 @@ export default function WebtoonViewer({
         .select('*')
         .eq('document_id', documentId)
         .order('image_order', { ascending: true })
-      if (!error && data) setImages(data)
+      if (!error && data) {
+        setImages(data)
+        // 초기 로드 시 onProgress 호출 (시작 광고 트리거)
+        if (data.length > 0 && onProgress) {
+          onProgress(1, data.length)
+        }
+      }
       setLoading(false)
     }
     loadImages()
