@@ -182,8 +182,8 @@ export function AdOverlay({
             <p className="text-xs font-medium text-white mb-2">이런 문서도 있어요</p>
             <div className="flex gap-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex-1 p-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer text-center">
-                  <div className="w-full h-12 bg-gray-700 rounded mb-1.5" />
+                <div key={i} className="flex-1 p-1.5 rounded-lg bg-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer text-center">
+                  <div className="w-full aspect-[3/4] bg-gray-700 rounded mb-1.5" />
                   <div className="h-2.5 w-3/4 bg-gray-700 rounded mx-auto mb-1" />
                   <div className="h-2 w-1/2 bg-gray-700/50 rounded mx-auto" />
                 </div>
