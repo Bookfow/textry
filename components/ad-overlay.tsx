@@ -178,22 +178,18 @@ export function AdOverlay({
 
         {/* 끝 광고일 때 추천 문서 영역 */}
         {(type === 'end') && (
-          <div className="mt-4 bg-gray-900 border border-gray-700 rounded-xl p-4">
-            <p className="text-sm font-medium text-white mb-3">이런 문서도 있어요</p>
-            <div className="space-y-2">
+          <div className="mt-3 bg-gray-900 border border-gray-700 rounded-xl p-3">
+            <p className="text-xs font-medium text-white mb-2">이런 문서도 있어요</p>
+            <div className="flex gap-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer">
-                  <div className="w-10 h-14 bg-gray-700 rounded flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="h-3 w-3/4 bg-gray-700 rounded mb-1.5" />
-                    <div className="h-2.5 w-1/2 bg-gray-700/50 rounded" />
-                  </div>
+                <div key={i} className="flex-1 p-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer text-center">
+                  <div className="w-full h-12 bg-gray-700 rounded mb-1.5" />
+                  <div className="h-2.5 w-3/4 bg-gray-700 rounded mx-auto mb-1" />
+                  <div className="h-2 w-1/2 bg-gray-700/50 rounded mx-auto" />
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-gray-600 text-center mt-2">
-              추천 문서는 추후 연동됩니다
-            </p>
+            <p className="text-[10px] text-gray-600 text-center mt-1.5">추천 문서는 추후 연동됩니다</p>
           </div>
         )}
       </div>
