@@ -637,10 +637,10 @@ export default function HomePage() {
               </div>
 
               {/* 인기 콘텐츠 */}
-              <CarouselSection title="인기 있는 콘텐츠" icon={TrendingUp} docs={filteredPopular} showMore="/browse?sort=popular" />
+              <CarouselSection title="인기 있는" icon={TrendingUp} docs={filteredPopular} showMore="/browse?sort=popular" />
 
               {/* 최신 콘텐츠 */}
-              <CarouselSection title="새로운 콘텐츠" icon={Sparkles} docs={filteredRecent} showMore="/browse?sort=recent" />
+              <CarouselSection title="새로운" icon={Sparkles} docs={filteredRecent} showMore="/browse?sort=recent" />
 
               {/* 이어서 읽을 콘텐츠 (reading_sessions 기반) */}
               {user && sessionContinue.length > 0 && (
@@ -649,10 +649,10 @@ export default function HomePage() {
 
               {/* 구독자 콘텐츠 */}
               {user && filterByCategory(subscribedDocs).length > 0 && (
-                <CarouselSection title="구독 중인 새 콘텐츠" icon={Users} docs={filterByCategory(subscribedDocs)} />
+                <CarouselSection title="구독자가 새로 올린" icon={Users} docs={filterByCategory(subscribedDocs)} />
               )}
               {!user && (
-                <LoginPromptCard icon={Users} title="구독 중인 새 콘텐츠" description="큐레이터를 구독하면 새 콘텐츠를 놓치지 않아요" />
+                <LoginPromptCard icon={Users} title="구독자가 새로 올린" description="큐레이터를 구독하면 새 콘텐츠를 놓치지 않아요" />
               )}
             </>
           )}
