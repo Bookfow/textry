@@ -186,21 +186,21 @@ export default function LandingPage() {
               {/* 뱃지 */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-5 md:mb-8 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-sm font-medium text-white/70">콘텐츠 큐레이션의 새로운 시대</span>
+                <span className="text-sm font-medium text-white/70">지식 공유의 새로운 방식</span>
               </div>
 
               {/* 메인 카피 */}
               <h2 className="text-[2.5rem] sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[0.95] mb-5 md:mb-8 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-                <span className="block text-white">발견하고,</span>
-                <span className="block text-white">큐레이션하고,</span>
+                <span className="block text-white">쓰고,</span>
+                <span className="block text-white">나누고,</span>
                 <span className="block shimmer-text">함께 성장하다.</span>
               </h2>
 
               {/* 서브 카피 */}
               <p className="text-lg md:text-xl font-medium text-white/50 max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
-                큐레이터가 가치 있는 콘텐츠를 발굴하고, 독자는 벽 없이 지식을 만납니다.
+                나의 글과 지식을 세상에 공유하고, 독자는 벽 없이 만납니다.
                 <br className="hidden md:block" />
-                당신의 큐레이션이 수익이 되는 플랫폼, Textry.
+                당신의 콘텐츠가 수익이 되는 플랫폼, Textry.
               </p>
 
               {/* CTA */}
@@ -258,7 +258,7 @@ export default function LandingPage() {
                   저자와 큐레이터,<br />두 개의 역할
                 </h3>
                 <p className="text-lg font-medium text-white/45 max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-                  Textry에서는 콘텐츠를 쓴 사람과 발굴한 사람을 구분합니다.
+                  Textry에서는 콘텐츠를 쓴 사람과 공유하는 사람을 구분합니다.
                   <br />누구나 큐레이터가 될 수 있고, 본인의 작품을 올리면 저자이자 큐레이터가 됩니다.
                 </p>
               </div>
@@ -294,11 +294,11 @@ export default function LandingPage() {
                       </div>
                       <h4 className="text-2xl font-bold text-white mb-3">큐레이터</h4>
                       <p className="font-medium text-white/45 leading-relaxed mb-6">
-                        가치 있는 콘텐츠를 발굴하고 플랫폼에 공유합니다. 좋은 글을 찾아 세상에 알리는 것 자체가 가치이며, 수익이 됩니다.
+                        자신의 창작물이나 공개된 지식을 정리하여 독자에게 전합니다. 콘텐츠를 체계적으로 공유하는 것 자체가 가치이며, 수익이 됩니다.
                       </p>
                       <div className="flex items-center gap-2 text-sm text-[#c9a96e]/80">
                         <Zap className="w-4 h-4" />
-                        <span>발굴 · 공유 · 수익화</span>
+                        <span>정리 · 공유 · 수익화</span>
                       </div>
                     </div>
                   </div>
@@ -375,7 +375,7 @@ export default function LandingPage() {
                   큐레이션이 곧 수익입니다
                 </h3>
                 <p className="text-lg font-medium text-white/45 max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-                  좋은 콘텐츠를 발굴하고 공유하는 것만으로도 수익이 발생합니다.
+                  콘텐츠를 정리하고 공유하는 것만으로도 수익이 발생합니다.
                   <br />광고 수익과 프리미엄 구독 수익을 큐레이터에게 배분합니다.
                 </p>
               </div>
@@ -447,7 +447,7 @@ export default function LandingPage() {
               </h3>
               <p className="text-lg font-medium text-white/45 mb-12 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                 가입은 무료, 업로드도 무료.
-                <br />좋은 콘텐츠를 세상에 알리는 것만으로 가치가 생깁니다.
+                <br />나의 지식을 세상과 나누는 것만으로 가치가 생깁니다.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
                 <Link href="/signup"
