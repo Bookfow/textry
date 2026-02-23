@@ -167,7 +167,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ━━━ 히어로 ━━━ */}
-      <section ref={hero.ref} className="relative min-h-screen flex items-center justify-center">
+      <section ref={hero.ref} className="relative min-h-screen flex items-center justify-center px-0 pt-24 pb-16 md:pt-0 md:pb-0">
         {/* 배경 글로우 */}
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-[#a67c52]/20 rounded-full blur-[120px]"
@@ -190,7 +190,7 @@ export default function LandingPage() {
               </div>
 
               {/* 메인 카피 */}
-              <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[0.95] mb-8 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+              <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[0.95] mb-8 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                 <span className="block text-white">발견하고,</span>
                 <span className="block text-white">큐레이션하고,</span>
                 <span className="block shimmer-text">함께 성장하다.</span>
@@ -218,7 +218,7 @@ export default function LandingPage() {
               </div>
 
               {/* 소셜 프루프 */}
-              <div className="mt-16 flex items-center justify-center gap-8 text-white/30 animate-fadeInUp" style={{ animationDelay: '0.9s' }}>
+              <div className="mt-10 md:mt-16 flex items-center justify-center gap-6 md:gap-8 text-white/30 animate-fadeInUp" style={{ animationDelay: '0.9s' }}>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-white/60"><CountUp target={50} suffix="+" /></p>
                   <p className="text-xs font-medium mt-1">등록된 콘텐츠</p>
@@ -238,7 +238,7 @@ export default function LandingPage() {
         </div>
 
         {/* 스크롤 인디케이터 */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 animate-bounce hidden md:flex">
           <div className="w-6 h-10 rounded-full border-2 border-white/20 flex justify-center pt-2">
             <div className="w-1.5 h-3 rounded-full bg-white/40" />
           </div>
@@ -333,7 +333,7 @@ export default function LandingPage() {
                 </h3>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {[
                   { icon: Eye, title: '스트리밍 뷰어', desc: 'PDF, EPUB를 브라우저에서 바로. 다운로드 없이 몰입하는 읽기 경험.', gradient: 'from-blue-500/20 to-cyan-500/20', iconBg: 'from-blue-500 to-cyan-500' },
                   { icon: Users, title: '구독 시스템', desc: '좋아하는 큐레이터를 구독하고, 새 콘텐츠를 놓치지 마세요.', gradient: 'from-purple-500/20 to-pink-500/20', iconBg: 'from-purple-500 to-pink-500' },
@@ -343,13 +343,13 @@ export default function LandingPage() {
                   { icon: Shield, title: '시리즈 관리', desc: '콘텐츠를 시리즈로 묶어 체계적으로 구성하세요.', gradient: 'from-indigo-500/20 to-violet-500/20', iconBg: 'from-indigo-500 to-violet-500' },
                 ].map((f, i) => (
                   <div key={i} className="animate-fadeInUp" style={{ animationDelay: `${0.2 + i * 0.1}s` }}>
-                    <div className="group relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.1] transition-all duration-500 hover:-translate-y-1 h-full">
+                    <div className="group relative p-4 md:p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.1] transition-all duration-500 hover:-translate-y-1 h-full">
                       <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${f.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                       <div className="relative">
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${f.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                           <f.icon className="w-6 h-6 text-white" />
                         </div>
-                        <h4 className="text-lg font-bold text-white mb-2">{f.title}</h4>
+                        <h4 className="text-sm md:text-lg font-bold text-white mb-1 md:mb-2">{f.title}</h4>
                         <p className="text-sm font-medium text-white/40 leading-relaxed">{f.desc}</p>
                       </div>
                     </div>
@@ -381,7 +381,7 @@ export default function LandingPage() {
               </div>
 
               {/* 티어 시스템 */}
-              <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-16">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto mb-16">
                 {[
                   { tier: 'Tier 0', label: '시작', desc: '가입 후 콘텐츠 업로드', share: '—', condition: '누구나', color: 'from-white/5 to-white/[0.02]', borderColor: 'border-white/[0.06]', textColor: 'text-white/30' },
                   { tier: 'Tier 1', label: '파트너', desc: '수익화 시작', share: '70%', condition: '100시간 + 30일', color: 'from-blue-500/10 to-blue-600/5', borderColor: 'border-blue-500/20', textColor: 'text-blue-400' },
@@ -410,7 +410,7 @@ export default function LandingPage() {
               </div>
 
               {/* 수익 흐름 */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fadeInUp delay-600" style={{  }}>
+              <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 animate-fadeInUp delay-600" style={{  }}>
                 {[
                   { icon: Eye, text: '독자가 읽기' },
                   { icon: TrendingUp, text: '광고 노출' },
