@@ -167,7 +167,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ━━━ 히어로 ━━━ */}
-      <section ref={hero.ref} className="relative min-h-screen flex items-center justify-center px-0 pt-24 pb-16 md:pt-0 md:pb-0">
+      <section ref={hero.ref} className="relative min-h-[100dvh] flex items-center justify-center px-0 pt-20 pb-12 md:pt-0 md:pb-0">
         {/* 배경 글로우 */}
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-[#a67c52]/20 rounded-full blur-[120px]"
@@ -184,20 +184,20 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           <>
               {/* 뱃지 */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-5 md:mb-8 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-sm font-medium text-white/70">콘텐츠 큐레이션의 새로운 시대</span>
               </div>
 
               {/* 메인 카피 */}
-              <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[0.95] mb-8 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+              <h2 className="text-[2.5rem] sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[0.95] mb-5 md:mb-8 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                 <span className="block text-white">발견하고,</span>
                 <span className="block text-white">큐레이션하고,</span>
                 <span className="block shimmer-text">함께 성장하다.</span>
               </h2>
 
               {/* 서브 카피 */}
-              <p className="text-lg md:text-xl font-medium text-white/50 max-w-2xl mx-auto mb-12 leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
+              <p className="text-lg md:text-xl font-medium text-white/50 max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
                 큐레이터가 가치 있는 콘텐츠를 발굴하고, 독자는 벽 없이 지식을 만납니다.
                 <br className="hidden md:block" />
                 당신의 큐레이션이 수익이 되는 플랫폼, Textry.
@@ -206,19 +206,19 @@ export default function LandingPage() {
               {/* CTA */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fadeInUp" style={{ animationDelay: '0.7s' }}>
                 <Link href="/signup"
-                  className="group flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-[#a67c52] to-[#c9a96e] text-[#0A0806] font-bold text-lg hover:shadow-2xl hover:shadow-[#c9a96e]/30 transition-all hover:scale-105 active:scale-95">
+                  className="group flex items-center gap-3 px-6 py-3.5 md:px-8 md:py-4 rounded-full bg-gradient-to-r from-[#a67c52] to-[#c9a96e] text-[#0A0806] font-bold text-base md:text-lg hover:shadow-2xl hover:shadow-[#c9a96e]/30 transition-all hover:scale-105 active:scale-95">
                   무료로 시작하기
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link href="/browse"
-                  className="flex items-center gap-2 px-8 py-4 rounded-full border border-white/15 text-white/80 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all text-lg">
+                  className="flex items-center gap-2 px-6 py-3.5 md:px-8 md:py-4 rounded-full border border-white/15 text-white/80 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all text-base md:text-lg">
                   <Play className="w-5 h-5" />
                   콘텐츠 둘러보기
                 </Link>
               </div>
 
               {/* 소셜 프루프 */}
-              <div className="mt-10 md:mt-16 flex items-center justify-center gap-6 md:gap-8 text-white/30 animate-fadeInUp" style={{ animationDelay: '0.9s' }}>
+              <div className="mt-8 md:mt-16 flex items-center justify-center gap-6 md:gap-8 text-white/30 animate-fadeInUp" style={{ animationDelay: '0.9s' }}>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-white/60"><CountUp target={50} suffix="+" /></p>
                   <p className="text-xs font-medium mt-1">등록된 콘텐츠</p>
