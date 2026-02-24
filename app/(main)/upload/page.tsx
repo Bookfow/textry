@@ -23,6 +23,7 @@ export default function UploadPage() {
   const [uploadTab, setUploadTab] = useState<'document' | 'webtoon'>('document')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [curatorComment, setCuratorComment] = useState('')
   const [category, setCategory] = useState('technology')
   const [language, setLanguage] = useState('ko')
   const [file, setFile] = useState<File | null>(null)
@@ -313,7 +314,7 @@ export default function UploadPage() {
       }
 
       setProgress(60); setProgressMessage('콘텐츠 정보 저장 중...')
-      const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, category, language, file_path: uploadFileName, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: Math.floor(file.size / 1000), page_count: pageCount || null, is_published: true }).select('id').single()
+      const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, curator_comment: curatorComment.trim() || null, category, language, file_path: uploadFileName, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: Math.floor(file.size / 1000), page_count: pageCount || null, is_published: true }).select('id').single()
       if (dbError) throw dbError
 
       setProgress(70)

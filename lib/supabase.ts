@@ -22,6 +22,7 @@ export type Document = {
   id: string
   title: string
   description: string | null
+  curator_comment: string | null
   category: string
   language: string
   file_path: string

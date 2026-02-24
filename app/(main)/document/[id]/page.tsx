@@ -386,6 +386,18 @@ export default function DocumentDetailPage() {
                       </Link>
                     )}
 
+                    {/* 큐레이터 코멘트 */}
+                    {(doc as any).curator_comment && (
+                      <div className="mb-4 p-4 bg-[#FAF6F1] dark:bg-[#1E1812] rounded-xl border border-[#E7D8C9] dark:border-[#3A302A]">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs font-semibold text-[#B2967D]">💬 큐레이터의 한마디</span>
+                        </div>
+                        <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap italic">
+                          "{(doc as any).curator_comment}"
+                        </p>
+                      </div>
+                    )}
+
                     {/* 큐레이터 (업로드한 사람) */}
                     <div className="flex items-center justify-center sm:justify-between gap-3">
                       <Link href={`/profile/${author.id}`}>
