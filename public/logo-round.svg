@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <circle cx="60" cy="60" r="56" fill="#2D2016"/>
+  <text x="60" y="66" font-family="Raleway, sans-serif" font-weight="900" font-size="42" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+  <path d="M 24 82 Q 36 90 48 82 Q 60 74 72 82 Q 84 90 96 82" fill="none" stroke="#B2967D" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
