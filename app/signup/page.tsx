@@ -86,7 +86,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#F7F2EF] dark:bg-[#1A1410] p-4">
       <div className="w-full max-w-md bg-white dark:bg-[#241E18] rounded-2xl border border-[#E7D8C9] dark:border-[#3A302A] shadow-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#a67c52] via-[#f0d58c] to-[#a67c52] bg-clip-text text-transparent" style={{WebkitTextStroke: '0.3px #daa520', paintOrder: 'stroke fill', letterSpacing: '1.5px'}}>TeXTREME</h1>
+          <h1 className="text-3xl warm-text" style={{fontFamily: "'Monoton', cursive", letterSpacing: '3px'}}>TeXTREME</h1>
           <p className="text-sm text-[#9C8B7A] mt-1">지식을 스트리밍하다</p>
         </div>
 
