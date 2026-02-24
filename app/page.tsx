@@ -382,12 +382,12 @@ export default function LandingPage() {
                 {[
                   { tier: 'Tier 0', label: '시작', desc: '가입 후 콘텐츠 업로드', share: '누구나 시작', condition: '가입 즉시', borderColor: 'border-[#E7D8C9]', accentColor: 'text-[#9C8B7A]', bg: 'bg-white' },
                   { tier: 'Tier 1', label: '파트너', desc: '수익화 시작', share: '70%', condition: '100시간 + 30일', borderColor: 'border-blue-200', accentColor: 'text-blue-600', bg: 'bg-white' },
-                  { tier: 'Tier 2', label: '프로', desc: '최고 수익 배분', share: '80%', condition: '1,000시간', borderColor: 'border-[#B2967D]', accentColor: 'text-[#8B6749]', bg: 'bg-gradient-to-br from-white to-[#FAF2EC]' },
+                  { tier: 'Tier 2', label: '프로', desc: '최고 수익 배분', share: '80%', condition: '1,000시간', borderColor: 'border-[#B2967D] shadow-lg shadow-[#B2967D]/12', accentColor: 'text-[#8B6749]', bg: 'bg-gradient-to-br from-[#FDF8F3] to-[#F0E4D8] ring-1 ring-[#B2967D]/30' },
                 ].map((t, i) => (
                   <div key={i} className="animate-fadeInUp" style={{ animationDelay: `${0.3 + i * 0.15}s` }}>
                     <div className={`relative p-6 rounded-2xl ${t.bg} border ${t.borderColor} transition-all hover:-translate-y-1 duration-300 h-full hover:shadow-lg hover:shadow-[#B2967D]/5`}>
                       {i === 2 && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#2D2016] rounded-full text-[10px] font-bold text-[#FAF6F1]">
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-[#8B6749] to-[#B2967D] rounded-full text-[11px] font-bold text-white shadow-md shadow-[#B2967D]/25">
                           BEST
                         </div>
                       )}
