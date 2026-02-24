@@ -608,6 +608,7 @@ export default function AuthorPage() {
                   <p className="text-[#9C8B7A]">아직 업로드한 콘텐츠가 없습니다</p>
                 </div>
               ) : (
+                <>
                 {/* 대표 콘텐츠 */}
                 {pinnedIds.length > 0 && (
                   <div className="mb-6">
@@ -651,6 +652,7 @@ export default function AuthorPage() {
                     </div>
                   ))}
                 </div>
+                </>
               )}
             </>
           )}
