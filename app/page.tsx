@@ -103,6 +103,7 @@ export default function LandingPage() {
         @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes fadeInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes spin-once { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse-warm { 0%, 100% { box-shadow: 0 0 20px rgba(178,150,125,0.2); } 50% { box-shadow: 0 0 40px rgba(178,150,125,0.4); } }
 
         .animate-fadeInUp { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; opacity: 0; }
@@ -180,7 +181,7 @@ export default function LandingPage() {
               {/* 서브 카피 */}
               <p className="text-lg md:text-xl font-medium text-[#5C4A38] max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
                 나의 글과 지식을 세상에 공유하고, 누구나 자유롭게 읽을 수 있습니다.
-                <br className="hidden md:block" />
+                <br className="hidden md:block" />{' '}
                 당신의 콘텐츠가 수익이 되는 플랫폼, Textry.
               </p>
 
@@ -326,7 +327,7 @@ export default function LandingPage() {
                   <div key={i} className="animate-fadeInUp" style={{ animationDelay: `${0.2 + i * 0.1}s` }}>
                     <div className="group relative p-5 md:p-7 rounded-2xl bg-white border border-[#D4C4B0] hover:border-[#B2967D]/50 transition-all duration-500 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#B2967D]/6 h-full">
                       <div className="relative">
-                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${f.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md`}>
+                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${f.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 group-hover:animate-[spin-once_0.6s_ease-in-out] transition-transform duration-300 shadow-md`}>
                           <f.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                         </div>
                         <h4 className="text-sm md:text-lg font-bold text-[#2D2016] mb-1 md:mb-2">{f.title}</h4>
