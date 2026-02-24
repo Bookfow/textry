@@ -83,11 +83,17 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF6F1] text-[#2D2016] overflow-hidden" style={{ fontFamily: "'Pretendard', -apple-system, sans-serif" }}>
+    <div className="min-h-screen bg-[#FAF6F1] text-[#2D2016] overflow-hidden" style={{ fontFamily: "'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
 
       {/* ━━━ 글로벌 스타일 ━━━ */}
       <style jsx global>{`
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+
+        * {
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          text-rendering: optimizeLegibility;
+        }
 
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
 
@@ -165,7 +171,7 @@ export default function LandingPage() {
               </div>
 
               {/* 메인 카피 */}
-              <h2 className="text-[2.5rem] sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[0.95] mb-5 md:mb-8 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+              <h2 className="text-[2.5rem] sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[1.15] mb-5 md:mb-8 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                 <span className="block text-[#2D2016]">쓰고,</span>
                 <span className="block text-[#2D2016]">나누고,</span>
                 <span className="block warm-text">함께 성장하다.</span>
