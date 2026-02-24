@@ -198,7 +198,7 @@ export default function LandingPage() {
               <p className="text-lg md:text-xl font-medium text-[#5C4A38] max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
                 나의 글과 지식을 세상에 공유하고, 누구나 자유롭게 읽을 수 있습니다.
                 <br className="hidden md:block" />{' '}
-                당신의 콘텐츠가 수익이 되는 플랫폼, TeXTREME.
+                당신의 콘텐츠가 수익이 되는 플랫폼, 텍스트림.
               </p>
 
               {/* CTA */}
@@ -258,7 +258,7 @@ export default function LandingPage() {
                   창작자와 큐레이터,<br />두 개의 역할
                 </h3>
                 <p className="text-lg font-medium text-[#5C4A38] max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-                  TeXTREME에서는 콘텐츠를 쓴 사람과 공유하는 사람을 구분합니다.
+                  텍스트림에서는 콘텐츠를 쓴 사람과 공유하는 사람을 구분합니다.
                   <br />누구나 큐레이터가 될 수 있고, 본인의 작품을 올리면 창작자이자 큐레이터가 됩니다.
                 </p>
               </div>
@@ -273,7 +273,7 @@ export default function LandingPage() {
                       </div>
                       <h4 className="text-2xl font-bold text-[#2D2016] mb-3">창작자</h4>
                       <p className="font-medium text-[#5C4A38] leading-relaxed mb-6">
-                        콘텐츠를 직접 창작한 원작 창작자입니다. 시, 소설, 논문, 에세이, 웹툰 등 자신의 작품이 TeXTREME에서 독자를 만납니다.
+                        콘텐츠를 직접 창작한 원작 창작자입니다. 시, 소설, 논문, 에세이, 웹툰 등 자신의 작품이 텍스트림에서 독자를 만납니다.
                       </p>
                       <div className="flex items-center gap-2 text-sm text-[#B2967D]">
                         <Star className="w-4 h-4" />

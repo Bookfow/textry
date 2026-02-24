@@ -253,9 +253,7 @@ export function MainHeader({
         <div className="flex items-center gap-4 max-w-[1400px] mx-auto w-full">
           {/* 로고 */}
           <Link href="/home" className="flex-shrink-0">
-            <h1 className="text-xl font-black bg-gradient-to-r from-[#5C4A38] via-[#8B6749] to-[#5C4A38] bg-clip-text text-transparent" style={{letterSpacing: '2px'}}>
-              T<span style={{letterSpacing: '-0.5px'}}>e</span><span style={{letterSpacing: '0.5px'}}>X</span>TREME
-            </h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-[#a67c52] via-[#f0d58c] to-[#a67c52] bg-clip-text text-transparent" style={{WebkitTextStroke: '0.3px #daa520', paintOrder: 'stroke fill', letterSpacing: '1.5px'}}>TeXTREME</h1>
           </Link>
 
           {/* 데스크톱 검색 + 필터 */}
