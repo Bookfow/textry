@@ -20,7 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ProfileSkeleton } from '@/components/loading-skeleton'
 import { useToast } from '@/components/toast'
 
-type TabType = 'documents' | 'series' | 'following' | 'about'
+type TabType = 'documents' | 'series' | 'guestbook' | 'following' | 'about'
 
 export default function AuthorPage() {
   const params = useParams()
@@ -63,7 +63,51 @@ export default function AuthorPage() {
   // 구독 큐레이터
   const [subscribedAuthors, setSubscribedAuthors] = useState<any[]>([])
 
+  // 방명록
+  const [guestComments, setGuestComments] = useState<any[]>([])
+  const [newComment, setNewComment] = useState('')
+  const [submittingComment, setSubmittingComment] = useState(false)
+  const [guestbookLoaded, setGuestbookLoaded] = useState(false)
+
   const isMyProfile = user?.id === authorId
+
+  // 방명록 로드
+  const loadGuestbook = async () => {
+    const { data } = await supabase
+      .from('profile_comments')
+      .select('*, profiles!profile_comments_user_id_fkey(id, username, email, avatar_url)')
+      .eq('profile_id', authorId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    if (data) setGuestComments(data)
+    setGuestbookLoaded(true)
+  }
+
+  const handleSubmitComment = async () => {
+    if (!user || !newComment.trim()) return
+    setSubmittingComment(true)
+    try {
+      const { error } = await supabase.from('profile_comments').insert({
+        profile_id: authorId,
+        user_id: user.id,
+        content: newComment.trim(),
+      })
+      if (!error) {
+        setNewComment('')
+        loadGuestbook()
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSubmittingComment(false)
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('댓글을 삭제할까요?')) return
+    await supabase.from('profile_comments').delete().eq('id', commentId)
+    loadGuestbook()
+  }
 
   useEffect(() => {
     loadAuthorData()
@@ -510,6 +554,10 @@ export default function AuthorPage() {
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'following' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
               구독 {subscribedAuthors.length > 0 && `(${subscribedAuthors.length})`}
             </button>
+            <button onClick={() => { setActiveTab('guestbook'); if (!guestbookLoaded) loadGuestbook() }}
+              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'guestbook' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
+              방명록 {guestComments.length > 0 && `(${guestComments.length})`}
+            </button>
             <button onClick={() => setActiveTab('about')}
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'about' ? 'border-[#B2967D] text-[#2D2016] dark:text-[#EEE4E1]' : 'border-transparent text-[#9C8B7A] hover:text-[#5C4A38] dark:hover:text-[#C4A882]'}`}>
               정보
@@ -676,6 +724,79 @@ export default function AuthorPage() {
                         </div>
                       </div>
                     </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 방명록 탭 */}
+          {activeTab === 'guestbook' && (
+            <div className="max-w-2xl">
+              {/* 작성 폼 */}
+              {user ? (
+                <div className="bg-white dark:bg-[#241E18] rounded-xl border border-[#E7D8C9] dark:border-[#3A302A] p-4 mb-6">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => { if (e.target.value.length <= 300) setNewComment(e.target.value) }}
+                    placeholder={isMyProfile ? "내 공간에 인사말을 남겨보세요" : `${author.username || '큐레이터'}님에게 한마디 남겨주세요`}
+                    rows={3}
+                    maxLength={300}
+                    className="w-full rounded-lg border border-[#E7D8C9] dark:border-[#3A302A] dark:bg-[#1A1410] dark:text-[#EEE4E1] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#B2967D] resize-none mb-2"
+                  />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#9C8B7A]">{newComment.length}/300</span>
+                    <button
+                      onClick={handleSubmitComment}
+                      disabled={submittingComment || !newComment.trim()}
+                      className="px-4 py-1.5 bg-[#B2967D] hover:bg-[#a67c52] text-white text-sm rounded-lg font-medium transition-colors disabled:opacity-50"
+                    >
+                      {submittingComment ? '등록 중...' : '등록'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-[#241E18] rounded-xl border border-[#E7D8C9] dark:border-[#3A302A] p-4 mb-6 text-center">
+                  <p className="text-sm text-[#9C8B7A]">방명록을 남기려면 <a href="/login" className="text-[#B2967D] hover:underline">로그인</a>이 필요합니다</p>
+                </div>
+              )}
+
+              {/* 댓글 목록 */}
+              {!guestbookLoaded ? (
+                <div className="text-center py-8">
+                  <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto" />
+                </div>
+              ) : guestComments.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-[#9C8B7A] text-sm">아직 방명록이 비어있어요</p>
+                  <p className="text-[#C4A882] text-xs mt-1">첫 번째 방명록을 남겨보세요!</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {guestComments.map((c: any) => (
+                    <div key={c.id} className="bg-white dark:bg-[#241E18] rounded-xl border border-[#E7D8C9] dark:border-[#3A302A] p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        {c.profiles?.avatar_url ? (
+                          <img src={c.profiles.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#B2967D] to-[#E6BEAE] text-white flex items-center justify-center text-xs font-bold">
+                            {(c.profiles?.username || c.profiles?.email || '?')[0].toUpperCase()}
+                          </div>
+                        )}
+                        <a href={`/profile/${c.user_id}`} className="text-sm font-medium text-[#2D2016] dark:text-[#EEE4E1] hover:underline">
+                          {c.profiles?.username || c.profiles?.email || '사용자'}
+                        </a>
+                        <span className="text-xs text-[#C4A882] ml-auto">
+                          {new Date(c.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                        </span>
+                        {(user?.id === c.user_id || isMyProfile) && (
+                          <button onClick={() => handleDeleteComment(c.id)} className="text-[#C4A882] hover:text-red-500 transition-colors ml-1">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{c.content}</p>
+                    </div>
                   ))}
                 </div>
               )}
