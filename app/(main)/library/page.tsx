@@ -169,7 +169,7 @@ export default function LibraryPage() {
   // ━━━ 책장 선반 컴포넌트 ━━━
   const BookShelf = ({ docs, type }: { docs: (ReadingDoc | FavDoc)[]; type: TabType }) => {
     // 한 선반에 들어갈 책 수 (반응형)
-    const booksPerShelf = 6
+    const booksPerShelf = 12
     const shelves: (ReadingDoc | FavDoc)[][] = []
     for (let i = 0; i < docs.length; i += booksPerShelf) {
       shelves.push(docs.slice(i, i + booksPerShelf))
@@ -185,7 +185,7 @@ export default function LibraryPage() {
               <div className="h-[14px] bg-gradient-to-b from-[#A8885C] to-[#8B7049] dark:from-[#5A4835] dark:to-[#4A3C2C]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.05) 60px, rgba(0,0,0,0.05) 61px)' }} />
             </div>
             {/* 책들 */}
-            <div className="flex items-end gap-3 sm:gap-4 px-4 sm:px-6 pt-4 pb-4 overflow-x-auto scrollbar-hide">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3 sm:gap-4 px-4 sm:px-6 pt-4 pb-4">
               {shelf.map(doc => {
                 const progress = type === 'reading' && 'current_page' in doc
                   ? doc.page_count > 0 ? Math.round((doc.current_page / doc.page_count) * 100) : 0
