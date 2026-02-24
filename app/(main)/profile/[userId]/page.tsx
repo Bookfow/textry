@@ -9,7 +9,7 @@ import Image from 'next/image'
 import {
   Eye, ThumbsUp, BookOpen as ReadIcon, FileText, Users, Clock, Calendar, Crown, Award, Share2,
   Camera, ImagePlus, Pencil, CheckCircle, Flame, BookCheck,
-  Plus, Trash2, ChevronUp, ChevronDown, X
+  Plus, Trash2, ChevronUp, ChevronDown, X, Pin
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -63,6 +63,9 @@ export default function AuthorPage() {
   // 구독 큐레이터
   const [subscribedAuthors, setSubscribedAuthors] = useState<any[]>([])
 
+  // 핀 고정
+  const [pinnedIds, setPinnedIds] = useState<string[]>([])
+
   // 방명록
   const [guestComments, setGuestComments] = useState<any[]>([])
   const [newComment, setNewComment] = useState('')
@@ -70,6 +73,23 @@ export default function AuthorPage() {
   const [guestbookLoaded, setGuestbookLoaded] = useState(false)
 
   const isMyProfile = user?.id === authorId
+
+  // 핀 고정/해제
+  const togglePin = async (docId: string) => {
+    if (!isMyProfile) return
+    let newPinned: string[]
+    if (pinnedIds.includes(docId)) {
+      newPinned = pinnedIds.filter(id => id !== docId)
+    } else {
+      if (pinnedIds.length >= 3) {
+        toast.warning('대표 콘텐츠는 최대 3개까지 선택할 수 있습니다')
+        return
+      }
+      newPinned = [...pinnedIds, docId]
+    }
+    setPinnedIds(newPinned)
+    await supabase.from('profiles').update({ pinned_doc_ids: newPinned }).eq('id', authorId)
+  }
 
   // 방명록 로드
   const loadGuestbook = async () => {
@@ -588,8 +608,48 @@ export default function AuthorPage() {
                   <p className="text-[#9C8B7A]">아직 업로드한 콘텐츠가 없습니다</p>
                 </div>
               ) : (
+                {/* 대표 콘텐츠 */}
+                {pinnedIds.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Pin className="w-4 h-4 text-[#B2967D]" />
+                      <span className="text-sm font-semibold text-[#2D2016] dark:text-[#EEE4E1]">대표 콘텐츠</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
+                      {pinnedIds.map(id => {
+                        const doc = documents.find(d => d.id === id)
+                        if (!doc) return null
+                        return (
+                          <div key={doc.id} className="relative">
+                            <div className="absolute top-2 left-2 z-10 px-2 py-0.5 bg-[#B2967D] text-white text-[10px] font-bold rounded-full shadow-sm flex items-center gap-1">
+                              <Pin className="w-3 h-3" /> 대표
+                            </div>
+                            <DocumentCard doc={doc} />
+                            {isMyProfile && (
+                              <button onClick={() => togglePin(doc.id)} className="absolute top-2 right-2 z-10 p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-full transition-colors" title="고정 해제">
+                                <X className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div className="border-b border-[#E7D8C9] dark:border-[#3A302A] mt-6 mb-2" />
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-                  {sortedDocuments.map(doc => <DocumentCard key={doc.id} doc={doc} />)}
+                  {sortedDocuments.filter(d => !pinnedIds.includes(d.id)).map(doc => (
+                    <div key={doc.id} className="relative group/pin">
+                      <DocumentCard doc={doc} />
+                      {isMyProfile && !pinnedIds.includes(doc.id) && (
+                        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); togglePin(doc.id) }}
+                          className="absolute top-2 right-2 z-10 p-1.5 bg-black/40 hover:bg-[#B2967D] text-white rounded-full transition-all opacity-0 group-hover/pin:opacity-100" title="대표 콘텐츠로 고정">
+                          <Pin className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </>
