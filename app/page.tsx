@@ -109,10 +109,17 @@ export default function LandingPage() {
           cursor: default;
         }
         .wiggle-hover:hover {
-          animation: wiggle 0.6s ease-in-out;
+          animation: wiggle 0.5s ease-in-out !important;
+          opacity: 1 !important;
         }
 
-        @keyframes wiggle { 0%, 100% { transform: rotate(0deg); } 15% { transform: rotate(-3deg); } 30% { transform: rotate(3deg); } 45% { transform: rotate(-2deg); } 60% { transform: rotate(2deg); } 75% { transform: rotate(-1deg); } }
+        @keyframes wiggle { 0%, 100% { transform: rotate(0deg); opacity: 1; } 20% { transform: rotate(-1.5deg); opacity: 1; } 40% { transform: rotate(1.5deg); opacity: 1; } 60% { transform: rotate(-0.8deg); opacity: 1; } 80% { transform: rotate(0.8deg); opacity: 1; } }
+
+        @keyframes jingle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } 75% { transform: rotate(-1deg); } }
+
+        .jingle-btn {
+          animation: jingle 2.5s ease-in-out infinite;
+        }
         @keyframes pulse-warm { 0%, 100% { box-shadow: 0 0 20px rgba(178,150,125,0.2); } 50% { box-shadow: 0 0 40px rgba(178,150,125,0.4); } }
 
         .animate-fadeInUp { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; opacity: 0; }
@@ -152,7 +159,7 @@ export default function LandingPage() {
               로그인
             </Link>
             <Link href="/signup"
-              className="text-sm font-semibold px-5 py-2.5 rounded-full bg-[#2D2016] hover:bg-[#3D3020] text-[#FAF6F1] transition-all hover:shadow-lg hover:shadow-[#2D2016]/15 hover:scale-105 active:scale-95">
+              className="text-sm font-semibold px-5 py-2.5 rounded-full bg-[#2D2016] hover:bg-[#3D3020] text-[#FAF6F1] transition-all hover:shadow-lg hover:shadow-[#2D2016]/15 hover:scale-105 active:scale-95 jingle-btn">
               시작하기
             </Link>
           </div>
@@ -197,7 +204,7 @@ export default function LandingPage() {
               {/* CTA */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fadeInUp" style={{ animationDelay: '0.7s' }}>
                 <Link href="/signup"
-                  className="group flex items-center gap-3 px-6 py-3.5 md:px-8 md:py-4 rounded-full bg-[#2D2016] text-[#FAF6F1] font-bold text-base md:text-lg hover:shadow-xl hover:shadow-[#2D2016]/15 transition-all hover:scale-105 active:scale-95">
+                  className="group flex items-center gap-3 px-6 py-3.5 md:px-8 md:py-4 rounded-full bg-[#2D2016] text-[#FAF6F1] font-bold text-base md:text-lg hover:shadow-xl hover:shadow-[#2D2016]/15 transition-all hover:scale-105 active:scale-95 jingle-btn">
                   무료로 시작하기
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -441,8 +448,8 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
                 <Link href="/signup"
-                  className="group inline-flex items-center justify-center gap-3 px-10 py-4 md:py-5 rounded-full bg-[#FAF6F1] text-[#2D2016] font-bold text-lg transition-all hover:shadow-2xl hover:shadow-[#FAF6F1]/20 hover:scale-105 active:scale-95"
-                  style={{ animation: 'pulse-warm 3s ease-in-out infinite' }}>
+                  className="group inline-flex items-center justify-center gap-3 px-10 py-4 md:py-5 rounded-full bg-[#FAF6F1] text-[#2D2016] font-bold text-lg transition-all hover:shadow-2xl hover:shadow-[#FAF6F1]/20 hover:scale-105 active:scale-95 jingle-btn"
+                  style={{ animation: 'jingle 2.5s ease-in-out infinite, pulse-warm 3s ease-in-out infinite' }}>
                   무료로 시작하기
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
