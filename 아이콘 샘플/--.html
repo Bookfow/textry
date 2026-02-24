@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TxT 로고 — 폰트 변형</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Oswald:wght@700&family=Bebas+Neue&family=Raleway:wght@900&family=Montserrat:wght@900&family=DM+Serif+Display&family=Libre+Baskerville:wght@700&display=swap');
+  
+  body {
+    font-family: sans-serif;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    background: #F7F2EF;
+    margin: 0;
+    padding: 40px 20px;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .label {
+    font-size: 10px;
+    color: #9C8B7A;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-align: center;
+  }
+  .logo-box {
+    padding: 20px;
+    border-radius: 14px;
+    background: white;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+  }
+</style>
+</head>
+<body>
+
+<!-- ━━━ 1번 클래식 라운드 변형 ━━━ -->
+
+<div class="card">
+  <p class="label">1A — Arial Black (원본)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="56" fill="#2D2016"/>
+      <text x="60" y="68" font-family="Arial Black, sans-serif" font-weight="900" font-size="42" fill="#FAF6F1" text-anchor="middle" letter-spacing="1">TxT</text>
+      <line x1="24" y1="82" x2="96" y2="82" stroke="#B2967D" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">1B — Playfair (세리프)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="56" fill="#2D2016"/>
+      <text x="60" y="68" font-family="Playfair Display, serif" font-weight="900" font-size="44" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <line x1="24" y1="82" x2="96" y2="82" stroke="#B2967D" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">1C — Bebas Neue (키높이)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="56" fill="#2D2016"/>
+      <text x="60" y="70" font-family="Bebas Neue, sans-serif" font-weight="400" font-size="52" fill="#FAF6F1" text-anchor="middle" letter-spacing="4">TxT</text>
+      <line x1="24" y1="84" x2="96" y2="84" stroke="#B2967D" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">1D — Oswald (볼드)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="56" fill="#2D2016"/>
+      <text x="60" y="69" font-family="Oswald, sans-serif" font-weight="700" font-size="48" fill="#FAF6F1" text-anchor="middle" letter-spacing="3">TxT</text>
+      <line x1="24" y1="83" x2="96" y2="83" stroke="#B2967D" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">1E — DM Serif (클래식)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="56" fill="#2D2016"/>
+      <text x="60" y="68" font-family="DM Serif Display, serif" font-size="46" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <line x1="24" y1="82" x2="96" y2="82" stroke="#B2967D" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">1F — Montserrat (기하학)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="56" fill="#2D2016"/>
+      <text x="60" y="68" font-family="Montserrat, sans-serif" font-weight="900" font-size="42" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <line x1="24" y1="82" x2="96" y2="82" stroke="#B2967D" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ━━━ 2번 라운드 사각 변형 ━━━ -->
+
+<div class="card">
+  <p class="label">2A — Arial Black (원본)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="url(#g2a)"/>
+      <defs><linearGradient id="g2a" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2D2016"/><stop offset="100%" style="stop-color:#5C4A38"/></linearGradient></defs>
+      <text x="60" y="66" font-family="Arial Black, sans-serif" font-weight="900" font-size="44" fill="#FAF6F1" text-anchor="middle" letter-spacing="1">TxT</text>
+      <rect x="22" y="80" width="76" height="3" rx="1.5" fill="#B2967D"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">2B — Playfair (세리프)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="url(#g2b)"/>
+      <defs><linearGradient id="g2b" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2D2016"/><stop offset="100%" style="stop-color:#5C4A38"/></linearGradient></defs>
+      <text x="60" y="66" font-family="Playfair Display, serif" font-weight="900" font-size="46" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <rect x="22" y="80" width="76" height="3" rx="1.5" fill="#B2967D"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">2C — Bebas Neue</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="url(#g2c)"/>
+      <defs><linearGradient id="g2c" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2D2016"/><stop offset="100%" style="stop-color:#5C4A38"/></linearGradient></defs>
+      <text x="60" y="68" font-family="Bebas Neue, sans-serif" font-size="54" fill="#FAF6F1" text-anchor="middle" letter-spacing="5">TxT</text>
+      <rect x="22" y="82" width="76" height="3" rx="1.5" fill="#B2967D"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">2D — Raleway (모던)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="url(#g2d)"/>
+      <defs><linearGradient id="g2d" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2D2016"/><stop offset="100%" style="stop-color:#5C4A38"/></linearGradient></defs>
+      <text x="60" y="66" font-family="Raleway, sans-serif" font-weight="900" font-size="44" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <rect x="22" y="80" width="76" height="3" rx="1.5" fill="#B2967D"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">2E — Libre Baskerville</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="url(#g2e)"/>
+      <defs><linearGradient id="g2e" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2D2016"/><stop offset="100%" style="stop-color:#5C4A38"/></linearGradient></defs>
+      <text x="60" y="66" font-family="Libre Baskerville, serif" font-weight="700" font-size="42" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <rect x="22" y="80" width="76" height="3" rx="1.5" fill="#B2967D"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">2F — Montserrat</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="url(#g2f)"/>
+      <defs><linearGradient id="g2f" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2D2016"/><stop offset="100%" style="stop-color:#5C4A38"/></linearGradient></defs>
+      <text x="60" y="66" font-family="Montserrat, sans-serif" font-weight="900" font-size="44" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <rect x="22" y="80" width="76" height="3" rx="1.5" fill="#B2967D"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ━━━ 7번 그라디언트 텍스트 변형 ━━━ -->
+
+<div class="card">
+  <p class="label">7A — Arial Black (원본)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="#2D2016"/>
+      <defs><linearGradient id="tg7a" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#C4A882"/><stop offset="50%" style="stop-color:#E6BEAE"/><stop offset="100%" style="stop-color:#C4A882"/></linearGradient></defs>
+      <text x="60" y="68" font-family="Arial Black, sans-serif" font-weight="900" font-size="44" fill="url(#tg7a)" text-anchor="middle" letter-spacing="1">TxT</text>
+      <rect x="22" y="82" width="76" height="2" rx="1" fill="#B2967D" opacity="0.4"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">7B — Playfair (세리프)</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="#2D2016"/>
+      <defs><linearGradient id="tg7b" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#C4A882"/><stop offset="50%" style="stop-color:#E6BEAE"/><stop offset="100%" style="stop-color:#C4A882"/></linearGradient></defs>
+      <text x="60" y="68" font-family="Playfair Display, serif" font-weight="900" font-size="46" fill="url(#tg7b)" text-anchor="middle" letter-spacing="2">TxT</text>
+      <rect x="22" y="82" width="76" height="2" rx="1" fill="#B2967D" opacity="0.4"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">7C — Bebas Neue</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="#2D2016"/>
+      <defs><linearGradient id="tg7c" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#C4A882"/><stop offset="50%" style="stop-color:#E6BEAE"/><stop offset="100%" style="stop-color:#C4A882"/></linearGradient></defs>
+      <text x="60" y="70" font-family="Bebas Neue, sans-serif" font-size="54" fill="url(#tg7c)" text-anchor="middle" letter-spacing="5">TxT</text>
+      <rect x="22" y="84" width="76" height="2" rx="1" fill="#B2967D" opacity="0.4"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">7D — DM Serif</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="#2D2016"/>
+      <defs><linearGradient id="tg7d" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#C4A882"/><stop offset="50%" style="stop-color:#E6BEAE"/><stop offset="100%" style="stop-color:#C4A882"/></linearGradient></defs>
+      <text x="60" y="68" font-family="DM Serif Display, serif" font-size="48" fill="url(#tg7d)" text-anchor="middle" letter-spacing="2">TxT</text>
+      <rect x="22" y="82" width="76" height="2" rx="1" fill="#B2967D" opacity="0.4"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">7E — Montserrat</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="#2D2016"/>
+      <defs><linearGradient id="tg7e" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#C4A882"/><stop offset="50%" style="stop-color:#E6BEAE"/><stop offset="100%" style="stop-color:#C4A882"/></linearGradient></defs>
+      <text x="60" y="66" font-family="Montserrat, sans-serif" font-weight="900" font-size="44" fill="url(#tg7e)" text-anchor="middle" letter-spacing="2">TxT</text>
+      <rect x="22" y="80" width="76" height="2" rx="1" fill="#B2967D" opacity="0.4"/>
+    </svg>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">7F — Raleway</p>
+  <div class="logo-box">
+    <svg width="110" height="110" viewBox="0 0 120 120">
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="#2D2016"/>
+      <defs><linearGradient id="tg7f" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#C4A882"/><stop offset="50%" style="stop-color:#E6BEAE"/><stop offset="100%" style="stop-color:#C4A882"/></linearGradient></defs>
+      <text x="60" y="66" font-family="Raleway, sans-serif" font-weight="900" font-size="44" fill="url(#tg7f)" text-anchor="middle" letter-spacing="2">TxT</text>
+      <rect x="22" y="80" width="76" height="2" rx="1" fill="#B2967D" opacity="0.4"/>
+    </svg>
+  </div>
+</div>
+
+</body>
+</html>

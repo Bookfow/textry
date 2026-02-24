@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로고 미리보기</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+  
+  body {
+    font-family: 'Pretendard Variable', sans-serif;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 40px;
+    background: #F7F2EF;
+    margin: 0;
+    padding: 40px 20px;
+  }
+
+  .option-label {
+    font-size: 11px;
+    color: #9C8B7A;
+    margin-bottom: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .logo-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 50px;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+  }
+
+  /* A: 기본 세로 */
+  .logo-a .kr { font-size: 28px; font-weight: 900; color: #2D2016; letter-spacing: 2px; margin-bottom: 1px; }
+  .logo-a .en { font-size: 13px; font-weight: 800; background: linear-gradient(90deg, #5C4A38, #8B6749, #5C4A38); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 5px; }
+
+  /* B: 라인 구분 */
+  .logo-b .kr { font-size: 26px; font-weight: 900; color: #2D2016; letter-spacing: 2px; margin-bottom: 4px; }
+  .logo-b .line { width: 100%; height: 1.5px; background: linear-gradient(90deg, transparent, #B2967D, transparent); margin-bottom: 4px; }
+  .logo-b .en { font-size: 11px; font-weight: 700; color: #B2967D; letter-spacing: 4.5px; }
+
+  /* C: 헤더용 컴팩트 */
+  .logo-c .kr { font-size: 20px; font-weight: 900; color: #2D2016; letter-spacing: 1.5px; margin-bottom: 0px; }
+  .logo-c .en { font-size: 9px; font-weight: 800; background: linear-gradient(90deg, #5C4A38, #8B6749, #5C4A38); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 3.5px; }
+
+  /* D: 가로 배치 */
+  .logo-d { display: flex; align-items: baseline; gap: 8px; }
+  .logo-d .kr { font-size: 26px; font-weight: 900; color: #2D2016; letter-spacing: 1px; }
+  .logo-d .en { font-size: 11px; font-weight: 700; color: #B2967D; letter-spacing: 2px; margin-bottom: 2px; }
+
+  /* E: TX 박스 로고 */
+  .logo-e { display: flex; align-items: center; gap: 10px; }
+  .logo-e .box { background: linear-gradient(135deg, #2D2016, #5C4A38); color: #FAF6F1; font-size: 18px; font-weight: 900; padding: 6px 10px; border-radius: 6px; letter-spacing: 2px; }
+  .logo-e .text { display: flex; flex-direction: column; }
+  .logo-e .kr { font-size: 20px; font-weight: 900; color: #2D2016; letter-spacing: 1px; line-height: 1.2; }
+  .logo-e .sub { font-size: 9px; color: #9C8B7A; letter-spacing: 1px; }
+
+  /* F: 미니멀 */
+  .logo-f .kr { font-size: 30px; font-weight: 900; color: #2D2016; letter-spacing: 1px; margin-bottom: 0; }
+  .logo-f .en { font-size: 8px; font-weight: 700; color: #9C8B7A; letter-spacing: 6px; margin-left: 2px; }
+
+  /* G: 슬로건 포함 */
+  .logo-g .kr { font-size: 26px; font-weight: 900; color: #2D2016; letter-spacing: 1.5px; margin-bottom: 2px; }
+  .logo-g .en { font-size: 11px; font-weight: 800; background: linear-gradient(90deg, #5C4A38, #8B6749); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 4px; margin-bottom: 6px; }
+  .logo-g .slogan { font-size: 9px; color: #B2967D; letter-spacing: 1px; }
+
+  /* 다크 */
+  .dark-bg { background: #2D2016; }
+  .dark-bg .kr, .dark-bg .logo-d .kr, .dark-bg .logo-e .kr, .dark-bg .logo-f .kr, .dark-bg .logo-g .kr { color: #FAF6F1; }
+  .dark-bg .logo-a .en, .dark-bg .logo-c .en, .dark-bg .logo-g .en { background: linear-gradient(90deg, #C4A882, #E6BEAE, #C4A882); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .dark-bg .logo-f .en { color: #C4A882; -webkit-text-fill-color: #C4A882; }
+  .dark-bg .logo-b .en, .dark-bg .logo-d .en { color: #C4A882; -webkit-text-fill-color: #C4A882; }
+  .dark-bg .logo-b .line { background: linear-gradient(90deg, transparent, #C4A882, transparent); }
+  .dark-bg .logo-e .box { background: linear-gradient(135deg, #B2967D, #E6BEAE); color: #2D2016; }
+  .dark-bg .logo-e .sub { color: #C4A882; }
+  .dark-bg .logo-g .slogan { color: #C4A882; }
+</style>
+</head>
+<body>
+
+<div>
+  <p class="option-label">A — 기본 세로</p>
+  <div class="logo-wrap">
+    <div class="logo-a" style="text-align:center">
+      <div class="kr">텍스트림</div>
+      <div class="en">TeXTREME</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="option-label">B — 라인 구분</p>
+  <div class="logo-wrap">
+    <div class="logo-b" style="text-align:center">
+      <div class="kr">텍스트림</div>
+      <div class="line"></div>
+      <div class="en">TeXTREME</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="option-label">C — 헤더 컴팩트</p>
+  <div class="logo-wrap">
+    <div class="logo-c" style="text-align:center">
+      <div class="kr">텍스트림</div>
+      <div class="en">TeXTREME</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="option-label">D — 가로 배치 (제안)</p>
+  <div class="logo-wrap">
+    <div class="logo-d">
+      <div class="kr">텍스트림</div>
+      <div class="en">TeXTREME</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="option-label">E — TX 박스 (제안)</p>
+  <div class="logo-wrap">
+    <div class="logo-e">
+      <div class="box">TX</div>
+      <div class="text">
+        <div class="kr">텍스트림</div>
+        <div class="sub">지식을 스트리밍하다</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="option-label">F — 미니멀 (제안)</p>
+  <div class="logo-wrap">
+    <div class="logo-f" style="text-align:center">
+      <div class="kr">텍스트림</div>
+      <div class="en">TeXTREME</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="option-label">G — 슬로건 (제안)</p>
+  <div class="logo-wrap">
+    <div class="logo-g" style="text-align:center">
+      <div class="kr">텍스트림</div>
+      <div class="en">TeXTREME</div>
+      <div class="slogan">지식을 스트리밍하다</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="option-label">A — 다크</p>
+  <div class="logo-wrap dark-bg">
+    <div class="logo-a" style="text-align:center">
+      <div class="kr">텍스트림</div>
+      <div class="en">TeXTREME</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="option-label">E — 다크</p>
+  <div class="logo-wrap dark-bg">
+    <div class="logo-e">
+      <div class="box">TX</div>
+      <div class="text">
+        <div class="kr">텍스트림</div>
+        <div class="sub">지식을 스트리밍하다</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="option-label">F — 다크</p>
+  <div class="logo-wrap dark-bg">
+    <div class="logo-f" style="text-align:center">
+      <div class="kr">텍스트림</div>
+      <div class="en">TeXTREME</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
