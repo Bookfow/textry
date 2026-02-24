@@ -333,7 +333,7 @@ export default function LandingPage() {
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {[
-                  { icon: Eye, title: '스트리밍 뷰어', desc: 'PDF, EPUB, iamge를 브라우저에서 바로. 다운로드 없이 몰입하는 읽기 경험.', iconBg: 'from-blue-500 to-cyan-500' },
+                  { icon: Eye, title: '스트리밍 뷰어', desc: 'PDF, EPUB, 웹툰, 이미지 등을 브라우저에서 바로. 다운로드 없이 몰입하는 읽기 경험.', iconBg: 'from-blue-500 to-cyan-500' },
                   { icon: Users, title: '구독 시스템', desc: '좋아하는 큐레이터를 구독하고, 새 콘텐츠를 놓치지 마세요.', iconBg: 'from-purple-500 to-pink-500' },
                   { icon: BarChart3, title: '실시간 분석', desc: '조회수, 읽기 시간, 완독률. 데이터로 콘텐츠를 개선하세요.', iconBg: 'from-emerald-500 to-teal-500' },
                   { icon: BookOpen, title: '이어 읽기', desc: '어디서 멈췄든 자동 저장. 다음에 이어서 읽을 수 있습니다.', iconBg: 'from-amber-500 to-orange-500' },

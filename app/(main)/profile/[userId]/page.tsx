@@ -506,6 +506,12 @@ export default function AuthorPage() {
                 {isMyProfile && isEditing && (
                   <>
                     <Button size="sm" onClick={async () => {
+                      const forbidden = /텍스트림|textreme|textrime|textreem/i
+                      const isAdmin = user?.email === 'all.yun.kim@gmail.com'
+                      if (!isAdmin && forbidden.test(editUsername)) {
+                        toast.error("'텍스트림/TeXTREME'이 포함된 이름은 사용할 수 없습니다")
+                        return
+                      }
                       try {
                         await supabase.from('profiles').update({ username: editUsername, bio: editBio }).eq('id', user!.id)
                         setAuthor(prev => prev ? { ...prev, username: editUsername, bio: editBio } : prev)
