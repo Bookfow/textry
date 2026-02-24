@@ -446,15 +446,12 @@ export default function LibraryPage() {
         /* ━━━ 책장 보기 ━━━ */
         <div className="bg-gradient-to-b from-[#F5EDE6] to-[#EDE3DA] dark:from-[#241E18] dark:to-[#1E1812] rounded-2xl overflow-hidden border border-[#E7D8C9] dark:border-[#3A302A] shadow-inner">
           <BookShelf docs={currentDocs} type={activeTab} />
-
-          </div>
-
-          {/* 광고 */}
           {!isPremium && currentDocs.length > 0 && (
-            <div className="mt-6">
+            <div className="p-4">
               <AdBanner position="bottom" />
             </div>
           )}
+          </div>
       ) : (
         /* ━━━ 그리드 보기 ━━━ */
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
