@@ -239,7 +239,7 @@ export default function LandingPage() {
                 <p className="text-sm tracking-[0.3em] text-[#B2967D] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   New Concept
                 </p>
-                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }} className="hover:animate-[wiggle_0.6s_ease-in-out] inline-block cursor-default">
+                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] mb-6 animate-fadeInUp hover:animate-[wiggle_0.6s_ease-in-out] inline-block cursor-default" style={{ animationDelay: '0.2s' }}>
                   창작자와 큐레이터,<br />두 개의 역할
                 </h3>
                 <p className="text-lg font-medium text-[#5C4A38] max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
@@ -311,7 +311,7 @@ export default function LandingPage() {
                 <p className="text-sm tracking-[0.3em] text-[#B2967D] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   Features
                 </p>
-                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] animate-fadeInUp" style={{ animationDelay: '0.2s' }} className="hover:animate-[wiggle_0.6s_ease-in-out] inline-block cursor-default">
+                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] animate-fadeInUp hover:animate-[wiggle_0.6s_ease-in-out] inline-block cursor-default" style={{ animationDelay: '0.2s' }}>
                   읽기의 모든 순간을 디자인하다
                 </h3>
               </div>
@@ -353,7 +353,7 @@ export default function LandingPage() {
                 <p className="text-sm tracking-[0.3em] text-[#B2967D] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   Monetization
                 </p>
-                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }} className="hover:animate-[wiggle_0.6s_ease-in-out] inline-block cursor-default">
+                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] mb-6 animate-fadeInUp hover:animate-[wiggle_0.6s_ease-in-out] inline-block cursor-default" style={{ animationDelay: '0.2s' }}>
                   큐레이션이 곧 수익입니다
                 </h3>
                 <p className="text-lg font-medium text-[#5C4A38] max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
