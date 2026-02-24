@@ -254,7 +254,7 @@ export function MainHeader({
           {/* 로고 */}
           <Link href="/home" className="flex-shrink-0">
             <h1 className="text-xl font-black bg-gradient-to-r from-[#5C4A38] via-[#8B6749] to-[#5C4A38] bg-clip-text text-transparent" style={{letterSpacing: '2px'}}>
-              TeXTREME
+              T<span style={{letterSpacing: '-0.5px'}}>e</span><span style={{letterSpacing: '-0.5px'}}>X</span>TREME
             </h1>
           </Link>
 
