@@ -104,6 +104,7 @@ export default function LandingPage() {
         @keyframes fadeInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes spin-once { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes wiggle { 0%, 100% { transform: rotate(0deg); } 15% { transform: rotate(-3deg); } 30% { transform: rotate(3deg); } 45% { transform: rotate(-2deg); } 60% { transform: rotate(2deg); } 75% { transform: rotate(-1deg); } }
         @keyframes pulse-warm { 0%, 100% { box-shadow: 0 0 20px rgba(178,150,125,0.2); } 50% { box-shadow: 0 0 40px rgba(178,150,125,0.4); } }
 
         .animate-fadeInUp { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; opacity: 0; }
@@ -238,7 +239,7 @@ export default function LandingPage() {
                 <p className="text-sm tracking-[0.3em] text-[#B2967D] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   New Concept
                 </p>
-                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }} className="hover:animate-[wiggle_0.6s_ease-in-out] inline-block cursor-default">
                   창작자와 큐레이터,<br />두 개의 역할
                 </h3>
                 <p className="text-lg font-medium text-[#5C4A38] max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
@@ -310,7 +311,7 @@ export default function LandingPage() {
                 <p className="text-sm tracking-[0.3em] text-[#B2967D] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   Features
                 </p>
-                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] animate-fadeInUp" style={{ animationDelay: '0.2s' }} className="hover:animate-[wiggle_0.6s_ease-in-out] inline-block cursor-default">
                   읽기의 모든 순간을 디자인하다
                 </h3>
               </div>
@@ -352,7 +353,7 @@ export default function LandingPage() {
                 <p className="text-sm tracking-[0.3em] text-[#B2967D] font-semibold uppercase mb-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
                   Monetization
                 </p>
-                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+                <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }} className="hover:animate-[wiggle_0.6s_ease-in-out] inline-block cursor-default">
                   큐레이션이 곧 수익입니다
                 </h3>
                 <p className="text-lg font-medium text-[#5C4A38] max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
