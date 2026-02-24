@@ -49,9 +49,11 @@ export function AdBanner({ position = 'bottom', documentId, authorId }: AdBanner
           Google AdSense 또는 직접 광고
         </p>
       </div>
-      <p className="text-xs text-gray-400 mt-2">
-        광고는 큐레이터님의 수익이 됩니다
-      </p>
+      {authorId && (
+        <p className="text-xs text-gray-400 mt-2">
+          광고는 큐레이터님의 수익이 됩니다
+        </p>
+      )}
     </Card>
   )
 }
