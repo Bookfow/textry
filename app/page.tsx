@@ -87,6 +87,10 @@ export default function LandingPage() {
 
       {/* ━━━ 글로벌 스타일 ━━━ */}
       <style jsx global>{`
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
         @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -117,18 +121,18 @@ export default function LandingPage() {
       `}</style>
 
       {/* ━━━ 네비게이션 ━━━ */}
-      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-[#FAF6F1]/90 backdrop-blur-md border-b border-[#E7D8C9]/60">
+      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-[#FAF6F1]/90 backdrop-blur-md border-b border-[#D4C4B0]/80">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <h1 className="text-2xl font-bold warm-text" style={{ letterSpacing: '2px' }}>Textry</h1>
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            <Link href="/home" className="text-sm font-medium text-[#7A6B5D] hover:text-[#2D2016] transition-colors">둘러보기</Link>
-            <a href="#concept" className="text-sm font-medium text-[#7A6B5D] hover:text-[#2D2016] transition-colors">큐레이터란?</a>
-            <a href="#monetize" className="text-sm font-medium text-[#7A6B5D] hover:text-[#2D2016] transition-colors">수익화</a>
+            <Link href="/home" className="text-sm font-medium text-[#5C4A38] hover:text-[#2D2016] transition-colors">둘러보기</Link>
+            <a href="#concept" className="text-sm font-medium text-[#5C4A38] hover:text-[#2D2016] transition-colors">큐레이터란?</a>
+            <a href="#monetize" className="text-sm font-medium text-[#5C4A38] hover:text-[#2D2016] transition-colors">수익화</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm font-medium text-[#7A6B5D] hover:text-[#2D2016] transition-colors px-4 py-2">
+            <Link href="/login" className="text-sm font-medium text-[#5C4A38] hover:text-[#2D2016] transition-colors px-4 py-2">
               로그인
             </Link>
             <Link href="/signup"
@@ -168,7 +172,7 @@ export default function LandingPage() {
               </h2>
 
               {/* 서브 카피 */}
-              <p className="text-lg md:text-xl font-medium text-[#7A6B5D] max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
+              <p className="text-lg md:text-xl font-medium text-[#5C4A38] max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
                 나의 글과 지식을 세상에 공유하고, 누구나 자유롭게 읽을 수 있습니다.
                 <br className="hidden md:block" />
                 당신의 콘텐츠가 수익이 되는 플랫폼, Textry.
@@ -192,17 +196,17 @@ export default function LandingPage() {
               <div className="mt-8 md:mt-16 flex items-center justify-center gap-6 md:gap-8 animate-fadeInUp" style={{ animationDelay: '0.9s' }}>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-[#2D2016]"><CountUp target={50} suffix="+" /></p>
-                  <p className="text-xs font-medium text-[#9C8B7A] mt-1">등록된 콘텐츠</p>
+                  <p className="text-xs font-medium text-[#5C4A38] mt-1">등록된 콘텐츠</p>
                 </div>
                 <div className="w-px h-8 bg-[#D4C4B0]" />
                 <div className="text-center">
                   <p className="text-2xl font-bold text-[#2D2016]"><CountUp target={100} suffix="+" /></p>
-                  <p className="text-xs text-[#9C8B7A] mt-1">큐레이터</p>
+                  <p className="text-xs text-[#5C4A38] mt-1">큐레이터</p>
                 </div>
                 <div className="w-px h-8 bg-[#D4C4B0]" />
                 <div className="text-center">
                   <p className="text-2xl font-bold text-[#2D2016]"><CountUp target={12} suffix="+" /></p>
-                  <p className="text-xs text-[#9C8B7A] mt-1">카테고리</p>
+                  <p className="text-xs text-[#5C4A38] mt-1">카테고리</p>
                 </div>
               </div>
           </>
@@ -230,7 +234,7 @@ export default function LandingPage() {
                 <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
                   창작자와 큐레이터,<br />두 개의 역할
                 </h3>
-                <p className="text-lg font-medium text-[#7A6B5D] max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+                <p className="text-lg font-medium text-[#5C4A38] max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                   Textry에서는 콘텐츠를 쓴 사람과 공유하는 사람을 구분합니다.
                   <br />누구나 큐레이터가 될 수 있고, 본인의 작품을 올리면 창작자이자 큐레이터가 됩니다.
                 </p>
@@ -245,7 +249,7 @@ export default function LandingPage() {
                         <BookOpen className="w-7 h-7 text-white" />
                       </div>
                       <h4 className="text-2xl font-bold text-[#2D2016] mb-3">창작자</h4>
-                      <p className="font-medium text-[#7A6B5D] leading-relaxed mb-6">
+                      <p className="font-medium text-[#5C4A38] leading-relaxed mb-6">
                         콘텐츠를 직접 창작한 원작 창작자입니다. 시, 소설, 논문, 에세이, 웹툰 등 자신의 작품이 Textry에서 독자를 만납니다.
                       </p>
                       <div className="flex items-center gap-2 text-sm text-[#B2967D]">
@@ -264,7 +268,7 @@ export default function LandingPage() {
                         <Sparkles className="w-7 h-7 text-white" />
                       </div>
                       <h4 className="text-2xl font-bold text-[#2D2016] mb-3">큐레이터</h4>
-                      <p className="font-medium text-[#7A6B5D] leading-relaxed mb-6">
+                      <p className="font-medium text-[#5C4A38] leading-relaxed mb-6">
                         자신의 창작물이나 공개된 지식을 정리하여 독자에게 전합니다. 콘텐츠를 체계적으로 공유하는 것 자체가 가치이며, 수익이 됩니다.
                       </p>
                       <div className="flex items-center gap-2 text-sm text-[#B2967D]">
@@ -280,7 +284,7 @@ export default function LandingPage() {
               <div className="mt-12 text-center animate-fadeInUp delay-600">
                 <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white border border-[#E7D8C9] shadow-sm">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#5C4A38] to-[#B2967D] flex items-center justify-center text-white text-xs font-bold">+</div>
-                  <span className="text-[#7A6B5D]">직접 쓴 콘텐츠를 올리면?</span>
+                  <span className="text-[#5C4A38]">직접 쓴 콘텐츠를 올리면?</span>
                   <span className="text-[#2D2016] font-semibold">창작자 · 큐레이터</span>
                 </div>
               </div>
@@ -306,7 +310,7 @@ export default function LandingPage() {
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {[
-                  { icon: Eye, title: '스트리밍 뷰어', desc: 'PDF, EPUB를 브라우저에서 바로. 다운로드 없이 몰입하는 읽기 경험.', iconBg: 'from-blue-500 to-cyan-500' },
+                  { icon: Eye, title: '스트리밍 뷰어', desc: 'PDF, EPUB, iamge를 브라우저에서 바로. 다운로드 없이 몰입하는 읽기 경험.', iconBg: 'from-blue-500 to-cyan-500' },
                   { icon: Users, title: '구독 시스템', desc: '좋아하는 큐레이터를 구독하고, 새 콘텐츠를 놓치지 마세요.', iconBg: 'from-purple-500 to-pink-500' },
                   { icon: BarChart3, title: '실시간 분석', desc: '조회수, 읽기 시간, 완독률. 데이터로 콘텐츠를 개선하세요.', iconBg: 'from-emerald-500 to-teal-500' },
                   { icon: BookOpen, title: '이어 읽기', desc: '어디서 멈췄든 자동 저장. 다음에 이어서 읽을 수 있습니다.', iconBg: 'from-amber-500 to-orange-500' },
@@ -314,13 +318,13 @@ export default function LandingPage() {
                   { icon: Shield, title: '시리즈 관리', desc: '콘텐츠를 시리즈로 묶어 체계적으로 구성하세요.', iconBg: 'from-indigo-500 to-violet-500' },
                 ].map((f, i) => (
                   <div key={i} className="animate-fadeInUp" style={{ animationDelay: `${0.2 + i * 0.1}s` }}>
-                    <div className="group relative p-5 md:p-7 rounded-2xl bg-white border border-[#E7D8C9]/80 hover:border-[#B2967D]/50 transition-all duration-500 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#B2967D]/6 h-full">
+                    <div className="group relative p-5 md:p-7 rounded-2xl bg-white border border-[#D4C4B0] hover:border-[#B2967D]/50 transition-all duration-500 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#B2967D]/6 h-full">
                       <div className="relative">
                         <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${f.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md`}>
                           <f.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                         </div>
                         <h4 className="text-sm md:text-lg font-bold text-[#2D2016] mb-1 md:mb-2">{f.title}</h4>
-                        <p className="text-xs md:text-sm font-medium text-[#9C8B7A] leading-relaxed">{f.desc}</p>
+                        <p className="text-xs md:text-sm font-medium text-[#6B5D50] leading-relaxed">{f.desc}</p>
                       </div>
                     </div>
                   </div>
@@ -344,7 +348,7 @@ export default function LandingPage() {
                 <h3 className="text-3xl md:text-5xl font-black text-[#2D2016] mb-6 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
                   큐레이션이 곧 수익입니다
                 </h3>
-                <p className="text-lg font-medium text-[#7A6B5D] max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+                <p className="text-lg font-medium text-[#5C4A38] max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                   콘텐츠를 정리하고 공유하는 것만으로도 수익이 발생합니다.
                   <br />광고 수익과 프리미엄 구독 수익을 큐레이터에게 배분합니다.
                 </p>
@@ -366,13 +370,13 @@ export default function LandingPage() {
                       )}
                       <p className={`text-xs font-bold ${t.accentColor} mb-1`}>{t.tier}</p>
                       <h4 className="text-xl font-bold text-[#2D2016] mb-1">{t.label}</h4>
-                      <p className="text-sm font-medium text-[#9C8B7A] mb-4">{t.desc}</p>
+                      <p className="text-sm font-medium text-[#5C4A38] mb-4">{t.desc}</p>
                       <div className="border-t border-[#E7D8C9] pt-4">
                         <p className="text-3xl font-black text-[#2D2016] mb-1">
                           {t.share}
                         </p>
                         <p className="text-xs text-[#9C8B7A]">{t.share === '누구나 시작' ? '' : '수익 배분'}</p>
-                        <p className="text-xs text-[#C4A882] mt-2">{t.condition}</p>
+                        <p className="text-xs text-[#9C8B7A] mt-2">{t.condition}</p>
                       </div>
                     </div>
                   </div>
@@ -391,7 +395,7 @@ export default function LandingPage() {
                     {i > 0 && <ChevronRight className="w-4 h-4 text-[#D4C4B0] hidden sm:block" />}
                     <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-[#E7D8C9] shadow-sm">
                       <step.icon className="w-4 h-4 text-[#B2967D]" />
-                      <span className="text-sm text-[#5C4A38]">{step.text}</span>
+                      <span className="text-sm font-medium text-[#3D3020]">{step.text}</span>
                     </div>
                   </div>
                 ))}
@@ -415,7 +419,7 @@ export default function LandingPage() {
                 <br />
                 <span className="warm-text">큐레이션</span>을 시작하세요
               </h3>
-              <p className="text-base md:text-lg font-medium text-white/55 mb-10 md:mb-12 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+              <p className="text-base md:text-lg font-medium text-white/65 mb-10 md:mb-12 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                 가입은 무료, 업로드도 무료.
                 <br />나의 지식을 세상과 나누는 것만으로 가치가 생깁니다.
               </p>
@@ -448,7 +452,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-[#E7D8C9] text-center">
-            <p className="text-xs text-[#C4A882]">© 2026 Textry. All rights reserved.</p>
+            <p className="text-xs text-[#9C8B7A]">© 2026 Textry. All rights reserved.</p>
           </div>
         </div>
       </footer>
