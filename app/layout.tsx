@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   creator: "TeXTREME",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.svg",
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
