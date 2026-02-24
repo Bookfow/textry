@@ -11,8 +11,8 @@ export default function CopyrightPage() {
 
         <div className="prose prose-sm dark:prose-invert max-w-none space-y-6">
           <section>
-            <h2 className="text-xl font-bold mt-8 mb-3">Textry의 저작권 보호 원칙</h2>
-            <p>Textry는 저작권자의 권리를 존중하며, 모든 사용자가 저작권법을 준수하도록 요구합니다. 저작권자의 허가 없이 콘텐츠를 업로드하는 행위는 엄격히 금지됩니다.</p>
+            <h2 className="text-xl font-bold mt-8 mb-3">TeXTREME의 저작권 보호 원칙</h2>
+            <p>TeXTREME는 저작권자의 권리를 존중하며, 모든 사용자가 저작권법을 준수하도록 요구합니다. 저작권자의 허가 없이 콘텐츠를 업로드하는 행위는 엄격히 금지됩니다.</p>
           </section>
 
           <section>
@@ -21,11 +21,11 @@ export default function CopyrightPage() {
             <ol className="list-decimal pl-6 space-y-2 mt-2">
               <li>저작권자 또는 권한을 위임받은 자의 성명 및 연락처</li>
               <li>침해된 저작물에 대한 설명 및 원본 소재 정보</li>
-              <li>Textry에서 침해 콘텐츠가 위치한 URL</li>
+              <li>TeXTREME에서 침해 콘텐츠가 위치한 URL</li>
               <li>해당 콘텐츠가 저작권자의 허가 없이 사용되었다는 진술</li>
               <li>신고 내용이 정확하며 본인이 저작권자(또는 권한 위임자)임을 확인하는 서명</li>
             </ol>
-            <p className="mt-3">신고 접수: <strong>copyright@textry.io</strong></p>
+            <p className="mt-3">신고 접수: <strong>copyright@textreme.io</strong></p>
           </section>
 
           <section>
@@ -41,7 +41,7 @@ export default function CopyrightPage() {
 
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">반복 위반자 정책</h2>
-            <p>Textry는 반복적으로 저작권을 침해하는 사용자에 대해 다음 조치를 취합니다:</p>
+            <p>TeXTREME는 반복적으로 저작권을 침해하는 사용자에 대해 다음 조치를 취합니다:</p>
             <ul className="list-disc pl-6 space-y-1 mt-2">
               <li><strong>1차 위반:</strong> 해당 콘텐츠 삭제 및 경고</li>
               <li><strong>2차 위반:</strong> 업로드 기능 30일 정지</li>
@@ -61,12 +61,12 @@ export default function CopyrightPage() {
 
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">공정 이용 (Fair Use)</h2>
-            <p>Textry는 저작권법상 공정 이용에 해당하는 콘텐츠를 인정합니다. 다만, 공정 이용 여부의 판단은 관련 법률 및 판례에 따르며, Textry가 최종 판단을 내리지 않습니다.</p>
+            <p>TeXTREME는 저작권법상 공정 이용에 해당하는 콘텐츠를 인정합니다. 다만, 공정 이용 여부의 판단은 관련 법률 및 판례에 따르며, TeXTREME가 최종 판단을 내리지 않습니다.</p>
           </section>
 
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">문의</h2>
-            <p>저작권 관련 문의: <strong>copyright@textry.io</strong></p>
+            <p>저작권 관련 문의: <strong>copyright@textreme.io</strong></p>
           </section>
         </div>
 

@@ -112,7 +112,7 @@ export default function PremiumPage() {
               <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Crown className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-2">Textry Premium 활성</h2>
+              <h2 className="text-2xl font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-2">TeXTREME Premium 활성</h2>
               <p className="text-[#9C8B7A] mb-6">광고 없는 깨끗한 읽기 환경을 즐기고 계십니다</p>
 
               <div className="bg-white dark:bg-[#241E18] rounded-xl p-6 mb-6 text-left border border-[#E7D8C9] dark:border-[#3A302A]">
@@ -153,7 +153,7 @@ export default function PremiumPage() {
             <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <Crown className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-3">Textry Premium</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-[#2D2016] dark:text-[#EEE4E1] mb-3">TeXTREME Premium</h1>
             <p className="text-lg text-[#9C8B7A] max-w-md mx-auto">
               광고 없이 몰입하여 읽으세요. 당신의 읽기 시간이 큐레이터의 수익이 됩니다.
             </p>

@@ -220,7 +220,7 @@ export default function AdminPage() {
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Textry Admin</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">TeXTREME Admin</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">플랫폼 운영 대시보드</p>
               </div>
             </div>
@@ -393,7 +393,7 @@ export default function AdminPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
                       <div>
-                        <p className="text-sm font-medium text-red-800 dark:text-red-300">Textry 수익</p>
+                        <p className="text-sm font-medium text-red-800 dark:text-red-300">TeXTREME 수익</p>
                         <p className="text-xs text-red-600 dark:text-red-400">광고 + 프리미엄 수수료</p>
                       </div>
                       <p className="text-2xl font-bold text-red-700 dark:text-red-400">${stats.totalPlatformRevenue.toFixed(2)}</p>
@@ -535,7 +535,7 @@ export default function AdminPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Textry 총 수익</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">TeXTREME 총 수익</p>
                   <p className="text-3xl font-bold text-red-600 dark:text-red-400">${stats.totalPlatformRevenue.toFixed(2)}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
@@ -553,7 +553,7 @@ export default function AdminPage() {
                       ? ((stats.totalPlatformRevenue / (stats.totalPlatformRevenue + stats.totalAuthorPayout)) * 100).toFixed(1)
                       : '30'}%
                   </p>
-                  <p className="text-xs text-gray-400">Textry 평균</p>
+                  <p className="text-xs text-gray-400">TeXTREME 평균</p>
                 </div>
               </div>
 

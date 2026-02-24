@@ -57,7 +57,7 @@ export function CookieConsent() {
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">쿠키 사용 안내</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-              Textry는 서비스 제공 및 사용자 경험 향상을 위해 쿠키를 사용합니다.
+              TeXTREME는 서비스 제공 및 사용자 경험 향상을 위해 쿠키를 사용합니다.
               필수 쿠키는 서비스 운영에 필요하며, 분석 및 마케팅 쿠키는 선택 사항입니다.
               자세한 내용은{' '}
               <Link href="/policies/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">

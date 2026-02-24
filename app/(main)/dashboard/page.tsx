@@ -752,7 +752,7 @@ export default function DashboardPage() {
                         <h3 className="font-bold text-amber-800 dark:text-amber-300">수익화 자격 미달성</h3>
                         <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
                           수익화를 시작하려면 최근 12개월 누적 읽기 시간 100시간과 계정 생성 후 30일이 필요합니다.
-                          현재 광고 수익은 Textry에 귀속됩니다.
+                          현재 광고 수익은 TeXTREME에 귀속됩니다.
                         </p>
                         <div className="mt-3">
                           <div className="flex items-center justify-between text-xs text-amber-700 dark:text-amber-400 mb-1">

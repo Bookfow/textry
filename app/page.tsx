@@ -147,7 +147,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-[#FAF6F1]/90 backdrop-blur-md border-b border-[#D4C4B0]/80">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold warm-text" style={{ letterSpacing: '2px' }}>Textry</h1>
+            <h1 className="text-2xl font-bold warm-text" style={{ letterSpacing: '2px' }}>TeXTREME</h1>
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <Link href="/home" className="text-sm font-medium text-[#5C4A38] hover:text-[#2D2016] transition-colors">둘러보기</Link>
@@ -198,7 +198,7 @@ export default function LandingPage() {
               <p className="text-lg md:text-xl font-medium text-[#5C4A38] max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.5s' }}>
                 나의 글과 지식을 세상에 공유하고, 누구나 자유롭게 읽을 수 있습니다.
                 <br className="hidden md:block" />{' '}
-                당신의 콘텐츠가 수익이 되는 플랫폼, Textry.
+                당신의 콘텐츠가 수익이 되는 플랫폼, TeXTREME.
               </p>
 
               {/* CTA */}
@@ -258,7 +258,7 @@ export default function LandingPage() {
                   창작자와 큐레이터,<br />두 개의 역할
                 </h3>
                 <p className="text-lg font-medium text-[#5C4A38] max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-                  Textry에서는 콘텐츠를 쓴 사람과 공유하는 사람을 구분합니다.
+                  TeXTREME에서는 콘텐츠를 쓴 사람과 공유하는 사람을 구분합니다.
                   <br />누구나 큐레이터가 될 수 있고, 본인의 작품을 올리면 창작자이자 큐레이터가 됩니다.
                 </p>
               </div>
@@ -273,7 +273,7 @@ export default function LandingPage() {
                       </div>
                       <h4 className="text-2xl font-bold text-[#2D2016] mb-3">창작자</h4>
                       <p className="font-medium text-[#5C4A38] leading-relaxed mb-6">
-                        콘텐츠를 직접 창작한 원작 창작자입니다. 시, 소설, 논문, 에세이, 웹툰 등 자신의 작품이 Textry에서 독자를 만납니다.
+                        콘텐츠를 직접 창작한 원작 창작자입니다. 시, 소설, 논문, 에세이, 웹툰 등 자신의 작품이 TeXTREME에서 독자를 만납니다.
                       </p>
                       <div className="flex items-center gap-2 text-sm text-[#B2967D]">
                         <Star className="w-4 h-4" />
@@ -463,7 +463,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold warm-text" style={{ letterSpacing: '2px' }}>Textry</h2>
+              <h2 className="text-xl font-bold warm-text" style={{ letterSpacing: '2px' }}>TeXTREME</h2>
               <span className="text-xs text-[#9C8B7A]">콘텐츠 큐레이션 플랫폼</span>
             </div>
             <div className="flex items-center gap-6 text-sm font-medium text-[#9C8B7A]">
@@ -475,7 +475,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-[#E7D8C9] text-center">
-            <p className="text-xs text-[#9C8B7A]">© 2026 Textry. All rights reserved.</p>
+            <p className="text-xs text-[#9C8B7A]">© 2026 TeXTREME. All rights reserved.</p>
           </div>
         </div>
       </footer>

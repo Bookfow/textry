@@ -12,7 +12,7 @@ export default function PrivacyPage() {
         <div className="prose prose-sm dark:prose-invert max-w-none space-y-6">
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">1. 개인정보의 수집 및 이용 목적</h2>
-            <p>Textry(이하 "회사")는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 별도의 동의를 받는 등 필요한 조치를 이행합니다.</p>
+            <p>TeXTREME(이하 "회사")는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 별도의 동의를 받는 등 필요한 조치를 이행합니다.</p>
             <ul className="list-disc pl-6 space-y-1 mt-2">
               <li>회원 가입 및 관리: 회원제 서비스 이용에 따른 본인 식별·인증, 회원 자격 유지·관리, 서비스 부정이용 방지</li>
               <li>서비스 제공: 콘텐츠 업로드·열람·공유 서비스, 맞춤형 콘텐츠 추천, 구독 및 알림 서비스</li>
@@ -90,7 +90,7 @@ export default function PrivacyPage() {
               <li>개인정보 이동 요청</li>
               <li>계정 삭제 (회원 탈퇴)</li>
             </ul>
-            <p className="mt-2">위 권리 행사는 설정 페이지에서 직접 처리하거나, 이메일(support@textry.io)을 통해 요청할 수 있으며, 회사는 지체 없이 조치합니다.</p>
+            <p className="mt-2">위 권리 행사는 설정 페이지에서 직접 처리하거나, 이메일(support@textreme.io)을 통해 요청할 수 있으며, 회사는 지체 없이 조치합니다.</p>
           </section>
 
           <section>
@@ -136,8 +136,8 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-bold mt-8 mb-3">12. 개인정보 보호책임자</h2>
             <p>회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 관련 불만 처리 및 피해 구제를 위하여 개인정보 보호책임자를 지정하고 있습니다.</p>
             <ul className="list-none pl-0 space-y-1 mt-2">
-              <li><strong>개인정보 보호책임자:</strong> Textry 운영팀</li>
-              <li><strong>연락처:</strong> privacy@textry.io</li>
+              <li><strong>개인정보 보호책임자:</strong> TeXTREME 운영팀</li>
+              <li><strong>연락처:</strong> privacy@textreme.io</li>
             </ul>
           </section>
 

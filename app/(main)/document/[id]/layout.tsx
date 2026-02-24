@@ -4,7 +4,7 @@ import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/json-ld'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const baseUrl = 'https://textry-v1.vercel.app'
+const baseUrl = 'https://textreme-v1.vercel.app'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
 
   if (!supabaseUrl || !supabaseKey) {
-    return { title: 'Textry', description: 'Textry - 지식을 스트리밍하다' }
+    return { title: 'TeXTREME', description: 'TeXTREME - 지식을 스트리밍하다' }
   }
 
   try {
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       .single()
 
     if (error || !doc) {
-      return { title: 'Textry', description: 'Textry - 지식을 스트리밍하다' }
+      return { title: 'TeXTREME', description: 'TeXTREME - 지식을 스트리밍하다' }
     }
 
     const { data: author } = await supabase
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const authorName = author?.username || author?.email || '큐레이터'
     const title = `${doc.title} — ${authorName}`
     const description = doc.description
-      || `${authorName}님의 ${doc.category || '콘텐츠'} · ${doc.page_count || 0}페이지 · 조회 ${doc.view_count?.toLocaleString() || 0}회 — Textry에서 무료로 읽기`
+      || `${authorName}님의 ${doc.category || '콘텐츠'} · ${doc.page_count || 0}페이지 · 조회 ${doc.view_count?.toLocaleString() || 0}회 — TeXTREME에서 무료로 읽기`
     const ogImage = doc.thumbnail_url || `${baseUrl}/og-default.png`
     const url = `${baseUrl}/document/${id}`
 
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: doc.title,
         description,
         type: 'article',
-        siteName: 'Textry',
+        siteName: 'TeXTREME',
         url,
         images: [{ url: ogImage, width: 600, height: 800, alt: doc.title }],
       },
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     }
   } catch {
-    return { title: 'Textry', description: 'Textry - 지식을 스트리밍하다' }
+    return { title: 'TeXTREME', description: 'TeXTREME - 지식을 스트리밍하다' }
   }
 }
 

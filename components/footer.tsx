@@ -20,7 +20,7 @@ export function Footer() {
           <Link href="/policies/safety" className="hover:text-[#5C4A38] dark:hover:text-[#C4A882] transition-colors">정책및안전</Link>
           <button onClick={handleResetCookieConsent} className="hover:text-[#5C4A38] dark:hover:text-[#C4A882] transition-colors cursor-pointer">쿠키 설정</button>
         </div>
-        <p className="text-[11px] text-[#C4B5A6] dark:text-[#5C4A38] mt-3 text-center">© 2026 Textry. All rights reserved.</p>
+        <p className="text-[11px] text-[#C4B5A6] dark:text-[#5C4A38] mt-3 text-center">© 2026 TeXTREME. All rights reserved.</p>
       </div>
     </footer>
   )

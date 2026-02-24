@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { MetadataRoute } from 'next'
 
-const baseUrl = 'https://textry-v1.vercel.app'
+const baseUrl = 'https://textreme-v1.vercel.app'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [

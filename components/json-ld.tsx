@@ -2,14 +2,14 @@ export function WebsiteJsonLd() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Textry',
-    url: 'https://textry-v1.vercel.app',
+    name: 'TeXTREME',
+    url: 'https://textreme-v1.vercel.app',
     description: '지식을 스트리밍하다 — PDF 콘텐츠를 읽고, 공유하고, 발견하는 플랫폼',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://textry-v1.vercel.app/browse?q={search_term_string}',
+        urlTemplate: 'https://textreme-v1.vercel.app/browse?q={search_term_string}',
       },
       'query-input': 'required name=search_term_string',
     },
@@ -51,8 +51,8 @@ export function ArticleJsonLd({
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Textry',
-      url: 'https://textry-v1.vercel.app',
+      name: 'TeXTREME',
+      url: 'https://textreme-v1.vercel.app',
     },
     datePublished,
     dateModified: dateModified || datePublished,

@@ -451,7 +451,7 @@ export default function HomePage() {
                       <BarChart3 className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-base font-bold text-[#2D2016] dark:text-[#EEE4E1]">이번 주 Textry에서는</p>
+                      <p className="text-base font-bold text-[#2D2016] dark:text-[#EEE4E1]">이번 주 TeXTREME에서는</p>
                       <p className="text-[11px] text-[#9C8B7A]">지난 7일간의 활동</p>
                     </div>
                   </div>
@@ -513,7 +513,7 @@ export default function HomePage() {
 
           {/* 비로그인 통계 유도 */}
           {!user && (
-            <LoginPromptCard icon={BarChart3} title="이번 주 Textry에서는" description="로그인하면 Textry의 읽기 통계를 확인할 수 있어요" />
+            <LoginPromptCard icon={BarChart3} title="이번 주 TeXTREME에서는" description="로그인하면 TeXTREME의 읽기 통계를 확인할 수 있어요" />
           )}
 
           {/* ━━━ 카테고리 탭 ━━━ */}

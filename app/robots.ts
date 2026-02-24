@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/read/'],
       },
     ],
-    sitemap: 'https://textry-v1.vercel.app/sitemap.xml',
+    sitemap: 'https://textreme-v1.vercel.app/sitemap.xml',
   }
 }

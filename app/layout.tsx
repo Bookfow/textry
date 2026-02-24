@@ -8,15 +8,15 @@ import { CookieConsent } from "@/components/cookie-consent"
 import { WebsiteJsonLd } from "@/components/json-ld"
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://textry-v1.vercel.app"),
+  metadataBase: new URL("https://textreme-v1.vercel.app"),
   title: {
-    default: "Textry — 지식을 스트리밍하다",
-    template: "%s | Textry",
+    default: "TeXTREME — 지식을 스트리밍하다",
+    template: "%s | TeXTREME",
   },
-  description: "콘텐츠를 업로드하고, 읽고, 공유하세요. Textry는 큐레이터와 독자를 연결하는 콘텐츠 스트리밍 플랫폼입니다.",
-  keywords: ["콘텐츠", "PDF", "읽기", "스트리밍", "큐레이터", "출판", "Textry"],
-  authors: [{ name: "Textry" }],
-  creator: "Textry",
+  description: "콘텐츠를 업로드하고, 읽고, 공유하세요. TeXTREME는 큐레이터와 독자를 연결하는 콘텐츠 스트리밍 플랫폼입니다.",
+  keywords: ["콘텐츠", "PDF", "읽기", "스트리밍", "큐레이터", "출판", "TeXTREME"],
+  authors: [{ name: "TeXTREME" }],
+  creator: "TeXTREME",
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",
@@ -25,24 +25,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    siteName: "Textry",
-    title: "Textry — 지식을 스트리밍하다",
-    description: "콘텐츠를 업로드하고, 읽고, 공유하세요. Textry는 큐레이터와 독자를 연결하는 콘텐츠 스트리밍 플랫폼입니다.",
-    url: "https://textry-v1.vercel.app",
+    siteName: "TeXTREME",
+    title: "TeXTREME — 지식을 스트리밍하다",
+    description: "콘텐츠를 업로드하고, 읽고, 공유하세요. TeXTREME는 큐레이터와 독자를 연결하는 콘텐츠 스트리밍 플랫폼입니다.",
+    url: "https://textreme-v1.vercel.app",
     images: [
       {
-        url: "https://textry-v1.vercel.app/og-default.png",
+        url: "https://textreme-v1.vercel.app/og-default.png",
         width: 1200,
         height: 630,
-        alt: "Textry — 지식을 스트리밍하다",
+        alt: "TeXTREME — 지식을 스트리밍하다",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Textry — 지식을 스트리밍하다",
+    title: "TeXTREME — 지식을 스트리밍하다",
     description: "콘텐츠를 업로드하고, 읽고, 공유하세요.",
-    images: ["https://textry-v1.vercel.app/og-default.png"],
+    images: ["https://textreme-v1.vercel.app/og-default.png"],
   },
   robots: {
     index: true,

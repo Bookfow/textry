@@ -12,12 +12,12 @@ export default function SafetyPage() {
         <div className="prose prose-sm dark:prose-invert max-w-none space-y-6">
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">커뮤니티 가이드라인</h2>
-            <p>Textry는 모든 사용자가 안전하고 존중받는 환경에서 콘텐츠를 공유하고 즐길 수 있도록 다음 가이드라인을 운영합니다.</p>
+            <p>TeXTREME는 모든 사용자가 안전하고 존중받는 환경에서 콘텐츠를 공유하고 즐길 수 있도록 다음 가이드라인을 운영합니다.</p>
           </section>
 
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">금지 콘텐츠</h2>
-            <p>다음 유형의 콘텐츠는 Textry에서 허용되지 않습니다:</p>
+            <p>다음 유형의 콘텐츠는 TeXTREME에서 허용되지 않습니다:</p>
 
             <h3 className="text-lg font-semibold mt-4 mb-2">유해하거나 위험한 콘텐츠</h3>
             <ul className="list-disc pl-6 space-y-1">
@@ -60,9 +60,9 @@ export default function SafetyPage() {
             <ol className="list-decimal pl-6 space-y-2 mt-2">
               <li>해당 콘텐츠의 댓글 섹션 하단에 있는 <strong>"신고"</strong> 버튼을 클릭합니다.</li>
               <li>신고 사유를 선택하고 상세 내용을 입력합니다.</li>
-              <li>Textry 운영팀이 신고 내용을 검토하고 적절한 조치를 취합니다.</li>
+              <li>TeXTREME 운영팀이 신고 내용을 검토하고 적절한 조치를 취합니다.</li>
             </ol>
-            <p className="mt-3">긴급 신고: <strong>safety@textry.io</strong></p>
+            <p className="mt-3">긴급 신고: <strong>safety@textreme.io</strong></p>
           </section>
 
           <section>
@@ -80,13 +80,13 @@ export default function SafetyPage() {
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">이의 제기</h2>
             <p>조치에 대해 이의가 있는 경우, 통지를 받은 날로부터 14일 이내에 이의를 제기할 수 있습니다.</p>
-            <p>이의 제기: <strong>appeals@textry.io</strong></p>
+            <p>이의 제기: <strong>appeals@textreme.io</strong></p>
           </section>
 
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">불법촬영물 신고</h2>
-            <p>불법촬영물 등 법률에 의해 금지된 콘텐츠를 발견한 경우 즉시 신고해주세요. Textry는 이러한 콘텐츠에 대해 무관용 원칙을 적용하며, 관련 법 집행 기관에 즉시 통보합니다.</p>
-            <p className="mt-2">긴급 신고: <strong>safety@textry.io</strong></p>
+            <p>불법촬영물 등 법률에 의해 금지된 콘텐츠를 발견한 경우 즉시 신고해주세요. TeXTREME는 이러한 콘텐츠에 대해 무관용 원칙을 적용하며, 관련 법 집행 기관에 즉시 통보합니다.</p>
+            <p className="mt-2">긴급 신고: <strong>safety@textreme.io</strong></p>
           </section>
         </div>
 

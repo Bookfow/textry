@@ -51,7 +51,7 @@ export default function LoginPage() {
         {/* 헤더 */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-[#a67c52] via-[#f0d58c] to-[#a67c52] bg-clip-text text-transparent" style={{WebkitTextStroke: '0.3px #daa520', paintOrder: 'stroke fill', letterSpacing: '1.5px'}}>
-            Textry
+            TeXTREME
           </h1>
           <p className="text-sm text-[#9C8B7A] mt-1">문서를 스트리밍하다</p>
         </div>

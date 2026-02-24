@@ -7,13 +7,13 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <main className="max-w-3xl mx-auto px-4 md:px-6 py-8 md:py-12">
-        <h1 className="text-3xl font-bold mb-2 dark:text-white">Textry 소개</h1>
-        <p className="text-sm text-gray-500 mb-8">Textry가 어떻게 작동하는지 알아보세요</p>
+        <h1 className="text-3xl font-bold mb-2 dark:text-white">TeXTREME 소개</h1>
+        <p className="text-sm text-gray-500 mb-8">TeXTREME가 어떻게 작동하는지 알아보세요</p>
 
         <div className="prose prose-sm dark:prose-invert max-w-none space-y-8">
           <section>
-            <h2 className="text-xl font-bold mt-8 mb-3">Textry란?</h2>
-            <p>Textry는 전 세계 큐레이터와 독자를 연결하는 디지털 콘텐츠 플랫폼입니다. 누구나 자신의 콘텐츠를 업로드하고, 다양한 분야의 지식과 이야기를 공유할 수 있습니다.</p>
+            <h2 className="text-xl font-bold mt-8 mb-3">TeXTREME란?</h2>
+            <p>TeXTREME는 전 세계 큐레이터와 독자를 연결하는 디지털 콘텐츠 플랫폼입니다. 누구나 자신의 콘텐츠를 업로드하고, 다양한 분야의 지식과 이야기를 공유할 수 있습니다.</p>
           </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose">
@@ -94,7 +94,7 @@ export default function AboutPage() {
 
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">안전한 플랫폼</h2>
-            <p>Textry는 저작권 보호, 커뮤니티 가이드라인, 신고 시스템을 통해 안전한 플랫폼 환경을 유지하고 있습니다. 자세한 내용은 다음 페이지를 참고해주세요:</p>
+            <p>TeXTREME는 저작권 보호, 커뮤니티 가이드라인, 신고 시스템을 통해 안전한 플랫폼 환경을 유지하고 있습니다. 자세한 내용은 다음 페이지를 참고해주세요:</p>
             <ul className="list-disc pl-6 space-y-1 mt-2">
               <li><Link href="/policies/copyright" className="text-blue-600 hover:underline">저작권 정책</Link></li>
               <li><Link href="/policies/safety" className="text-blue-600 hover:underline">정책 및 안전</Link></li>

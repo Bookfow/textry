@@ -12,7 +12,7 @@ export default function TermsPage() {
         <div className="prose prose-sm dark:prose-invert max-w-none space-y-6">
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">제1조 (목적)</h2>
-            <p>이 약관은 Textry(이하 "회사")가 제공하는 콘텐츠 스트리밍 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+            <p>이 약관은 TeXTREME(이하 "회사")가 제공하는 콘텐츠 스트리밍 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
           </section>
 
           <section>
@@ -156,7 +156,7 @@ export default function TermsPage() {
 
           <section className="border-t dark:border-gray-800 pt-6">
             <p className="text-sm text-gray-500 dark:text-gray-400">부칙: 이 약관은 2026년 2월 14일부터 시행합니다.</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">약관에 관한 문의: support@textry.io</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">약관에 관한 문의: support@textreme.io</p>
           </section>
         </div>
 

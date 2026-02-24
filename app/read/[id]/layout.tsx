@@ -15,8 +15,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!supabaseUrl || !supabaseKey) {
     return {
-      title: 'Textry',
-      description: 'Textry - 지식을 스트리밍하다',
+      title: 'TeXTREME',
+      description: 'TeXTREME - 지식을 스트리밍하다',
     }
   }
 
@@ -31,8 +31,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (error || !doc) {
       return {
-        title: 'Textry',
-        description: 'Textry - 지식을 스트리밍하다',
+        title: 'TeXTREME',
+        description: 'TeXTREME - 지식을 스트리밍하다',
       }
     }
 
@@ -43,9 +43,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       .single()
 
     const authorName = author?.username || author?.email || '큐레이터'
-    const title = `${doc.title} | Textry`
-    const description = doc.description || `${authorName}님의 콘텐츠 — Textry에서 읽기`
-    const ogImage = doc.thumbnail_url || 'https://textry-v1.vercel.app/og-default.png'
+    const title = `${doc.title} | TeXTREME`
+    const description = doc.description || `${authorName}님의 콘텐츠 — TeXTREME에서 읽기`
+    const ogImage = doc.thumbnail_url || 'https://textreme-v1.vercel.app/og-default.png'
 
     return {
       title,
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: doc.title,
         description,
         type: 'article',
-        siteName: 'Textry',
+        siteName: 'TeXTREME',
         images: [
           {
             url: ogImage,
@@ -76,15 +76,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   } catch {
     return {
-      title: 'Textry',
-      description: 'Textry - 지식을 스트리밍하다',
+      title: 'TeXTREME',
+      description: 'TeXTREME - 지식을 스트리밍하다',
     }
   }
 }
 
 export default async function ReadLayout({ params, children }: Props) {
   const { id } = await params
-  const baseUrl = 'https://textry-v1.vercel.app'
+  const baseUrl = 'https://textreme-v1.vercel.app'
 
   let jsonLdProps = null
 

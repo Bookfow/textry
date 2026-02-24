@@ -227,7 +227,7 @@ export default function AuthorPage() {
   const handleShare = async () => {
     const url = window.location.href
     if (navigator.share) {
-      navigator.share({ title: `${author?.username || '큐레이터'} - Textry`, url })
+      navigator.share({ title: `${author?.username || '큐레이터'} - TeXTREME`, url })
     } else {
       await navigator.clipboard.writeText(url)
       toast.success('링크가 복사되었습니다!')
