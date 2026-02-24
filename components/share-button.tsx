@@ -66,7 +66,7 @@ export function ShareButton({ documentId, title }: ShareButtonProps) {
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} aria-hidden="true" />
-          <div className="absolute bottom-full right-0 mb-2 bg-gray-900 rounded-xl shadow-2xl border border-gray-700 overflow-hidden z-50 w-56" role="menu" aria-label="공유 옵션">
+          <div className="absolute top-full right-0 mt-2 bg-gray-900 rounded-xl shadow-2xl border border-gray-700 overflow-hidden z-50 w-56" role="menu" aria-label="공유 옵션">
             <div className="p-2">
               <button
                 onClick={() => { handleCopyLink(); setShowMenu(false) }}
