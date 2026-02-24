@@ -147,7 +147,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-[#FAF6F1]/90 backdrop-blur-md border-b border-[#D4C4B0]/80">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold warm-text" style={{ letterSpacing: '2px' }}>TeXTREME</h1>
+            <h1 className="text-xl font-black warm-text" style={{ letterSpacing: '2px' }}>TeXTREME</h1>
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <Link href="/home" className="text-sm font-medium text-[#5C4A38] hover:text-[#2D2016] transition-colors">둘러보기</Link>
@@ -463,7 +463,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold warm-text" style={{ letterSpacing: '2px' }}>TeXTREME</h2>
+              <h2 className="text-xl font-black warm-text" style={{ letterSpacing: '2px' }}>TeXTREME</h2>
               <span className="text-xs text-[#9C8B7A]">콘텐츠 큐레이션 플랫폼</span>
             </div>
             <div className="flex items-center gap-6 text-sm font-medium text-[#9C8B7A]">

@@ -253,8 +253,8 @@ export function MainHeader({
         <div className="flex items-center gap-4 max-w-[1400px] mx-auto w-full">
           {/* 로고 */}
           <Link href="/home" className="flex-shrink-0">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#a67c52] via-[#f0d58c] to-[#a67c52] bg-clip-text text-transparent" style={{WebkitTextStroke: '0.3px #daa520', paintOrder: 'stroke fill', letterSpacing: '1px'}}>
-              Textry
+            <h1 className="text-xl font-black bg-gradient-to-r from-[#5C4A38] via-[#8B6749] to-[#5C4A38] bg-clip-text text-transparent" style={{letterSpacing: '2px'}}>
+              TeXTREME
             </h1>
           </Link>
 
@@ -369,7 +369,7 @@ export function MainHeader({
               <div className="flex items-center gap-2">
                 <Link href="/">
                   <Button variant="ghost" className="rounded-full hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] h-9 px-3 text-[#5C4A38] dark:text-[#C4A882] text-sm">
-                    <span className="hidden sm:inline">Textry 소개</span>
+                    <span className="hidden sm:inline">TeXTREME 소개</span>
                     <span className="sm:hidden">소개</span>
                   </Button>
                 </Link>

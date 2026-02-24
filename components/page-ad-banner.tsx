@@ -77,7 +77,7 @@ export function PageAdBanner({ position, variant = 'horizontal', className = '',
           </div>
         </div>
         <div className="px-3 py-1.5 bg-white/20 dark:bg-black/10 text-center">
-          <p className="text-[10px] text-[#9C8B7A]/60">Powered by Textry</p>
+          <p className="text-[10px] text-[#9C8B7A]/60">Powered by TeXTREME</p>
         </div>
       </div>
     </div>
