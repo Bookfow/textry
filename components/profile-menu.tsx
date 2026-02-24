@@ -85,10 +85,10 @@ export function ProfileMenu() {
 
           <DropdownMenuSeparator />
 
-          {/* 내 프로필 */}
+          {/* 내 공간 */}
           <DropdownMenuItem asChild>
             <Link href={`/profile/${user.id}`} className="cursor-pointer">
-              <User className="w-4 h-4 mr-2" /> 내 프로필
+              <User className="w-4 h-4 mr-2" /> 내 공간
             </Link>
           </DropdownMenuItem>
 

@@ -10,6 +10,7 @@ import { BookOpen, Heart, Clock, Grid, BookMarked } from 'lucide-react'
 import { DocumentCard } from '@/components/document-card'
 import { getCategoryLabel, CATEGORIES } from '@/lib/categories'
 import { ChevronDown, Filter, ArrowUpDown } from 'lucide-react'
+import { AdBanner } from '@/components/ad-banner'
 
 type ReadingDoc = {
   id: string
@@ -41,7 +42,7 @@ type TabType = 'reading' | 'favorites'
 type ViewMode = 'shelf' | 'grid'
 
 export default function LibraryPage() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>('reading')
   const [viewMode, setViewMode] = useState<ViewMode>('shelf')
@@ -50,6 +51,10 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState<'recent' | 'progress' | 'title'>('recent')
   const [filterCategory, setFilterCategory] = useState('all')
+
+  const isPremium = profile?.is_premium && profile?.premium_expires_at
+    ? new Date(profile.premium_expires_at) > new Date()
+    : false
 
   useEffect(() => {
     if (!user) {
@@ -443,6 +448,13 @@ export default function LibraryPage() {
           <BookShelf docs={currentDocs} type={activeTab} />
 
           </div>
+
+          {/* 광고 */}
+          {!isPremium && currentDocs.length > 0 && (
+            <div className="mt-6">
+              <AdBanner position="bottom" />
+            </div>
+          )}
       ) : (
         /* ━━━ 그리드 보기 ━━━ */
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
@@ -494,6 +506,13 @@ export default function LibraryPage() {
               />
             ))
           )}
+        </div>
+      )}
+
+      {/* 광고 */}
+      {!isPremium && (readingDocs.length > 0 || favDocs.length > 0) && viewMode === 'grid' && (
+        <div className="mt-6">
+          <AdBanner position="bottom" />
         </div>
       )}
     </main>
