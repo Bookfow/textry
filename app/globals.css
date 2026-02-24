@@ -367,11 +367,27 @@
 }
 
 .warm-text {
-  background: linear-gradient(135deg, #8B6749 0%, #B2967D 40%, #C4A882 60%, #8B6749 100%);
+  background: linear-gradient(135deg, #5C4A38 0%, #8B6749 30%, #B2967D 50%, #8B6749 70%, #5C4A38 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shimmer 5s ease-in-out infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+  .warm-text {
+    background: linear-gradient(135deg, #C4A882 0%, #E6BEAE 40%, #C4A882 60%, #E6BEAE 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.dark .warm-text {
+  background: linear-gradient(135deg, #C4A882 0%, #E6BEAE 40%, #C4A882 60%, #E6BEAE 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .warm-logo {
