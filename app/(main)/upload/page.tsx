@@ -1,5 +1,36 @@
 'use client'
 
+// ─── epub 긴 챕터 자동 분할 ───
+function splitLongChapter(text: string, targetChars = 2000): string[] {
+  if (text.length <= targetChars * 1.3) return [text]
+  const paragraphs = text.split('\n\n')
+  const pages: string[] = []
+  let current = ''
+  for (const para of paragraphs) {
+    const trimmed = para.trim()
+    if (!trimmed) continue
+    if (current.length > 0 && (current.length + trimmed.length + 2) > targetChars) {
+      if (current.length >= 500) {
+        pages.push(current.trim())
+        current = trimmed
+      } else {
+        current += '\n\n' + trimmed
+      }
+    } else {
+      current += (current ? '\n\n' : '') + trimmed
+    }
+  }
+  if (current.trim()) {
+    if (pages.length > 0 && current.trim().length < 500) {
+      pages[pages.length - 1] += '\n\n' + current.trim()
+    } else {
+      pages.push(current.trim())
+    }
+  }
+  return pages.length > 0 ? pages : [text]
+}
+
+
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
@@ -332,7 +363,30 @@ export default function UploadPage() {
 
       // EPUB 챕터 저장 (기존 epub + 변환된 epub 모두)
       if ((isEpub || isConvertedEpub) && epubData && docData?.id) {
-        try { setProgressMessage('챕터 저장 중...'); const batchSize = 10; const rows: any[] = []; for (let i = 0; i < epubData.chapters.length; i++) { rows.push({ document_id: docData.id, page_number: i + 1, text_content: epubData.chapters[i].content }); if (rows.length >= batchSize || i === epubData.chapters.length - 1) { await supabase.from('document_pages_text').insert(rows); rows.length = 0 }; setProgress(70 + Math.round(((i + 1) / epubData.chapters.length) * 25)); setProgressMessage(`챕터 저장 중... ${i + 1}/${epubData.chapters.length}`) } } catch (extractErr) { console.warn('챕터 저장 실패:', extractErr) }
+        try {
+          setProgressMessage('챕터 저장 중...')
+          // 긴 챕터 자동 분할
+          const allPages: string[] = []
+          for (const chapter of epubData.chapters) {
+            const splits = splitLongChapter(chapter.content)
+            for (const s of splits) allPages.push(s)
+          }
+          const batchSize = 10
+          const rows: any[] = []
+          for (let i = 0; i < allPages.length; i++) {
+            rows.push({ document_id: docData.id, page_number: i + 1, text_content: allPages[i] })
+            if (rows.length >= batchSize || i === allPages.length - 1) {
+              await supabase.from('document_pages_text').insert(rows)
+              rows.length = 0
+            }
+            setProgress(70 + Math.round(((i + 1) / allPages.length) * 25))
+            setProgressMessage(`페이지 저장 중... ${i + 1}/${allPages.length}`)
+          }
+          // 분할로 페이지 수가 바뀌었으면 page_count 업데이트
+          if (allPages.length !== epubData.chapters.length) {
+            await supabase.from('documents').update({ page_count: allPages.length }).eq('id', docData.id)
+          }
+        } catch (extractErr) { console.warn('챕터 저장 실패:', extractErr) }
       }
 
       setProgress(100); setProgressMessage('완료!'); await notifySubscribers(docData.id, title.trim())
