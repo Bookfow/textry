@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -118,7 +119,12 @@ export default function LoginPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">비밀번호</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">비밀번호</Label>
+              <Link href="/reset-password" className="text-xs text-[#B2967D] hover:text-[#a67c52] hover:underline">
+                비밀번호를 잊으셨나요?
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"
