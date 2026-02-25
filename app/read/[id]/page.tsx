@@ -208,7 +208,10 @@ export default function ReadPage() {
 
   // ★ 마지막 읽은 페이지 복원
   useEffect(() => {
-    if (!user || !documentId || loading) return
+    if (!user || !documentId || loading) {
+      if (!user && !loading) setRestoreChecked(true)
+      return
+    }
     const restorePosition = async () => {
       try {
         // 문서의 page_count 가져오기
@@ -226,15 +229,17 @@ export default function ReadPage() {
           .order('last_read_at', { ascending: false })
           .limit(1)
           .maybeSingle()
-        if (data?.current_page && data.current_page > 1) {
+        if (data?.current_page && data.current_page > 0) {
           // 완독 상태(마지막 페이지)면 처음부터 다시
           if (docInfo?.page_count && data.current_page >= docInfo.page_count) {
             setPageNumber(1)
+            setRestoredFromComplete(true)
           } else {
             setPageNumber(data.current_page)
           }
         }
       } catch {}
+      setRestoreChecked(true)
     }
     restorePosition()
   }, [user, documentId, loading])
@@ -248,6 +253,7 @@ export default function ReadPage() {
   const [startAdShown, setStartAdShown] = useState(false)
   const [endAdShown, setEndAdShown] = useState(false)
   const [restoredFromComplete, setRestoredFromComplete] = useState(false)
+  const [restoreChecked, setRestoreChecked] = useState(false)
   const [documentReady, setDocumentReady] = useState(false)
   const [isRewardAdFree, setIsRewardAdFree] = useState(false)
   const [rewardExpiresAt, setRewardExpiresAt] = useState<number>(0)
@@ -583,7 +589,7 @@ export default function ReadPage() {
 
   useEffect(() => {
     if (isPremium || isRewardAdFree) return
-    if (numPages === 0 || showAdOverlay || !documentReady) return
+    if (numPages === 0 || showAdOverlay || !documentReady || !restoreChecked) return
 
     const prevPage = prevPageRef.current
     prevPageRef.current = pageNumber
@@ -621,7 +627,7 @@ export default function ReadPage() {
     setAdCount((prev) => prev + 1)
     setLastAdTime(Date.now())
     setLastAdPage(pageNumber)
-  }, [pageNumber, numPages, showAdOverlay, documentReady, tierConfig, adCount, lastAdTime, lastAdPage, endAdShown])
+  }, [pageNumber, numPages, showAdOverlay, documentReady, tierConfig, adCount, lastAdTime, lastAdPage, endAdShown, restoredFromComplete, restoreChecked])
 
   const handleAdClose = () => { setShowAdOverlay(false) }
 
