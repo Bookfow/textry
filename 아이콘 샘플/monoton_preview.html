@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monoton 폰트 미리보기</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@900&display=swap');
+
+  body {
+    font-family: sans-serif;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    gap: 40px;
+    background: #F7F2EF;
+    margin: 0;
+    padding: 40px 20px;
+  }
+  .card { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 500px; }
+  .label { font-size: 11px; color: #9C8B7A; font-weight: 600; letter-spacing: 1.5px; }
+  .box {
+    width: 100%;
+    padding: 30px 40px;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dark { background: #2D2016; }
+
+  /* Monoton 기본 */
+  .monoton { font-family: 'Monoton', cursive; }
+
+  /* 골드 그라디언트 + glow */
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% center; }
+    50% { background-position: 200% center; }
+  }
+
+  .gold-glow {
+    background: linear-gradient(135deg, #a67c52 0%, #f0d58c 40%, #a67c52 70%, #f0d58c 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 5s ease-in-out infinite;
+  }
+
+  .warm-glow {
+    background: linear-gradient(135deg, #8B6749 0%, #B2967D 40%, #C4A882 60%, #8B6749 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 5s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<!-- 크림 배경 -->
+<div class="card">
+  <p class="label">Monoton — 기본 (브라운)</p>
+  <div class="box">
+    <span class="monoton" style="font-size:36px; color:#2D2016; letter-spacing:3px">TeXTREME</span>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">Monoton — 골드 그라디언트 + Glow</p>
+  <div class="box">
+    <span class="monoton gold-glow" style="font-size:36px; letter-spacing:3px">TeXTREME</span>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">Monoton — 따뜻한 브라운 Glow</p>
+  <div class="box">
+    <span class="monoton warm-glow" style="font-size:36px; letter-spacing:3px">TeXTREME</span>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">Monoton — 헤더 크기 (작게)</p>
+  <div class="box">
+    <span class="monoton gold-glow" style="font-size:22px; letter-spacing:2px">TeXTREME</span>
+  </div>
+</div>
+
+<!-- 다크 배경 -->
+<div class="card">
+  <p class="label">Monoton — 다크 배경 + 크림</p>
+  <div class="box dark">
+    <span class="monoton" style="font-size:36px; color:#FAF6F1; letter-spacing:3px">TeXTREME</span>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">Monoton — 다크 + 골드 Glow</p>
+  <div class="box dark">
+    <span class="monoton gold-glow" style="font-size:36px; letter-spacing:3px">TeXTREME</span>
+  </div>
+</div>
+
+<!-- 로고 아이콘 + 텍스트 조합 -->
+<div class="card">
+  <p class="label">헤더 시뮬레이션 — 로고 + Monoton</p>
+  <div class="box" style="justify-content:flex-start; gap:8px; padding:16px 24px; background:#FAF6F1; border-bottom:1px solid #E7D8C9">
+    <svg width="32" height="32" viewBox="0 0 120 120">
+      <defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2D2016"/><stop offset="100%" style="stop-color:#5C4A38"/></linearGradient></defs>
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="url(#bg)"/>
+      <text x="60" y="64" font-family="Raleway, sans-serif" font-weight="900" font-size="44" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <path d="M 22 82 Q 35 91 48 82 Q 60 73 72 82 Q 85 91 98 82" fill="none" stroke="#B2967D" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <span class="monoton gold-glow" style="font-size:20px; letter-spacing:2px">TeXTREME</span>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">헤더 시뮬레이션 — 다크모드</p>
+  <div class="box" style="justify-content:flex-start; gap:8px; padding:16px 24px; background:#1A1410; border-bottom:1px solid #3A302A">
+    <svg width="32" height="32" viewBox="0 0 120 120">
+      <defs><linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2D2016"/><stop offset="100%" style="stop-color:#5C4A38"/></linearGradient></defs>
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="url(#bg2)"/>
+      <text x="60" y="64" font-family="Raleway, sans-serif" font-weight="900" font-size="44" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <path d="M 22 82 Q 35 91 48 82 Q 60 73 72 82 Q 85 91 98 82" fill="none" stroke="#B2967D" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <span class="monoton gold-glow" style="font-size:20px; letter-spacing:2px">TeXTREME</span>
+  </div>
+</div>
+
+<!-- 비교: 현재 vs Monoton -->
+<div class="card">
+  <p class="label">비교 — 현재 (골드 그라디언트)</p>
+  <div class="box" style="justify-content:flex-start; gap:6px; padding:16px 24px; background:#FAF6F1; border-bottom:1px solid #E7D8C9">
+    <svg width="32" height="32" viewBox="0 0 120 120">
+      <defs><linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2D2016"/><stop offset="100%" style="stop-color:#5C4A38"/></linearGradient></defs>
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="url(#bg3)"/>
+      <text x="60" y="64" font-family="Raleway, sans-serif" font-weight="900" font-size="44" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <path d="M 22 82 Q 35 91 48 82 Q 60 73 72 82 Q 85 91 98 82" fill="none" stroke="#B2967D" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <span style="font-size:20px; font-weight:bold; letter-spacing:1.5px" class="gold-glow">TeXTREME</span>
+  </div>
+</div>
+
+<div class="card">
+  <p class="label">비교 — Monoton 적용</p>
+  <div class="box" style="justify-content:flex-start; gap:6px; padding:16px 24px; background:#FAF6F1; border-bottom:1px solid #E7D8C9">
+    <svg width="32" height="32" viewBox="0 0 120 120">
+      <defs><linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2D2016"/><stop offset="100%" style="stop-color:#5C4A38"/></linearGradient></defs>
+      <rect x="4" y="4" width="112" height="112" rx="24" fill="url(#bg4)"/>
+      <text x="60" y="64" font-family="Raleway, sans-serif" font-weight="900" font-size="44" fill="#FAF6F1" text-anchor="middle" letter-spacing="2">TxT</text>
+      <path d="M 22 82 Q 35 91 48 82 Q 60 73 72 82 Q 85 91 98 82" fill="none" stroke="#B2967D" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <span class="monoton gold-glow" style="font-size:20px; letter-spacing:2px">TeXTREME</span>
+  </div>
+</div>
+
+</body>
+</html>

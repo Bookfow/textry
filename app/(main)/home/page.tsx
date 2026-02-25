@@ -451,7 +451,7 @@ export default function HomePage() {
                       <BarChart3 className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-base font-bold text-[#2D2016] dark:text-[#EEE4E1]">이번 주 TeXTREME에서는</p>
+                      <p className="text-base font-bold text-[#2D2016] dark:text-[#EEE4E1]">이번 주 텍스트림에서는</p>
                       <p className="text-[11px] text-[#9C8B7A]">지난 7일간의 활동</p>
                     </div>
                   </div>
