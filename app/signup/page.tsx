@@ -15,6 +15,7 @@ export default function SignupPage() {
   const [emailSent, setEmailSent] = useState(false)
   const [error, setError] = useState('')
   const [agreeTerms, setAgreeTerms] = useState(false)
+  const [agreeAge, setAgreeAge] = useState(false)
 
   const handleSocialLogin = async (provider: 'google' | 'kakao') => {
     try {
@@ -30,7 +31,7 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!agreeTerms) { setError('이용약관 및 개인정보처리방침에 동의해주세요.'); return }
+    if (!agreeTerms || !agreeAge || !username.trim()) { setError('이용약관 및 개인정보처리방침에 동의해주세요.'); return }
     setLoading(true)
     setError('')
     try {
@@ -40,7 +41,7 @@ export default function SignupPage() {
       })
       if (authError) throw authError
       if (authData.user && !authData.session) setEmailSent(true)
-      else if (authData.user && authData.session) window.location.href = '/home'
+      else if (authData.user && authData.session) window.location.href = '/onboarding'
     } catch (err: any) {
       setError(err.message || '회원가입에 실패했습니다.')
     } finally { setLoading(false) }
@@ -111,6 +112,16 @@ export default function SignupPage() {
             </svg>
             네이버로 시작하기
           </button>
+          <button
+            type="button"
+            onClick={() => handleSocialLogin('apple' as any)}
+            className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-[#E7D8C9] dark:border-[#3A302A] bg-black hover:bg-gray-900 text-white font-medium text-sm transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+              <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.52-3.23 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+            </svg>
+            Apple로 시작하기
+          </button>
         </div>
 
         <div className="relative mb-6">
@@ -120,8 +131,8 @@ export default function SignupPage() {
 
         <form onSubmit={handleSignup} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">사용자 이름 (선택)</Label>
-            <Input id="username" type="text" placeholder="사용자 이름" value={username} onChange={(e) => setUsername(e.target.value)} className={inputClass} />
+            <Label htmlFor="username" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">닉네임 *</Label>
+            <Input id="username" type="text" placeholder="닉네임을 입력하세요" required value={username} onChange={(e) => setUsername(e.target.value)} className={inputClass} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">이메일</Label>
@@ -153,6 +164,14 @@ export default function SignupPage() {
               {' '}및{' '}
               <Link href="/policies/privacy" className="text-[#B2967D] hover:underline" target="_blank">개인정보처리방침</Link>
               에 동의합니다.
+            </label>
+          </div>
+
+          <div className="flex items-start gap-2">
+            <input type="checkbox" id="agree-age" checked={agreeAge} onChange={(e) => setAgreeAge(e.target.checked)}
+              className="mt-1 rounded border-[#E7D8C9] dark:border-[#3A302A] text-[#B2967D] focus:ring-[#B2967D]" />
+            <label htmlFor="agree-age" className="text-sm text-[#5C4A38] dark:text-[#C4A882]">
+              만 14세 이상입니다. *
             </label>
           </div>
 

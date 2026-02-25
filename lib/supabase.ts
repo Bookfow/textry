@@ -17,6 +17,8 @@ export type Profile = {
   total_revenue_usd: number
   pending_payout_usd: number
   created_at: string
+  preferred_categories: string[] | null
+  onboarding_completed: boolean
 }
 export type Document = {
   id: string
