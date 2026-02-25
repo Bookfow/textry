@@ -1,6 +1,7 @@
 export const CATEGORIES = [
   { value: 'business', label: '비즈니스', icon: '💼', color: 'purple' },
   { value: 'novel', label: '소설', icon: '📖', color: 'pink' },
+  { value: 'poetry', label: '시', icon: '🪶', color: 'slate' },
   { value: 'essay', label: '에세이', icon: '✍️', color: 'green' },
   { value: 'science', label: '과학', icon: '🔬', color: 'cyan' },
   { value: 'art', label: '예술', icon: '🎨', color: 'red' },
