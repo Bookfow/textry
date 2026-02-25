@@ -1,5 +1,16 @@
 'use client'
 
+// ─── epub 문단 간격 CSS 자동 주입 ───
+function injectParagraphCSS(html: string): string {
+  if (!html) return html;
+  // 이미 p 태그에 margin 또는 line-height가 있으면 건너뜀
+  if (/p\s*\{[^}]*(margin|padding)[^}]*\}/i.test(html) && /p\s*\{[^}]*line-height[^}]*\}/i.test(html)) return html;
+  const css = 'p { margin: 0.5em 0; line-height: 1.8; }';
+  if (html.includes('</style>')) return html.replace('</style>', css + '\n</style>');
+  if (html.includes('</head>')) return html.replace('</head>', '<style>' + css + '</style>\n</head>');
+  return '<style>' + css + '</style>\n' + html;
+}
+
 // ─── epub 긴 챕터 자동 분할 ───
 function splitByDelim(text: string, delim: string, target: number): string[] {
   const parts = text.split(delim)
@@ -387,7 +398,7 @@ export default function UploadPage() {
           // 긴 챕터 자동 분할
           const allPages: string[] = []
           for (const chapter of epubData.chapters) {
-            const splits = splitLongChapter(chapter.content)
+            const splits = splitLongChapter(injectParagraphCSS(chapter.content))
             for (const s of splits) allPages.push(s)
           }
           const batchSize = 10
