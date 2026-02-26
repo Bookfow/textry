@@ -113,8 +113,11 @@ export type ImageUploadCallback = (
 /** base64 인라인 임계값 */
 const IMAGE_INLINE_THRESHOLD = 100 * 1024;
 
-/** OCR이 필요한 최소 텍스트 길이 임계값 */
-const OCR_TEXT_THRESHOLD = 50;
+/** 이미지 렌더링 최소 임계값 (이보다 적으면 무조건 이미지) */
+const MIN_TEXT_THRESHOLD = 30;
+
+/** 그래픽 오퍼레이터 비율 임계값 (이 이상이면 이미지로 렌더링) */
+const GRAPHIC_OPS_RATIO = 0.15;
 
 // ============================================================
 // ★ Tesseract.js OCR 모듈
@@ -226,6 +229,53 @@ function buildImageWithHiddenOCR(imageUrl: string, ocrItems: PdfTextItem[]): str
   }
 
   return parts.join('\n');
+}
+
+/**
+ * 페이지의 그래픽 오퍼레이터를 분석하여 이미지/표/차트 포함 여부 판단
+ * 
+ * pdf.js 오퍼레이터 코드:
+ *   - 85 (paintImageXObject), 82 (paintJpegXObject) → 이미지
+ *   - 19 (moveTo), 20 (lineTo), 16 (rectangle) → 선/도형 (표, 차트)
+ *   - 44 (showText), 45 (showSpacedText) → 텍스트
+ * 
+ * 그래픽 오퍼레이터 비율이 높으면 표/차트/이미지 페이지로 판단
+ */
+async function analyzePageGraphics(page: any): Promise<{
+  hasImages: boolean;
+  hasGraphics: boolean;
+  graphicRatio: number;
+  totalOps: number;
+}> {
+  try {
+    const ops = await page.getOperatorList();
+    let imageOps = 0;
+    let graphicOps = 0; // 선, 사각형, 곡선 등
+    let textOps = 0;
+    let totalOps = ops.fnArray.length;
+
+    for (let i = 0; i < ops.fnArray.length; i++) {
+      const fn = ops.fnArray[i];
+      // 이미지
+      if (fn === 85 || fn === 82) imageOps++;
+      // 그래픽: moveTo(19), lineTo(20), rectangle(16), curveTo(13,14,15), stroke(34), fill(36,37)
+      else if ([13, 14, 15, 16, 19, 20, 34, 36, 37].includes(fn)) graphicOps++;
+      // 텍스트: showText(44), showSpacedText(45)
+      else if (fn === 44 || fn === 45) textOps++;
+    }
+
+    const relevantOps = imageOps + graphicOps + textOps;
+    const graphicRatio = relevantOps > 0 ? (imageOps + graphicOps) / relevantOps : 0;
+
+    return {
+      hasImages: imageOps > 0,
+      hasGraphics: graphicOps > 10, // 10개 이상의 그래픽 오퍼레이터 = 표/차트 가능성
+      graphicRatio,
+      totalOps,
+    };
+  } catch (err) {
+    return { hasImages: false, hasGraphics: false, graphicRatio: 0, totalOps: 0 };
+  }
 }
 
 /**
@@ -946,69 +996,114 @@ export async function convertPdfToReflow(
     pagesImages = pagesItems.map(() => []);
   }
 
-  // ── ★ OCR 보강 단계 ──
-  if (onProgress) onProgress('OCR 분석 중...', 25);
+  // ── ★ 이미지 렌더링 + OCR 보강 단계 ──
+  if (onProgress) onProgress('페이지 분석 중...', 25);
   
-  // 텍스트가 부족한 페이지 식별 및 OCR 실행
-  const ocrPageHTMLs = new Map<number, string>(); // pageIndex → OCR HTML
+  const ocrPageHTMLs = new Map<number, string>();
   let ocrCount = 0;
+  
+  // 페이지당 평균 텍스트 길이 계산 (동적 임계값용)
+  const pageTextLengths = pagesItems.map(items => items.map(it => it.text).join('').trim().length);
+  const nonEmptyLengths = pageTextLengths.filter(len => len > MIN_TEXT_THRESHOLD);
+  const avgTextLength = nonEmptyLengths.length > 0
+    ? nonEmptyLengths.reduce((a, b) => a + b, 0) / nonEmptyLengths.length
+    : 500;
+  const dynamicThreshold = Math.max(MIN_TEXT_THRESHOLD, Math.round(avgTextLength * 0.3));
+  
+  console.log(`페이지 분석: 평균 텍스트 ${Math.round(avgTextLength)}자, 이미지 렌더링 임계값 ${dynamicThreshold}자`);
   
   for (let pi = 0; pi < pagesItems.length; pi++) {
     const items = pagesItems[pi];
     const totalText = items.map(it => it.text).join('').trim();
+    const textLength = totalText.length;
     
-    // 텍스트가 부족한 페이지 → 이미지 + OCR 처리
-    if (totalText.length < OCR_TEXT_THRESHOLD) {
+    // ── 이미지 렌더링 판단 ──
+    let shouldRenderAsImage = false;
+    let reason = '';
+    
+    // 1차: 텍스트가 절대 최소 임계값 미만
+    if (textLength < MIN_TEXT_THRESHOLD) {
+      shouldRenderAsImage = true;
+      reason = '텍스트 부족';
+    }
+    // 2차: 텍스트가 동적 임계값(평균의 30%) 미만
+    else if (textLength < dynamicThreshold) {
+      shouldRenderAsImage = true;
+      reason = '텍스트 비율 낮음';
+    }
+    
+    // 3차: 그래픽 오퍼레이터 분석 (텍스트가 있더라도 표/이미지 포함 시)
+    if (!shouldRenderAsImage && textLength < avgTextLength * 0.8) {
       try {
-        if (onProgress) onProgress(`이미지/OCR 처리 중 (${pi + 1}페이지)...`, 25 + (pi / pagesItems.length) * 15);
-        
         const page = await pdfDoc.getPage(pi + 1);
+        const graphics = await analyzePageGraphics(page);
         
-        // 1. 페이지를 이미지로 렌더링 → Storage 업로드
-        let imageUrl = '';
-        const pageBlob = await renderPageToBlob(page, 1.5);
-        if (pageBlob && uploadImage) {
-          try {
-            const fileName = `page-img-${pi + 1}.jpg`;
-            imageUrl = await uploadImage(pageBlob, fileName);
-          } catch (uploadErr) {
-            console.warn(`페이지 ${pi + 1} 이미지 업로드 실패:`, uploadErr);
-          }
+        if (graphics.hasImages || (graphics.hasGraphics && graphics.graphicRatio > GRAPHIC_OPS_RATIO)) {
+          shouldRenderAsImage = true;
+          reason = graphics.hasImages ? '이미지 포함' : '표/차트 포함';
         }
-        
-        // 이미지 업로드 실패 시 base64 폴백
-        if (!imageUrl && pageBlob) {
-          try {
-            const reader = new FileReader();
-            imageUrl = await new Promise<string>((resolve) => {
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.readAsDataURL(pageBlob);
-            });
-          } catch {}
+      } catch {}
+    }
+    
+    if (!shouldRenderAsImage) continue;
+    
+    // ── 이미지 렌더링 + OCR 실행 ──
+    try {
+      if (onProgress) onProgress(`이미지 처리 중 (${pi + 1}페이지, ${reason})...`, 25 + (pi / pagesItems.length) * 15);
+      
+      const page = await pdfDoc.getPage(pi + 1);
+      
+      // 1. 페이지를 이미지로 렌더링 → Storage 업로드
+      let imageUrl = '';
+      const pageBlob = await renderPageToBlob(page, 1.5);
+      if (pageBlob && uploadImage) {
+        try {
+          const fileName = `page-img-${pi + 1}.jpg`;
+          imageUrl = await uploadImage(pageBlob, fileName);
+        } catch (uploadErr) {
+          console.warn(`페이지 ${pi + 1} 이미지 업로드 실패:`, uploadErr);
         }
-        
-        // 2. OCR 실행 (숨김 텍스트용)
-        let ocrItems: PdfTextItem[] = [];
+      }
+      
+      // 이미지 업로드 실패 시 base64 폴백
+      if (!imageUrl && pageBlob) {
+        try {
+          const reader = new FileReader();
+          imageUrl = await new Promise<string>((resolve) => {
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(pageBlob);
+          });
+        } catch {}
+      }
+      
+      // 2. OCR 실행 (숨김 텍스트용 - 텍스트가 적은 페이지만)
+      let ocrItems: PdfTextItem[] = [];
+      if (textLength < dynamicThreshold) {
         try {
           ocrItems = await ocrPage(page, pi);
         } catch (ocrErr) {
           console.warn(`OCR 실패 (페이지 ${pi + 1}):`, ocrErr);
         }
-        
-        // 3. 이미지 + 숨김 OCR HTML 생성
-        if (imageUrl) {
-          const html = buildImageWithHiddenOCR(imageUrl, ocrItems);
-          ocrPageHTMLs.set(pi, html);
-          ocrCount++;
-        }
-      } catch (ocrErr) {
-        console.warn(`OCR 실패 (페이지 ${pi + 1}):`, ocrErr);
       }
+      
+      // 3. 이미지 + 숨김 텍스트 HTML 생성
+      if (imageUrl) {
+        // 기존 추출 텍스트가 있으면 그걸 숨김 텍스트로 사용
+        const hiddenItems = ocrItems.length > 0 ? ocrItems : items.map(it => ({
+          ...it,
+          text: it.text,
+        }));
+        const html = buildImageWithHiddenOCR(imageUrl, hiddenItems);
+        ocrPageHTMLs.set(pi, html);
+        ocrCount++;
+      }
+    } catch (err) {
+      console.warn(`페이지 ${pi + 1} 이미지 처리 실패:`, err);
     }
   }
   
   if (ocrCount > 0) {
-    console.log(`이미지+OCR 보강: ${ocrCount}개 페이지 처리`);
+    console.log(`이미지 렌더링: ${ocrCount}개 페이지 처리 완료`);
   }
 
   // 빈 페이지만 있으면 빈 결과 반환
