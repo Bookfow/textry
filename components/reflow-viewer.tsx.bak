@@ -81,13 +81,6 @@ function isBrokenText(text: string): boolean {
   return false
 }
 
-// ━━━ HTML 콘텐츠 감지 ━━━
-function isHtmlContent(text: string): boolean {
-  if (!text) return false
-  // <p>, <p style=...>, <h1>~<h3>, <figure>, <strong> 태그가 있으면 HTML
-  return /<(p|h[1-6]|figure|div|br|img|strong|em)[s>/]/i.test(text)
-}
-
 // ━━━ 블록 타입 ━━━
 type BlockType = 'heading1' | 'heading2' | 'heading3' | 'body' | 'separator'
 
@@ -862,91 +855,13 @@ cd C:\Users\user\textry && git add . && git commit -m "fix: 리플로우 설정 
           )}
 
           <div>
-            {(() => {
-              const rawText = pageTexts.get(pageNumber) || ''
-              // HTML 콘텐츠면 dangerouslySetInnerHTML로 직접 렌더링
-              if (rawText && isHtmlContent(rawText)) {
-                return (
-                  <div
-                    className="reflow-html-content"
-                    style={{
-                      fontFamily: fontStyle.family,
-                      fontSize: `${fontSize}px`,
-                      lineHeight: lineHeight,
-                      color: themeStyle.text,
-                      wordBreak: 'keep-all',
-                      overflowWrap: 'break-word',
-                      letterSpacing: `${letterSpacing * 0.5}px`,
-                      textAlign: textAlign,
-                    }}
-                    dangerouslySetInnerHTML={{ __html: `
-                      <style>
-                        .reflow-html-content h1 {
-                          font-size: ${Math.round(fontSize * 1.6)}px;
-                          font-weight: bold;
-                          line-height: 1.3;
-                          margin-top: 2.5em;
-                          margin-bottom: 1em;
-                          color: ${themeStyle.headingColor};
-                          letter-spacing: ${letterSpacing * 0.5}px;
-                        }
-                        .reflow-html-content h2 {
-                          font-size: ${Math.round(fontSize * 1.35)}px;
-                          font-weight: bold;
-                          line-height: 1.35;
-                          margin-top: 2em;
-                          margin-bottom: 0.75em;
-                          color: ${themeStyle.headingColor};
-                          letter-spacing: ${letterSpacing * 0.5}px;
-                        }
-                        .reflow-html-content h3 {
-                          font-size: ${Math.round(fontSize * 1.15)}px;
-                          font-weight: 600;
-                          line-height: 1.4;
-                          margin-top: 1.5em;
-                          margin-bottom: 0.5em;
-                          color: ${themeStyle.headingColor};
-                          letter-spacing: ${letterSpacing * 0.5}px;
-                        }
-                        .reflow-html-content p {
-                          margin-bottom: 1em;
-                          text-indent: 1em;
-                        }
-                        .reflow-html-content figure {
-                          text-align: center;
-                          margin: 1.5em 0;
-                        }
-                        .reflow-html-content figure img {
-                          max-width: 100%;
-                          height: auto;
-                          border-radius: 4px;
-                        }
-                        .reflow-html-content strong {
-                          font-weight: bold;
-                        }
-                        .reflow-html-content em {
-                          font-style: italic;
-                        }
-                        .reflow-html-content hr {
-                          border: none;
-                          border-top: 1px solid ${themeStyle.border};
-                          margin: 1.5em 0;
-                        }
-                      </style>
-                      ${rawText}
-                    ` }}
-                  />
-                )
-              }
-              // 기존 블록 시스템 (plain text, 이전 방식 PDF 텍스트 호환)
-              return currentBlocks.length > 0 ? (
-                currentBlocks.map((block, i) => renderBlock(block, i))
-              ) : !isCurrentPageBroken && !unsupported ? (
-                <p className="text-center py-8" style={{ color: themeStyle.muted }}>
-                  (이 {pageLabel}에 추출 가능한 텍스트가 없습니다)
-                </p>
-              ) : null
-            })()}
+            {currentBlocks.length > 0 ? (
+              currentBlocks.map((block, i) => renderBlock(block, i))
+            ) : !isCurrentPageBroken && !unsupported ? (
+              <p className="text-center py-8" style={{ color: themeStyle.muted }}>
+                (이 {pageLabel}에 추출 가능한 텍스트가 없습니다)
+              </p>
+            ) : null}
           </div>
 
           <div className="h-16" />
