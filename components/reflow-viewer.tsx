@@ -680,31 +680,33 @@ export default function ReflowViewer({
       )}
 
       {/* ━━━ 미니멀 상단 바 ━━━ */}
-      <div className="flex items-center justify-between px-4 py-2 border-b max-w-lg mx-auto w-full" style={{ borderColor: themeStyle.border }}>
+      <div className="grid grid-cols-4 px-2 py-2 border-b max-w-lg mx-auto w-full" style={{ borderColor: themeStyle.border }}>
         <button onClick={() => setShowToc(!showToc)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
+          className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
           style={{ color: showToc ? '#3b82f6' : themeStyle.muted }}>
           <List className="w-4 h-4" />
           <span className="text-xs">목차</span>
         </button>
 
-        <div className="flex items-center gap-2">
-          <button onClick={() => { setFocusMode(!focusMode); if (focusMode) setFocusedBlock(null) }}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg transition-all"
-            style={{
-              color: focusMode ? '#3b82f6' : themeStyle.muted,
-              backgroundColor: focusMode ? 'rgba(59,130,246,0.1)' : 'transparent',
-            }}
-            title="집중 모드">
-            <Focus className="w-4 h-4" />
-          </button>
+        <button onClick={() => { setFocusMode(!focusMode); if (focusMode) setFocusedBlock(null) }}
+          className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all"
+          style={{
+            color: focusMode ? '#3b82f6' : themeStyle.muted,
+            backgroundColor: focusMode ? 'rgba(59,130,246,0.1)' : 'transparent',
+          }}
+          title="집중 모드">
+          <Focus className="w-4 h-4" />
+          <span className="text-xs">집중</span>
+        </button>
+
+        <div className="flex items-center justify-center">
           <span className="text-xs font-medium" style={{ color: themeStyle.muted }}>
             {pageNumber} / {numPages} {pageLabel}
           </span>
         </div>
 
         <button onClick={() => setShowSettings(!showSettings)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
+          className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
           style={{ color: showSettings ? '#3b82f6' : themeStyle.muted }}>
           <Settings2 className="w-4 h-4" />
           <span className="text-xs">설정</span>
