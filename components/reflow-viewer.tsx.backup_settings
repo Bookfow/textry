@@ -736,55 +736,43 @@ export default function ReflowViewer({
                 </div>
               </div>
 
-              {/* 줄간격 */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-medium" style={{ color: themeStyle.muted }}>줄간격</p>
-                  <span className="text-xs font-mono" style={{ color: themeStyle.text }}>{lineHeight.toFixed(1)}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setLineHeight(h => Math.max(1.2, Math.round((h - 0.1) * 10) / 10))}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center border transition-colors"
-                    style={{ borderColor: themeStyle.border, color: themeStyle.muted }}>
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <input type="range" min={1.2} max={2.4} step={0.1} value={lineHeight}
-                    onChange={(e) => setLineHeight(Number(e.target.value))}
-                    className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500"
-                    style={{ backgroundColor: themeStyle.border }} />
-                  <button onClick={() => setLineHeight(h => Math.min(2.4, Math.round((h + 0.1) * 10) / 10))}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center border transition-colors"
-                    style={{ borderColor: themeStyle.border, color: themeStyle.muted }}>
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* 여백 · 자간 */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* 줄간격 · 여백 · 자간 */}
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-medium" style={{ color: themeStyle.muted }}>여백</p>
-                    <span className="text-[10px]" style={{ color: themeStyle.text }}>
-                      {marginSize === 1 ? '좁게' : marginSize === 2 ? '보통' : marginSize === 3 ? '넓게' : '아주 넓게'}
-                    </span>
-                  </div>
-                  <input type="range" min={1} max={4} step={1} value={marginSize}
-                    onChange={(e) => setMarginSize(Number(e.target.value))}
-                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500"
-                    style={{ backgroundColor: themeStyle.border }} />
+                  <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>줄간격</p>
+                  <select value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))}
+                    className="w-full text-xs rounded-lg px-2 py-2 border"
+                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+cd C:\Users\user\textry && git add . && git commit -m "fix: 리플로우 설정 드롭다운 어두운 테마 배경색 수정" && git push
+                    <option value={1.4}>촘촘</option>
+                    <option value={1.6}>보통</option>
+                    <option value={1.8}>넓게</option>
+                    <option value={2.0}>아주 넓게</option>
+                  </select>
                 </div>
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-medium" style={{ color: themeStyle.muted }}>자간</p>
-                    <span className="text-[10px]" style={{ color: themeStyle.text }}>
-                      {letterSpacing === -1 ? '좁게' : letterSpacing === 0 ? '보통' : letterSpacing === 1 ? '넓게' : '아주 넓게'}
-                    </span>
-                  </div>
-                  <input type="range" min={-1} max={2} step={1} value={letterSpacing}
-                    onChange={(e) => setLetterSpacing(Number(e.target.value))}
-                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500"
-                    style={{ backgroundColor: themeStyle.border }} />
+                  <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>여백</p>
+                  <select value={marginSize} onChange={(e) => setMarginSize(Number(e.target.value))}
+                    className="w-full text-xs rounded-lg px-2 py-2 border"
+                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+cd C:\Users\user\textry && git add . && git commit -m "fix: 리플로우 설정 드롭다운 어두운 테마 배경색 수정" && git push
+                    <option value={1}>좁게</option>
+                    <option value={2}>보통</option>
+                    <option value={3}>넓게</option>
+                    <option value={4}>아주 넓게</option>
+                  </select>
+                </div>
+                <div>
+                  <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>자간</p>
+                  <select value={letterSpacing} onChange={(e) => setLetterSpacing(Number(e.target.value))}
+                    className="w-full text-xs rounded-lg px-2 py-2 border"
+                    style={{ backgroundColor: themeStyle.bg, color: themeStyle.text, borderColor: themeStyle.border }}>
+cd C:\Users\user\textry && git add . && git commit -m "fix: 리플로우 설정 드롭다운 어두운 테마 배경색 수정" && git push
+                    <option value={-1}>좁게</option>
+                    <option value={0}>보통</option>
+                    <option value={1}>넓게</option>
+                    <option value={2}>아주 넓게</option>
+                  </select>
                 </div>
               </div>
 
@@ -811,23 +799,6 @@ export default function ReflowViewer({
                     <AlignJustify className="w-4 h-4" /> 양쪽
                   </button>
                 </div>
-              </div>
-
-              {/* 미리보기 */}
-              <div className="rounded-xl p-4 border" style={{ borderColor: themeStyle.border, backgroundColor: themeStyle.pageBg }}>
-                <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>미리보기</p>
-                <p style={{
-                  fontFamily: FONTS[font].family,
-                  fontSize: `${fontSize}px`,
-                  lineHeight: lineHeight,
-                  color: themeStyle.text,
-                  letterSpacing: `${letterSpacing * 0.5}px`,
-                  textAlign: textAlign,
-                  textIndent: '1em',
-                  wordBreak: 'keep-all',
-                }}>
-                  가나다라마바사 아자차카타파하. The quick brown fox jumps over the lazy dog. 읽기 설정을 변경하면 이 텍스트에 바로 반영됩니다.
-                </p>
               </div>
 
             </div>
