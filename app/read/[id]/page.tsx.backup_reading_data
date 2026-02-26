@@ -206,14 +206,6 @@ export default function ReadPage() {
   const viewerRef = useRef<HTMLDivElement>(null)
   const pageInputRef = useRef<HTMLInputElement>(null)
 
-  // ★ 페이지별 체류시간 추적
-  const pageEnteredAtRef = useRef<number>(Date.now())
-  const pageLogsBufferRef = useRef<Array<{
-    document_id: string; reader_id: string; page_number: number;
-    duration_seconds: number; entered_at: string; left_at: string;
-  }>>([])
-  const flushTimerRef = useRef<NodeJS.Timeout | null>(null)
-
   // ★ 마지막 읽은 페이지 복원
   useEffect(() => {
     if (!user || !documentId || loading) {
@@ -382,21 +374,10 @@ export default function ReadPage() {
       if (results.length > 0) {
         setPageNumber(results[0].pageNumber)
       }
-
-      // ★ 검색 키워드 로깅
-      try {
-        await supabase.from('search_logs').insert({
-          document_id: documentId,
-          reader_id: user?.id || null,
-          query: query.trim(),
-          results_count: results.length,
-        })
-      } catch {}
-
     } finally {
       setSearchLoading(false)
     }
-  }, [loadPageTexts, documentId, user])
+  }, [loadPageTexts])
 
   // ━━━ 본문 검색: 디바운스 ━━━
   useEffect(() => {
@@ -655,7 +636,6 @@ export default function ReadPage() {
     loadDocument()
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
-      if (flushTimerRef.current) clearInterval(flushTimerRef.current)
       saveReadingSession()
     }
   }, [documentId])
@@ -892,80 +872,6 @@ export default function ReadPage() {
     const elapsed = Math.floor((Date.now() - startTime) / 1000)
     await updateReadingTime(elapsed)
   }
-
-  // ★ 페이지 로그 버퍼를 DB에 일괄 저장
-  const flushPageLogs = useCallback(async () => {
-    if (!sessionId || !user || pageLogsBufferRef.current.length === 0) return
-    const logsToSend = [...pageLogsBufferRef.current]
-    pageLogsBufferRef.current = []
-    try {
-      const rows = logsToSend.map(log => ({ session_id: sessionId, ...log }))
-      await supabase.from('page_reading_logs').insert(rows)
-    } catch (err) {
-      console.error('Error flushing page logs:', err)
-      pageLogsBufferRef.current = [...logsToSend, ...pageLogsBufferRef.current]
-    }
-  }, [sessionId, user])
-
-  // ★ 현재 페이지 체류 기록을 버퍼에 추가
-  const recordPageTime = useCallback(() => {
-    if (!user || !documentId) return
-    const now = Date.now()
-    const duration = Math.floor((now - pageEnteredAtRef.current) / 1000)
-    if (duration < 2) return // 2초 미만은 무시
-    const clampedDuration = Math.min(duration, 600) // 최대 10분 제한
-    pageLogsBufferRef.current.push({
-      document_id: documentId, reader_id: user.id, page_number: pageNumber,
-      duration_seconds: clampedDuration,
-      entered_at: new Date(pageEnteredAtRef.current).toISOString(),
-      left_at: new Date(now).toISOString(),
-    })
-  }, [user, documentId, pageNumber])
-
-  // ★ 페이지 변경 시 이전 페이지 체류 기록
-  const prevPageForLogRef = useRef<number>(pageNumber)
-  useEffect(() => {
-    if (prevPageForLogRef.current !== pageNumber) {
-      recordPageTime()
-      pageEnteredAtRef.current = Date.now()
-      prevPageForLogRef.current = pageNumber
-    }
-  }, [pageNumber, recordPageTime])
-
-  // ★ 30초마다 버퍼 flush
-  useEffect(() => {
-    if (!sessionId || !user) return
-    flushTimerRef.current = setInterval(() => { flushPageLogs() }, 30000)
-    return () => { if (flushTimerRef.current) clearInterval(flushTimerRef.current) }
-  }, [sessionId, user, flushPageLogs])
-
-  // ★ 탭 닫기/이동 시 남은 로그 전송 (keepalive fetch)
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      recordPageTime()
-      if (pageLogsBufferRef.current.length === 0 || !sessionId || !user) return
-      const rows = pageLogsBufferRef.current.map(log => ({ session_id: sessionId, ...log }))
-      pageLogsBufferRef.current = []
-      try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-        if (supabaseUrl && supabaseKey) {
-          fetch(supabaseUrl + '/rest/v1/page_reading_logs', {
-            method: 'POST', keepalive: true,
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': supabaseKey,
-              'Authorization': 'Bearer ' + supabaseKey,
-              'Prefer': 'return=minimal',
-            },
-            body: JSON.stringify(rows),
-          }).catch(() => {})
-        }
-      } catch {}
-    }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [sessionId, user, recordPageTime])
 
   const goToPrevPage = () => setPageNumber((prev) => Math.max(prev - 1, 1))
   const goToNextPage = () => setPageNumber((prev) => Math.min(prev + 1, numPages))
