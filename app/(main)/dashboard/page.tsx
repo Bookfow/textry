@@ -68,6 +68,7 @@ export default function DashboardPage() {
   const [savingDescription, setSavingDescription] = useState(false)
   const [newAuthorName, setNewAuthorName] = useState('')
   const [newAuthorBio, setNewAuthorBio] = useState('')
+  const [newTocText, setNewTocText] = useState('')
   const [newCustomToc, setNewCustomToc] = useState<{ title: string }[]>([])
   const [sortBy, setSortBy] = useState<'views' | 'time' | 'revenue' | 'date'>('date')
   const [docAdCounts, setDocAdCounts] = useState<Record<string, number>>({})
@@ -554,7 +555,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="col-span-2 flex items-center justify-center gap-2">
                         <button
-                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || ''); setNewAuthorName((doc as any).author_name || ''); setNewAuthorBio((doc as any).author_bio || ''); setNewCustomToc((doc as any).custom_toc || []) }}
+                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || ''); setNewAuthorName((doc as any).author_name || ''); setNewAuthorBio((doc as any).author_bio || ''); setNewTocText((doc as any).custom_toc ? (doc as any).custom_toc.map((item: any) => item.title).join('\n') : ''); setNewCustomToc((doc as any).custom_toc || []) }}
                           className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-colors"
                           title="수정"
                         >
@@ -953,6 +954,19 @@ export default function DashboardPage() {
                       rows={3}
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
+                  </div>
+                  {/* ━━━ 목차 편집 ━━━ */}
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-toc">목차</Label>
+                    <textarea
+                      id="edit-toc"
+                      value={newTocText}
+                      onChange={(e) => setNewTocText(e.target.value)}
+                      placeholder={"한 줄에 하나씩 입력\n예시:\n서론\n1장 시작\n2장 전개\n3장 결말\n에필로그"}
+                      rows={6}
+                      className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
+                    <p className="text-xs text-gray-400 dark:text-gray-500">한 줄에 하나씩 입력하세요. 비워두면 자동 추출됩니다.</p>
                   </div>
                   {/* ━━━ 목차 편집 ━━━ */}
                   <div className="space-y-2">
