@@ -426,40 +426,6 @@ export default function UploadPage() {
             setProgressMessage(`리플로우 페이지 저장... ${i + 1}/${reflowPages.length}`)
           }
 
-          // ★ document_blocks에도 저장
-          try {
-            const blockRows: any[] = []
-            for (let i = 0; i < reflowPages.length; i++) {
-              const pageNum = reflowPages[i].pageNumber
-              const text = reflowPages[i].textContent
-              const parts = text.split('\n\n')
-              let blockOrder = 0
-              for (const part of parts) {
-                const trimmed = part.trim()
-                if (!trimmed) continue
-                let blockType = 'body'
-                let content = trimmed
-                if (trimmed.startsWith('<h1>') && trimmed.endsWith('</h1>')) { blockType = 'heading1'; content = trimmed.slice(4, -5) }
-                else if (trimmed.startsWith('<h2>') && trimmed.endsWith('</h2>')) { blockType = 'heading2'; content = trimmed.slice(4, -5) }
-                else if (trimmed.startsWith('<h3>') && trimmed.endsWith('</h3>')) { blockType = 'heading3'; content = trimmed.slice(4, -5) }
-                else if (trimmed === '<hr>') { blockType = 'separator'; content = '' }
-                else if (/<(p|h[1-6]|figure|div|br|img|strong|em)[\s>/]/i.test(trimmed)) { blockType = 'html'; content = trimmed }
-                blockRows.push({
-                  document_id: docData.id,
-                  block_id: `p${String(pageNum).padStart(3, '0')}_b${String(blockOrder).padStart(3, '0')}`,
-                  block_type: blockType,
-                  content: content,
-                  page_number: pageNum,
-                  block_order: blockOrder++,
-                })
-              }
-            }
-            for (let b = 0; b < blockRows.length; b += 50) {
-              const batch = blockRows.slice(b, b + 50)
-              await supabase.from('document_blocks').insert(batch)
-            }
-          } catch (blockErr) { console.warn('document_blocks 저장 실패 (무시):', blockErr) }
-
           // 리플로우 페이지 수로 page_count 업데이트
           if (reflowPages.length > 0) {
             await supabase.from('documents')

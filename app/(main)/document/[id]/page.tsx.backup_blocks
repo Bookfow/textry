@@ -51,34 +51,15 @@ export default function DocumentDetailPage() {
     if (tocLoaded) return
     setTocLoading(true)
     try {
-      // ★ document_blocks 우선 조회 (heading 블록만) 
-      let items: TocItem[] = []
-      
-      const { data: blocks, error: blocksErr } = await supabase
-        .from('document_blocks')
-        .select('page_number, block_type, content, block_order')
+      const { data, error } = await supabase
+        .from('document_pages_text')
+        .select('page_number, text_content')
         .eq('document_id', documentId)
-        .in('block_type', ['heading1', 'heading2', 'heading3'])
         .order('page_number', { ascending: true })
-        .order('block_order', { ascending: true })
 
-      if (!blocksErr && blocks && blocks.length > 0) {
-        for (const b of blocks) {
-          items.push({
-            title: b.content,
-            pageNumber: b.page_number,
-            level: b.block_type === 'heading1' ? 1 : b.block_type === 'heading2' ? 2 : 3,
-          })
-        }
-      } else {
-        // 폴백: document_pages_text에서 추출
-        const { data, error } = await supabase
-          .from('document_pages_text')
-          .select('page_number, text_content')
-          .eq('document_id', documentId)
-          .order('page_number', { ascending: true })
+      if (error || !data) { setTocLoaded(true); return }
 
-        if (error || !data) { setTocLoaded(true); return }
+      const items: TocItem[] = []
       const seenTitles = new Set<string>()
 
       for (const row of data) {
@@ -111,7 +92,6 @@ export default function DocumentDetailPage() {
           }
         }
       }
-      } // 폴백 else 닫기
 
       setToc(items)
     } catch (err) {

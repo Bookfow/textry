@@ -321,39 +321,18 @@ export default function ReadPage() {
   const loadPageTexts = useCallback(async () => {
     if (pageTextsCache) return pageTextsCache
     try {
-      // ★ document_blocks 우선 조회, 없으면 document_pages_text 폴백
-      let map = new Map<number, string>()
-      
-      const { data: blocks, error: blocksErr } = await supabase
-        .from('document_blocks')
-        .select('page_number, content, block_order')
+      const { data, error } = await supabase
+        .from('document_pages_text')
+        .select('page_number, text_content')
         .eq('document_id', documentId)
         .order('page_number', { ascending: true })
-        .order('block_order', { ascending: true })
-      
-      if (!blocksErr && blocks && blocks.length > 0) {
-        const pageMap = new Map<number, string[]>()
-        for (const b of blocks) {
-          if (!pageMap.has(b.page_number)) pageMap.set(b.page_number, [])
-          pageMap.get(b.page_number)!.push(b.content)
-        }
-        for (const [pn, parts] of pageMap) {
-          const raw = parts.join(' ')
-          map.set(pn, raw.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim())
-        }
-      } else {
-        const { data, error } = await supabase
-          .from('document_pages_text')
-          .select('page_number, text_content')
-          .eq('document_id', documentId)
-          .order('page_number', { ascending: true })
-        if (error || !data) return null
-        for (const row of data) {
-          // HTML 태그 제거해서 순수 텍스트만
+      if (error || !data) return null
+      const map = new Map<number, string>()
+      for (const row of data) {
+        // HTML 태그 제거해서 순수 텍스트만
         const clean = (row.text_content || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
         map.set(row.page_number, clean)
       }
-      } // 폴백 else 닫기
       setPageTextsCache(map)
       return map
     } catch {

@@ -300,48 +300,19 @@ export default function ReflowViewer({
 
       if (documentId) {
         try {
-          // ★ document_blocks 우선 조회, 없으면 document_pages_text 폴백
-          let texts = new Map<number, string>()
-          let total = 0
-
-          const { data: blocks, error: blocksErr } = await supabase
-            .from('document_blocks')
-            .select('page_number, block_type, content, block_order')
+          const { data, error } = await supabase
+            .from('document_pages_text')
+            .select('page_number, text_content')
             .eq('document_id', documentId)
             .order('page_number', { ascending: true })
-            .order('block_order', { ascending: true })
 
-          if (!blocksErr && blocks && blocks.length > 0) {
-            // 블록 → 페이지별 텍스트로 재조립 (기존 형식 호환)
-            const pageMap = new Map<number, string[]>()
-            for (const b of blocks) {
-              if (!pageMap.has(b.page_number)) pageMap.set(b.page_number, [])
-              const arr = pageMap.get(b.page_number)!
-              if (b.block_type === 'heading1') arr.push('<h1>' + b.content + '</h1>')
-              else if (b.block_type === 'heading2') arr.push('<h2>' + b.content + '</h2>')
-              else if (b.block_type === 'heading3') arr.push('<h3>' + b.content + '</h3>')
-              else if (b.block_type === 'separator') arr.push('<hr>')
-              else if (b.block_type === 'html') arr.push(b.content)
-              else arr.push(b.content)
-            }
-            for (const [pn, parts] of pageMap) {
-              texts.set(pn, parts.join('\n\n'))
-            }
-            total = texts.size
-          } else {
-            // 폴백: document_pages_text
-            const { data, error } = await supabase
-              .from('document_pages_text')
-              .select('page_number, text_content')
-              .eq('document_id', documentId)
-              .order('page_number', { ascending: true })
-            if (!error && data && data.length > 0) {
-              for (const row of data) texts.set(row.page_number, row.text_content)
-              total = data.length
-            }
-          }
+          if (!error && data && data.length > 0) {
+            const texts = new Map<number, string>()
+            const total = data.length
 
-          if (total > 0) {
+            for (const row of data) {
+              texts.set(row.page_number, row.text_content || `(${row.page_number}페이지: 텍스트 없음)`)
+            }
 
             if (!cancelled) {
               setPageTexts(texts)
