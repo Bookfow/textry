@@ -111,10 +111,10 @@ interface Highlight {
 }
 
 const HIGHLIGHT_COLORS: Record<string, string> = {
-  yellow: 'rgba(255, 240, 50, 0.45)',
-  green: 'rgba(80, 255, 120, 0.35)',
-  blue: 'rgba(80, 200, 255, 0.35)',
-  pink: 'rgba(255, 120, 180, 0.4)',
+  yellow: 'rgba(250, 220, 50, 0.3)',
+  green: 'rgba(100, 220, 100, 0.25)',
+  blue: 'rgba(90, 180, 250, 0.25)',
+  pink: 'rgba(245, 130, 180, 0.3)',
 }
 
 // ━━━ 폰트 크기 기반 블록 분류 ━━━
