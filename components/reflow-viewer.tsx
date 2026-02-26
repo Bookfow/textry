@@ -689,6 +689,9 @@ export default function ReflowViewer({
 
   const handleClick = (e: React.MouseEvent) => {
     if (showSettings) return
+    // 텍스트 선택 중이면 페이지 이동 무시
+    const sel = window.getSelection()
+    if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) return
     // 집중 모드에서 빈 영역 클릭 시 포커스 해제
     if (focusMode) { setFocusedBlock(null); return }
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
