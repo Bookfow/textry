@@ -42,6 +42,7 @@ export type Document = {
   author_name: string | null
   author_bio: string | null
   content_type: 'document' | 'webtoon'
+  custom_toc: { title: string }[] | null
 }
 
 export type WebtoonImage = {

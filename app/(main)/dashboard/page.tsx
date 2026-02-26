@@ -68,6 +68,7 @@ export default function DashboardPage() {
   const [savingDescription, setSavingDescription] = useState(false)
   const [newAuthorName, setNewAuthorName] = useState('')
   const [newAuthorBio, setNewAuthorBio] = useState('')
+  const [newCustomToc, setNewCustomToc] = useState<{ title: string }[]>([])
   const [sortBy, setSortBy] = useState<'views' | 'time' | 'revenue' | 'date'>('date')
   const [docAdCounts, setDocAdCounts] = useState<Record<string, number>>({})
   const [thisMonthImpressions, setThisMonthImpressions] = useState(0)
@@ -231,7 +232,7 @@ export default function DashboardPage() {
     try {
       const { error } = await supabase
         .from('documents')
-        .update({ title: newTitle.trim(), description: newDescription.trim() || null, author_name: newAuthorName.trim() || null, author_bio: newAuthorBio.trim() || null })
+        .update({ title: newTitle.trim(), description: newDescription.trim() || null, author_name: newAuthorName.trim() || null, author_bio: newAuthorBio.trim() || null, custom_toc: newCustomToc.length > 0 ? newCustomToc : null })
         .eq('id', docId)
       if (error) throw error
       toast.success('콘텐츠가 수정되었습니다.')
@@ -553,7 +554,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="col-span-2 flex items-center justify-center gap-2">
                         <button
-                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || ''); setNewAuthorName((doc as any).author_name || ''); setNewAuthorBio((doc as any).author_bio || '') }}
+                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || ''); setNewAuthorName((doc as any).author_name || ''); setNewAuthorBio((doc as any).author_bio || ''); setNewCustomToc((doc as any).custom_toc || []) }}
                           className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-colors"
                           title="수정"
                         >
@@ -899,7 +900,7 @@ export default function DashboardPage() {
 
       {/* ━━━ 콘텐츠 수정 다이얼로그 ━━━ */}
       <Dialog open={!!editingDescription} onOpenChange={() => {
-        setEditingDescription(null); setNewTitle(''); setNewDescription(''); setNewAuthorName(''); setNewAuthorBio('')
+        setEditingDescription(null); setNewTitle(''); setNewDescription(''); setNewAuthorName(''); setNewAuthorBio(''); setNewCustomToc([])
       }}>
         <DialogContent>
           <DialogHeader><DialogTitle>콘텐츠 수정</DialogTitle></DialogHeader>
@@ -952,6 +953,61 @@ export default function DashboardPage() {
                       rows={3}
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
+                  </div>
+                  {/* ━━━ 목차 편집 ━━━ */}
+                  <div className="space-y-2">
+                    <Label>목차 (리디/밀리 방식 · 제목만)</Label>
+                    <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+                      {newCustomToc.map((item, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="text-xs text-gray-400 w-5 text-center flex-shrink-0">{i + 1}</span>
+                          <input
+                            value={item.title}
+                            onChange={(e) => {
+                              const updated = [...newCustomToc]
+                              updated[i] = { title: e.target.value }
+                              setNewCustomToc(updated)
+                            }}
+                            placeholder="장/절 제목"
+                            className="flex-1 rounded-md border border-gray-200 dark:border-gray-800 px-2 py-1.5 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...newCustomToc]
+                              if (i > 0) { [updated[i - 1], updated[i]] = [updated[i], updated[i - 1]]; setNewCustomToc(updated) }
+                            }}
+                            disabled={i === 0}
+                            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                            title="위로"
+                          >↑</button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...newCustomToc]
+                              if (i < updated.length - 1) { [updated[i], updated[i + 1]] = [updated[i + 1], updated[i]]; setNewCustomToc(updated) }
+                            }}
+                            disabled={i === newCustomToc.length - 1}
+                            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                            title="아래로"
+                          >↓</button>
+                          <button
+                            type="button"
+                            onClick={() => setNewCustomToc(newCustomToc.filter((_, idx) => idx !== i))}
+                            className="p-1 text-red-400 hover:text-red-600"
+                            title="삭제"
+                          >✕</button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNewCustomToc([...newCustomToc, { title: '' }])}
+                      className="w-full py-1.5 rounded-md border border-dashed border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      + 목차 항목 추가
+                    </button>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">도서 소개 페이지와 뷰어 목차에 표시됩니다. 비워두면 자동 추출됩니다.</p>
                   </div>
                   <div className="flex gap-2 justify-end">
                     <Button variant="outline" onClick={() => { setEditingDescription(null); setNewTitle(''); setNewDescription(''); setNewAuthorName(''); setNewAuthorBio('') }}>취소</Button>

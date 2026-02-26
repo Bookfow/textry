@@ -749,7 +749,20 @@ export default function DocumentDetailPage() {
           {/* 목차 탭 */}
           {activeTab === 'toc' && (
             <div>
-              {tocLoading ? (
+              {(doc as any).custom_toc && (doc as any).custom_toc.length > 0 ? (
+                <div className="space-y-1">
+                  {(doc as any).custom_toc.map((item: { title: string }, i: number) => (
+                    <div
+                      key={i}
+                      onClick={() => router.push(`/read/${documentId}`)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer transition-colors"
+                    >
+                      <span className="text-xs text-[#9C8B7A] flex-shrink-0 w-5 text-center tabular-nums">{i + 1}</span>
+                      <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] font-medium truncate">{item.title}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : tocLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin mr-3" />
                   <span className="text-sm text-[#9C8B7A]">목차를 추출하는 중...</span>

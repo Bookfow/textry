@@ -15,6 +15,7 @@ interface ReflowViewerProps {
   onDocumentLoad?: (numPages: number) => void
   onSwitchToPdf?: () => void
   fileType?: 'pdf' | 'epub'
+  customToc?: { title: string }[] | null
 }
 
 // ━━━ 리플로우 설정 ━━━
@@ -218,6 +219,7 @@ export default function ReflowViewer({
   onDocumentLoad,
   onSwitchToPdf,
   fileType = 'pdf',
+  customToc,
 }: ReflowViewerProps) {
   const [pageTexts, setPageTexts] = useState<Map<number, string>>(new Map())
   const [numPages, setNumPages] = useState(0)
@@ -576,8 +578,13 @@ export default function ReflowViewer({
     }
   }
 
-  // ━━━ 목차(TOC) 추출 ━━━
+  // ━━━ 목차(TOC) — customToc 우선, 없으면 자동 추출 ━━━
   const tocItems = (() => {
+    // 수동 목차가 있으면 우선 사용 (페이지 번호 없이 제목만)
+    if (customToc && customToc.length > 0) {
+      return customToc.map((item, i) => ({ page: i + 1, title: item.title }))
+    }
+    // 자동 추출 폴백
     const items: { page: number; title: string }[] = []
     for (const [page, text] of pageTexts) {
       const h1Match = text.match(/<h1>(.*?)<\/h1>/)
