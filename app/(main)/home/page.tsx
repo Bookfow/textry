@@ -645,7 +645,7 @@ export default function HomePage() {
 
               {/* 이어서 읽을 콘텐츠 (reading_sessions 기반) */}
               {user && sessionContinue.length > 0 && (
-                <CarouselSection title="이어서 읽을 콘텐츠" icon={Clock} docs={filterByCategory(sessionContinue)} showMore="/continue-reading" />
+                <CarouselSection title="이어서 읽을" icon={Clock} docs={filterByCategory(sessionContinue)} showMore="/continue-reading" />
               )}
 
               {/* 구독자 콘텐츠 */}
