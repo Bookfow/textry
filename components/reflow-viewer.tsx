@@ -423,13 +423,6 @@ export default function ReflowViewer({
   const isCurrentPageBroken = (() => {
     if (isEpub) return false
     const raw = pageTexts.get(pageNumber) || ''
-    // HTML 콘텐츠 (OCR 결과 포함)는 broken으로 판단하지 않음
-    if (isHtmlContent(raw)) {
-      // HTML 태그를 모두 제거한 순수 텍스트로 판단
-      const plainText = raw.replace(/<[^>]*>/g, '').replace(/\s/g, '')
-      // 순수 텍스트가 3자 이상이면 정상
-      if (plainText.length >= 3) return false
-    }
     const cleaned = raw.replace(/<h[1-3]>.*?<\/h[1-3]>|<hr>/g, '').replace(/\s/g, '')
     if (cleaned.length < 5) return true
     const allText = currentBlocks
