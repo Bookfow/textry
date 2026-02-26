@@ -305,6 +305,42 @@ export default function ReflowViewer({
     loadHighlights()
   }, [documentId])
 
+  // ★ 모바일 텍스트 선택 감지 (selectionchange)
+  useEffect(() => {
+    let timeout: NodeJS.Timeout
+    const onSelChange = () => {
+      clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        if (focusMode || showSettings) return
+        const sel = window.getSelection()
+        if (!sel || sel.isCollapsed || !sel.toString().trim()) return
+        const text = sel.toString().trim()
+        if (text.length < 2) return
+        const anchorNode = sel.anchorNode
+        if (!anchorNode) return
+        const blockEl = (anchorNode.nodeType === 3 ? anchorNode.parentElement : anchorNode as HTMLElement)?.closest('[data-block-id]')
+        if (!blockEl) return
+        const blockId = blockEl.getAttribute('data-block-id')
+        if (!blockId) return
+        const range = sel.getRangeAt(0)
+        const preRange = document.createRange()
+        preRange.setStart(blockEl, 0)
+        preRange.setEnd(range.startContainer, range.startOffset)
+        const startOffset = preRange.toString().length
+        const endOffset = startOffset + text.length
+        const rect = range.getBoundingClientRect()
+        setHighlightMenuPos({ x: rect.left + rect.width / 2, y: rect.top - 10 })
+        setPendingSelection({ blockId, start: startOffset, end: endOffset, text })
+        setShowHighlightMenu(true)
+      }, 500)
+    }
+    document.addEventListener('selectionchange', onSelChange)
+    return () => {
+      document.removeEventListener('selectionchange', onSelChange)
+      clearTimeout(timeout)
+    }
+  }, [focusMode, showSettings, pageNumber])
+
   // ★ 남은 시간용 경과 시간 타이머
   useEffect(() => {
     const timer = setInterval(() => {
@@ -1163,7 +1199,7 @@ export default function ReflowViewer({
 
       {/* ━━━ 텍스트 본문 ━━━ */}
       <div ref={contentRef} className="flex-1 overflow-y-auto" style={{ backgroundColor: themeStyle.bg, userSelect: 'text', WebkitUserSelect: 'text' as any }}
-        onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={() => { handleTouchEnd(); setTimeout(handleTextSelection, 300) }} onMouseDown={handleMouseDown} onClick={handleClick} onMouseUp={handleTextSelection}>
+        onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onMouseDown={handleMouseDown} onClick={handleClick} onMouseUp={handleTextSelection}>
         <div style={{ maxWidth: currentMargin.maxW, margin: '0 auto' }} className={`${currentMargin.px} py-8`}>
 
           {unsupported && !isEpub && (
@@ -1317,7 +1353,7 @@ export default function ReflowViewer({
 
       {/* ━━━ 하이라이트 색상 선택 팝업 ━━━ */}
       {showHighlightMenu && pendingSelection && (
-        <div className="fixed z-50 flex items-center gap-1 px-2 py-1.5 rounded-xl shadow-lg border"
+        <div className="fixed z-[70] flex items-center gap-1 px-2 py-1.5 rounded-xl shadow-lg border"
           style={{
             left: Math.min(highlightMenuPos.x - 60, window.innerWidth - 140),
             top: Math.max(highlightMenuPos.y - 45, 10),
