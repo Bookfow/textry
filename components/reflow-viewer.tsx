@@ -85,7 +85,7 @@ function isBrokenText(text: string): boolean {
 function isHtmlContent(text: string): boolean {
   if (!text) return false
   // <p>, <p style=...>, <h1>~<h3>, <figure>, <strong> 태그가 있으면 HTML
-  return /<(p|h[1-6]|figure|div|br|img|strong|em)[s>/]/i.test(text)
+  return /<(p|h[1-6]|figure|div|br|img|strong|em)[\s>/]/i.test(text)
 }
 
 // ━━━ 블록 타입 ━━━
