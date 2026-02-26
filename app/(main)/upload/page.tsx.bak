@@ -73,6 +73,8 @@ import { CATEGORIES } from '@/lib/categories'
 import { LANGUAGES } from '@/lib/languages'
 import { FileText, Upload as UploadIcon, LogIn, Palette } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { convertPdfToReflow } from '@/lib/pdf-to-reflow'
+import type { ImageUploadCallback } from '@/lib/pdf-to-reflow'
 
 const WebtoonUploadForm = dynamic(() => import('@/components/webtoon-upload-form'), { ssr: false })
 import { useToast } from '@/components/toast'
@@ -382,13 +384,76 @@ export default function UploadPage() {
 
       if (isPdf && pdfDoc && docData?.id) {
         try {
-          setProgressMessage('텍스트 추출 중...')
-          let scanPageCount = 0; const checkPages = Math.min(3, pageCount)
-          for (let i = 1; i <= checkPages; i++) { try { const page = await pdfDoc.getPage(i); const ops = await page.getOperatorList(); let hasImage = false; let textOpCount = 0; for (let j = 0; j < ops.fnArray.length; j++) { const fn = ops.fnArray[j]; if (fn === 85 || fn === 82) hasImage = true; if (fn === 44 || fn === 45) textOpCount++ }; if (hasImage && textOpCount < 5) scanPageCount++ } catch {} }
-          const isScannedPdf = scanPageCount >= checkPages
-          if (isScannedPdf) { const rows: any[] = []; for (let i = 1; i <= pageCount; i++) { rows.push({ document_id: docData.id, page_number: i, text_content: `(${i}페이지: 스캔 이미지)` }); if (rows.length >= 50 || i === pageCount) { await supabase.from('document_pages_text').insert(rows); rows.length = 0 } }; setProgressMessage('스캔 PDF 감지') }
-          else { const batchSize = 10; const rows: any[] = []; for (let i = 1; i <= pageCount; i++) { try { const page = await pdfDoc.getPage(i); const textContent = await page.getTextContent(); const text = extractPageText(textContent.items as any[]); rows.push({ document_id: docData.id, page_number: i, text_content: text }); if (rows.length >= batchSize || i === pageCount) { await supabase.from('document_pages_text').insert(rows); rows.length = 0 }; setProgress(70 + Math.round((i / pageCount) * 25)); setProgressMessage(`텍스트 추출 중... ${i}/${pageCount}`) } catch (pageErr) { console.warn(`${i}페이지 실패:`, pageErr) } } }
-        } catch (extractErr) { console.warn('텍스트 추출 전체 실패:', extractErr) }
+          setProgressMessage('PDF 리플로우 변환 중...')
+
+          // 이미지 Storage 업로드 콜백
+          const imageUploader: ImageUploadCallback = async (blob: Blob, fileName: string) => {
+            const storagePath = `${user.id}/pdf-images/${docData.id}/${fileName}`
+            const { error: imgUploadErr } = await supabase.storage
+              .from('documents')
+              .upload(storagePath, blob, { contentType: blob.type })
+            if (imgUploadErr) throw imgUploadErr
+            const { data: urlData } = supabase.storage
+              .from('documents')
+              .getPublicUrl(storagePath)
+            return urlData.publicUrl
+          }
+
+          // 새 변환 엔진으로 리플로우 변환 (텍스트 + 이미지)
+          const reflowPages = await convertPdfToReflow(
+            pdfDoc,
+            (stage, progressValue) => {
+              setProgress(70 + Math.round(progressValue * 0.25))
+              setProgressMessage(stage)
+            },
+            imageUploader
+          )
+
+          // document_pages_text에 저장
+          const batchSize = 10
+          const rows: any[] = []
+          for (let i = 0; i < reflowPages.length; i++) {
+            rows.push({
+              document_id: docData.id,
+              page_number: reflowPages[i].pageNumber,
+              text_content: reflowPages[i].textContent,
+            })
+            if (rows.length >= batchSize || i === reflowPages.length - 1) {
+              await supabase.from('document_pages_text').insert(rows)
+              rows.length = 0
+            }
+            setProgress(70 + Math.round(((i + 1) / reflowPages.length) * 25))
+            setProgressMessage(`리플로우 페이지 저장... ${i + 1}/${reflowPages.length}`)
+          }
+
+          // 리플로우 페이지 수로 page_count 업데이트
+          if (reflowPages.length > 0) {
+            await supabase.from('documents')
+              .update({ page_count: reflowPages.length })
+              .eq('id', docData.id)
+          }
+
+          setProgressMessage('PDF 리플로우 변환 완료!')
+        } catch (convertErr) {
+          console.warn('PDF 리플로우 변환 실패, 기존 방식으로 폴백:', convertErr)
+          // ━━━ 폴백: 기존 extractPageText 방식 ━━━
+          try {
+            const batchSize = 10; const rows: any[] = []
+            for (let i = 1; i <= pageCount; i++) {
+              try {
+                const page = await pdfDoc.getPage(i)
+                const textContent = await page.getTextContent()
+                const text = extractPageText(textContent.items as any[])
+                rows.push({ document_id: docData.id, page_number: i, text_content: text })
+                if (rows.length >= batchSize || i === pageCount) {
+                  await supabase.from('document_pages_text').insert(rows); rows.length = 0
+                }
+                setProgress(70 + Math.round((i / pageCount) * 25))
+                setProgressMessage(`텍스트 추출 중... ${i}/${pageCount}`)
+              } catch (pageErr) { console.warn(`${i}페이지 실패:`, pageErr) }
+            }
+          } catch (fallbackErr) { console.warn('폴백 텍스트 추출도 실패:', fallbackErr) }
+        }
       }
 
       // EPUB 챕터 저장 (기존 epub + 변환된 epub 모두)
