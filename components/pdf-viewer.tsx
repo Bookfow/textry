@@ -96,7 +96,7 @@ function LazyPage({ pageNum, width, height, frameStyle, frameStyleDark }: {
           </div>
         </>
       ) : (
-        <div style={{ width: width + 24, height: height + 24 }}
+        <div style={{ width, height }}
           className="bg-[#EEE4E1]/30 dark:bg-[#2E2620]/30 rounded-sm flex items-center justify-center">
           <span className="text-xs text-[#9C8B7A]">{pageNum}</span>
         </div>
@@ -175,7 +175,7 @@ export default function PDFViewer({
     const screenHeight = containerRef.current?.clientHeight || window.innerHeight
     const sidePanelWidth = showSidePanel ? (screenWidth < 640 ? 0 : 380) : 0
     const controlBarHeight = 0
-    const frameSize = 24
+    const frameSize = 0
 
     const availableWidth = screenWidth - sidePanelWidth
     const availableHeight = screenHeight - controlBarHeight
@@ -525,19 +525,15 @@ export default function PDFViewer({
   }
 
   const frameStyle: React.CSSProperties = {
-    borderWidth: '12px',
-    borderStyle: 'solid',
-    borderImage: 'linear-gradient(135deg, #8b6529 0%, #6b4820 20%, #9a7035 40%, #5c3a18 60%, #7a5525 80%, #6b4820 100%) 1',
-    boxShadow: 'inset 0 0 10px rgba(80,40,5,0.3), 0 6px 24px rgba(0,0,0,0.5)',
-    borderRadius: '2px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+    borderRadius: '4px',
+    overflow: 'hidden',
   }
 
   const frameStyleDark: React.CSSProperties = {
-    borderWidth: '12px',
-    borderStyle: 'solid',
-    borderImage: 'linear-gradient(135deg, #6b4820 0%, #4a3010 20%, #7a5525 40%, #3d2508 60%, #5c3a18 80%, #4a3010 100%) 1',
-    boxShadow: 'inset 0 0 10px rgba(60,30,5,0.25), 0 6px 24px rgba(0,0,0,0.7)',
-    borderRadius: '2px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
+    borderRadius: '4px',
+    overflow: 'hidden',
   }
 
   const bookFrameStyle: React.CSSProperties = { ...frameStyle }
