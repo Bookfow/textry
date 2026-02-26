@@ -486,6 +486,30 @@ export default function UploadPage() {
                 setProgressMessage(`텍스트 추출 중... ${i}/${pageCount}`)
               } catch (pageErr) { console.warn(`${i}페이지 실패:`, pageErr) }
             }
+            // ★ PDF 폴백 텍스트도 document_blocks에 저장
+            try {
+              const pdfBlockRows: any[] = []
+              const { data: pdfTexts } = await supabase
+                .from('document_pages_text')
+                .select('page_number, text_content')
+                .eq('document_id', docData.id)
+                .order('page_number', { ascending: true })
+              if (pdfTexts) {
+                for (const pt of pdfTexts) {
+                  pdfBlockRows.push({
+                    document_id: docData.id,
+                    block_id: `p${String(pt.page_number).padStart(3, '0')}_b000`,
+                    block_type: 'body',
+                    content: (pt.text_content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
+                    page_number: pt.page_number,
+                    block_order: 0,
+                  })
+                }
+                for (let b = 0; b < pdfBlockRows.length; b += 50) {
+                  await supabase.from('document_blocks').insert(pdfBlockRows.slice(b, b + 50))
+                }
+              }
+            } catch (pdfBlockErr) { console.warn('PDF document_blocks 저장 실패 (무시):', pdfBlockErr) }
           } catch (fallbackErr) { console.warn('폴백 텍스트 추출도 실패:', fallbackErr) }
         }
       }
@@ -515,6 +539,37 @@ export default function UploadPage() {
           if (allPages.length !== epubData.chapters.length) {
             await supabase.from('documents').update({ page_count: allPages.length }).eq('id', docData.id)
           }
+          // ★ EPUB 분할 결과도 document_blocks에 저장
+          try {
+            const splitBlockRows: any[] = []
+            for (let i = 0; i < allPages.length; i++) {
+              const pageNum = i + 1
+              const text = allPages[i]
+              const parts = text.split('\n\n')
+              let blockOrder = 0
+              for (const part of parts) {
+                const trimmed = part.trim()
+                if (!trimmed) continue
+                let blockType = 'body'
+                let content = trimmed
+                if (trimmed.startsWith('<h1>') && trimmed.endsWith('</h1>')) { blockType = 'heading1'; content = trimmed.slice(4, -5) }
+                else if (trimmed.startsWith('<h2>') && trimmed.endsWith('</h2>')) { blockType = 'heading2'; content = trimmed.slice(4, -5) }
+                else if (trimmed.startsWith('<h3>') && trimmed.endsWith('</h3>')) { blockType = 'heading3'; content = trimmed.slice(4, -5) }
+                else if (trimmed === '<hr>') { blockType = 'separator'; content = '' }
+                splitBlockRows.push({
+                  document_id: docData.id,
+                  block_id: `p${String(pageNum).padStart(3, '0')}_b${String(blockOrder).padStart(3, '0')}`,
+                  block_type: blockType,
+                  content: content,
+                  page_number: pageNum,
+                  block_order: blockOrder++,
+                })
+              }
+            }
+            for (let b = 0; b < splitBlockRows.length; b += 50) {
+              await supabase.from('document_blocks').insert(splitBlockRows.slice(b, b + 50))
+            }
+          } catch (splitBlockErr) { console.warn('EPUB분할 document_blocks 저장 실패 (무시):', splitBlockErr) }
         } catch (extractErr) { console.warn('챕터 저장 실패:', extractErr) }
       }
 
