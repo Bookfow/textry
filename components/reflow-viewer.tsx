@@ -285,6 +285,7 @@ export default function ReflowViewer({
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const mouseDownPosRef = useRef<{ x: number; y: number } | null>(null)
 
   // ★ 하이라이트 로드
   useEffect(() => {
@@ -687,8 +688,19 @@ export default function ReflowViewer({
     setShowHighlightMenu(true)
   }
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    mouseDownPosRef.current = { x: e.clientX, y: e.clientY }
+  }
+
   const handleClick = (e: React.MouseEvent) => {
     if (showSettings) return
+    // 드래그했으면(텍스트 선택 시도) 페이지 이동 무시
+    const mdp = mouseDownPosRef.current
+    if (mdp) {
+      const dist = Math.sqrt((e.clientX - mdp.x) ** 2 + (e.clientY - mdp.y) ** 2)
+      if (dist > 5) { mouseDownPosRef.current = null; return }
+    }
+    mouseDownPosRef.current = null
     // 텍스트 선택 중이면 페이지 이동 무시
     const sel = window.getSelection()
     if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) return
@@ -1150,8 +1162,8 @@ export default function ReflowViewer({
       )}
 
       {/* ━━━ 텍스트 본문 ━━━ */}
-      <div ref={contentRef} className="flex-1 overflow-y-auto cursor-pointer" style={{ backgroundColor: themeStyle.bg }}
-        onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={() => { handleTouchEnd(); setTimeout(handleTextSelection, 300) }} onClick={handleClick} onMouseUp={handleTextSelection}>
+      <div ref={contentRef} className="flex-1 overflow-y-auto" style={{ backgroundColor: themeStyle.bg, userSelect: 'text', WebkitUserSelect: 'text' as any }}
+        onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={() => { handleTouchEnd(); setTimeout(handleTextSelection, 300) }} onMouseDown={handleMouseDown} onClick={handleClick} onMouseUp={handleTextSelection}>
         <div style={{ maxWidth: currentMargin.maxW, margin: '0 auto' }} className={`${currentMargin.px} py-8`}>
 
           {unsupported && !isEpub && (
