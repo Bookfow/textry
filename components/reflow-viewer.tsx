@@ -811,7 +811,7 @@ export default function ReflowViewer({
       const hlText = text.slice(hlStart, hl.end_offset)
       if (hlText) {
         parts.push(
-          <mark key={hl.id} style={{ background: `linear-gradient(180deg, transparent 45%, ${HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow} 45%, ${HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow} 90%, transparent 90%)`, borderRadius: '1px', padding: '2px 1px', cursor: 'pointer', boxDecorationBreak: 'clone' as any, WebkitBoxDecorationBreak: 'clone' as any }}
+          <mark key={hl.id} style={{ backgroundColor: HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow, color: 'inherit', borderRadius: '3px', padding: '1px 2px', cursor: 'pointer', boxDecorationBreak: 'clone' as any, WebkitBoxDecorationBreak: 'clone' as any }}
             onClick={(e) => { e.stopPropagation(); setEditingHighlight(hl); setMemoText(hl.memo || ''); setShowMemoModal(true) }}>
             {hlText}{hl.memo ? ' 💬' : ''}
           </mark>
