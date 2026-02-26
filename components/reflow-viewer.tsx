@@ -280,6 +280,7 @@ export default function ReflowViewer({
   const [editingHighlight, setEditingHighlight] = useState<Highlight | null>(null)
   const [memoText, setMemoText] = useState('')
   const [showMemoModal, setShowMemoModal] = useState(false)
+  const [showHighlightPanel, setShowHighlightPanel] = useState(false)
 
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
@@ -883,8 +884,58 @@ export default function ReflowViewer({
         </div>
       )}
 
+      {/* ━━━ 하이라이트 목록 패널 ━━━ */}
+      {showHighlightPanel && (
+        <div className="fixed inset-0 z-[60] flex justify-end">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowHighlightPanel(false)} />
+          <div className="relative w-80 max-w-[85vw] h-full flex flex-col shadow-2xl" style={{ backgroundColor: themeStyle.bg }}>
+            <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: themeStyle.border }}>
+              <h3 className="font-semibold text-sm" style={{ color: themeStyle.headingColor }}>
+                형광펜 ({highlights.length})
+              </h3>
+              <button onClick={() => setShowHighlightPanel(false)} className="p-1 rounded hover:opacity-70" style={{ color: themeStyle.muted }}>✕</button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {highlights.length > 0 ? (
+                [...highlights].sort((a, b) => a.page_number - b.page_number || a.start_offset - b.start_offset).map((hl) => (
+                  <div key={hl.id}
+                    className="px-4 py-3 border-b cursor-pointer transition-colors hover:opacity-80"
+                    style={{ borderColor: themeStyle.border }}
+                    onClick={() => { goToPage(hl.page_number); setShowHighlightPanel(false) }}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+                        style={{ backgroundColor: HIGHLIGHT_COLORS[hl.color], color: themeStyle.text }}>
+                        {pageLabel} {hl.page_number}
+                      </span>
+                      <button onClick={(e) => { e.stopPropagation(); deleteHighlight(hl.id) }}
+                        className="p-1 rounded hover:bg-red-500/10" style={{ color: '#ef4444' }}>
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <p className="text-xs leading-relaxed" style={{ color: themeStyle.text }}>
+                      {hl.selected_text.length > 80 ? hl.selected_text.slice(0, 80) + '...' : hl.selected_text}
+                    </p>
+                    {hl.memo && (
+                      <p className="text-[10px] mt-1.5 flex items-center gap-1" style={{ color: themeStyle.muted }}>
+                        💬 {hl.memo.length > 50 ? hl.memo.slice(0, 50) + '...' : hl.memo}
+                      </p>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 py-12 text-center">
+                  <Highlighter className="w-8 h-8 mx-auto mb-3" style={{ color: themeStyle.border }} />
+                  <p className="text-sm mb-1" style={{ color: themeStyle.muted }}>형광펜이 없습니다</p>
+                  <p className="text-xs" style={{ color: themeStyle.muted }}>텍스트를 길게 선택하면<br />형광펜을 추가할 수 있어요</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ━━━ 미니멀 상단 바 ━━━ */}
-      <div className="grid grid-cols-4 px-2 py-2 border-b max-w-lg mx-auto w-full" style={{ borderColor: themeStyle.border }}>
+      <div className="grid grid-cols-5 px-2 py-2 border-b max-w-lg mx-auto w-full" style={{ borderColor: themeStyle.border }}>
         <button onClick={() => setShowToc(!showToc)}
           className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
           style={{ color: showToc ? '#3b82f6' : themeStyle.muted }}>
@@ -903,9 +954,15 @@ export default function ReflowViewer({
           <span className="text-xs">집중</span>
         </button>
 
-        <div className="flex items-center justify-center">
-          <Highlighter className="w-3.5 h-3.5" style={{ color: highlights.filter(h => h.page_number === pageNumber).length > 0 ? '#f59e0b' : themeStyle.muted }} />
-        </div>
+        <button onClick={() => setShowHighlightPanel(!showHighlightPanel)}
+          className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all"
+          style={{
+            color: showHighlightPanel ? '#f59e0b' : highlights.filter(h => h.page_number === pageNumber).length > 0 ? '#f59e0b' : themeStyle.muted,
+            backgroundColor: showHighlightPanel ? 'rgba(245,158,11,0.1)' : 'transparent',
+          }}>
+          <Highlighter className="w-4 h-4" />
+          <span className="text-xs">형광펜</span>
+        </button>
 
         <div className="flex items-center justify-center">
           <span className="text-xs font-medium" style={{ color: themeStyle.muted }}>
