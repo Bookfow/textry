@@ -111,10 +111,10 @@ interface Highlight {
 }
 
 const HIGHLIGHT_COLORS: Record<string, string> = {
-  yellow: 'rgba(255, 235, 59, 0.35)',
-  green: 'rgba(76, 175, 80, 0.35)',
-  blue: 'rgba(66, 165, 245, 0.35)',
-  pink: 'rgba(236, 64, 122, 0.35)',
+  yellow: 'rgba(255, 213, 79, 0.4)',
+  green: 'rgba(129, 199, 132, 0.38)',
+  blue: 'rgba(100, 181, 246, 0.38)',
+  pink: 'rgba(240, 98, 146, 0.38)',
 }
 
 // ━━━ 폰트 크기 기반 블록 분류 ━━━
@@ -775,7 +775,7 @@ export default function ReflowViewer({
       const hlText = text.slice(hlStart, hl.end_offset)
       if (hlText) {
         parts.push(
-          <mark key={hl.id} style={{ backgroundColor: HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow, borderRadius: '2px', padding: '0 1px', cursor: 'pointer' }}
+          <mark key={hl.id} style={{ backgroundColor: HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow, borderRadius: '3px', padding: '1px 2px', cursor: 'pointer', boxDecorationBreak: 'clone' as any, WebkitBoxDecorationBreak: 'clone' as any, textShadow: 'none' }}
             onClick={(e) => { e.stopPropagation(); setEditingHighlight(hl); setMemoText(hl.memo || ''); setShowMemoModal(true) }}>
             {hlText}{hl.memo ? ' 💬' : ''}
           </mark>
@@ -1327,7 +1327,7 @@ export default function ReflowViewer({
           {Object.entries(HIGHLIGHT_COLORS).map(([color, bg]) => (
             <button key={color} onClick={() => saveHighlight(color)}
               className="w-7 h-7 rounded-full border-2 transition-transform hover:scale-110"
-              style={{ backgroundColor: bg, borderColor: color === 'yellow' ? '#f59e0b' : color === 'green' ? '#22c55e' : color === 'blue' ? '#3b82f6' : '#ec4899' }} />
+              style={{ backgroundColor: bg, borderColor: color === 'yellow' ? '#fbbf24' : color === 'green' ? '#86efac' : color === 'blue' ? '#93c5fd' : '#f9a8d4' }} />
           ))}
           <button onClick={() => { setShowHighlightMenu(false); setPendingSelection(null); window.getSelection()?.removeAllRanges() }}
             className="w-7 h-7 rounded-full flex items-center justify-center" style={{ color: themeStyle.muted }}>
