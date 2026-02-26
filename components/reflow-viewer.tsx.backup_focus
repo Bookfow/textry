@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { pdfjs } from 'react-pdf'
-import { ChevronLeft, ChevronRight, Minus, Plus, List, AlignLeft, AlignJustify, Settings2, Focus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Minus, Plus, List, AlignLeft, AlignJustify, Settings2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
@@ -242,10 +242,6 @@ export default function ReflowViewer({
   const [showToc, setShowToc] = useState(false)
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | ''>('')
 
-  // ★ 집중 모드 (문단 포커스)
-  const [focusMode, setFocusMode] = useState(false)
-  const [focusedBlock, setFocusedBlock] = useState<number | null>(null)
-
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -263,14 +259,13 @@ export default function ReflowViewer({
         if (s.marginSize) setMarginSize(s.marginSize)
         if (s.letterSpacing !== undefined) setLetterSpacing(s.letterSpacing)
         if (s.textAlign) setTextAlign(s.textAlign)
-        if (s.focusMode !== undefined) setFocusMode(s.focusMode)
       }
     } catch {}
   }, [])
 
   useEffect(() => {
     try {
-      localStorage.setItem('textry_reflow_settings', JSON.stringify({ fontSize, lineHeight, font, theme, marginSize, letterSpacing, textAlign, focusMode }))
+      localStorage.setItem('textry_reflow_settings', JSON.stringify({ fontSize, lineHeight, font, theme, marginSize, letterSpacing, textAlign }))
     } catch {}
   }, [fontSize, lineHeight, font, theme, marginSize, letterSpacing, textAlign])
 
@@ -495,7 +490,6 @@ export default function ReflowViewer({
   useEffect(() => {
     if (contentRef.current) {
       contentRef.current.scrollTop = 0
-      setFocusedBlock(null)
       if (slideDirection) {
         const el = contentRef.current
         el.style.transition = 'none'
@@ -515,8 +509,6 @@ export default function ReflowViewer({
 
   const handleClick = (e: React.MouseEvent) => {
     if (showSettings) return
-    // 집중 모드에서 빈 영역 클릭 시 포커스 해제
-    if (focusMode) { setFocusedBlock(null); return }
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
     const clickX = e.clientX - rect.left
     if (clickX < rect.width / 2) goToPrev()
@@ -551,60 +543,35 @@ export default function ReflowViewer({
   }
 
   // ━━━ 블록 렌더링 ━━━
-  // ★ 집중 모드: 블록별 opacity 계산
-  const getBlockOpacity = (index: number): number => {
-    if (!focusMode) return 1
-    if (focusedBlock === null) return 0.35
-    if (index === focusedBlock) return 1
-    const distance = Math.abs(index - focusedBlock)
-    if (distance === 1) return 0.25
-    return 0.12
-  }
-
-  const handleBlockClick = (index: number, e: React.MouseEvent) => {
-    if (!focusMode) return
-    e.stopPropagation()
-    setFocusedBlock(prev => prev === index ? null : index)
-  }
-
   const renderBlock = (block: TextBlock, index: number) => {
-    const opacity = getBlockOpacity(index)
-    const focusTransition = focusMode ? 'opacity 0.3s ease, transform 0.3s ease' : 'none'
-    const focusScale = focusMode && focusedBlock === index ? 'scale(1.005)' : 'scale(1)'
-    const focusCursor = focusMode ? 'cursor-pointer' : ''
-
     switch (block.type) {
       case 'heading1':
         return (
-          <h2 key={index} className={`font-bold mt-10 mb-4 ${focusCursor}`}
-            onClick={(e) => handleBlockClick(index, e)}
-            style={{ fontSize: `${Math.round(fontSize * 1.6)}px`, lineHeight: 1.3, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px`, opacity, transition: focusTransition, transform: focusScale }}>
+          <h2 key={index} className="font-bold mt-10 mb-4"
+            style={{ fontSize: `${Math.round(fontSize * 1.6)}px`, lineHeight: 1.3, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px` }}>
             {block.content}
           </h2>
         )
       case 'heading2':
         return (
-          <h3 key={index} className={`font-bold mt-8 mb-3 ${focusCursor}`}
-            onClick={(e) => handleBlockClick(index, e)}
-            style={{ fontSize: `${Math.round(fontSize * 1.35)}px`, lineHeight: 1.35, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px`, opacity, transition: focusTransition, transform: focusScale }}>
+          <h3 key={index} className="font-bold mt-8 mb-3"
+            style={{ fontSize: `${Math.round(fontSize * 1.35)}px`, lineHeight: 1.35, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px` }}>
             {block.content}
           </h3>
         )
       case 'heading3':
         return (
-          <h4 key={index} className={`font-semibold mt-6 mb-2 ${focusCursor}`}
-            onClick={(e) => handleBlockClick(index, e)}
-            style={{ fontSize: `${Math.round(fontSize * 1.15)}px`, lineHeight: 1.4, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px`, opacity, transition: focusTransition, transform: focusScale }}>
+          <h4 key={index} className="font-semibold mt-6 mb-2"
+            style={{ fontSize: `${Math.round(fontSize * 1.15)}px`, lineHeight: 1.4, color: themeStyle.headingColor, fontFamily: fontStyle.family, letterSpacing: `${letterSpacing * 0.5}px` }}>
             {block.content}
           </h4>
         )
       case 'separator':
-        return <div key={index} className="my-6" style={{ borderTop: `1px solid ${themeStyle.border}`, opacity, transition: focusTransition }} />
+        return <div key={index} className="my-6" style={{ borderTop: `1px solid ${themeStyle.border}` }} />
       default:
         return (
-          <p key={index} className={`mb-4 ${focusCursor}`}
-            onClick={(e) => handleBlockClick(index, e)}
-            style={{ textIndent: '1em', fontFamily: fontStyle.family, fontSize: `${fontSize}px`, lineHeight: lineHeight, color: themeStyle.text, wordBreak: 'keep-all', overflowWrap: 'break-word', letterSpacing: `${letterSpacing * 0.5}px`, textAlign: textAlign, opacity, transition: focusTransition, transform: focusScale }}>
+          <p key={index} className="mb-4"
+            style={{ textIndent: '1em', fontFamily: fontStyle.family, fontSize: `${fontSize}px`, lineHeight: lineHeight, color: themeStyle.text, wordBreak: 'keep-all', overflowWrap: 'break-word', letterSpacing: `${letterSpacing * 0.5}px`, textAlign: textAlign }}>
             {block.content}
           </p>
         )
@@ -688,20 +655,9 @@ export default function ReflowViewer({
           <span className="text-xs">목차</span>
         </button>
 
-        <div className="flex items-center gap-2">
-          <button onClick={() => { setFocusMode(!focusMode); if (focusMode) setFocusedBlock(null) }}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg transition-all"
-            style={{
-              color: focusMode ? '#3b82f6' : themeStyle.muted,
-              backgroundColor: focusMode ? 'rgba(59,130,246,0.1)' : 'transparent',
-            }}
-            title="집중 모드">
-            <Focus className="w-4 h-4" />
-          </button>
-          <span className="text-xs font-medium" style={{ color: themeStyle.muted }}>
-            {pageNumber} / {numPages} {pageLabel}
-          </span>
-        </div>
+        <span className="text-xs font-medium" style={{ color: themeStyle.muted }}>
+          {pageNumber} / {numPages} {pageLabel}
+        </span>
 
         <button onClick={() => setShowSettings(!showSettings)}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
