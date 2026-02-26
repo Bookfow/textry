@@ -329,7 +329,7 @@ export default function ReflowViewer({
         const startOffset = preRange.toString().length
         const endOffset = startOffset + text.length
         const rect = range.getBoundingClientRect()
-        setHighlightMenuPos({ x: rect.left + rect.width / 2, y: rect.top - 10 })
+        setHighlightMenuPos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 })
         setPendingSelection({ blockId, start: startOffset, end: endOffset, text })
         setShowHighlightMenu(true)
       }, 500)
@@ -719,7 +719,7 @@ export default function ReflowViewer({
 
     // 메뉴 위치
     const rect = range.getBoundingClientRect()
-    setHighlightMenuPos({ x: rect.left + rect.width / 2, y: rect.top - 10 })
+    setHighlightMenuPos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 })
     setPendingSelection({ blockId, start: startOffset, end: endOffset, text })
     setShowHighlightMenu(true)
   }
@@ -1356,7 +1356,7 @@ export default function ReflowViewer({
         <div className="fixed z-[70] flex items-center gap-1 px-2 py-1.5 rounded-xl shadow-lg border"
           style={{
             left: Math.min(highlightMenuPos.x - 60, window.innerWidth - 140),
-            top: Math.max(highlightMenuPos.y - 45, 10),
+            top: Math.min(highlightMenuPos.y, window.innerHeight - 50),
             backgroundColor: themeStyle.bg,
             borderColor: themeStyle.border,
           }}>
