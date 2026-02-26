@@ -35,6 +35,140 @@ function normalizePath(base: string, relative: string): string {
   return baseParts.join('/')
 }
 
+// ━━━ 문단 자동 분할 (p태그 없는 EPUB 대응) ━━━
+
+/**
+ * 텍스트를 검사해서 500자 이상 블록이 있으면 문장 단위로 분할
+ */
+function ensureParagraphs(text: string): string {
+  if (!text || text.trim().length === 0) return text
+
+  const blocks = text.split('\n\n')
+  const result: string[] = []
+
+  for (const block of blocks) {
+    const trimmed = block.trim()
+    if (!trimmed) continue
+
+    // 마크업 태그는 그대로 유지
+    if (trimmed.startsWith('<h1>') || trimmed.startsWith('<h2>') || trimmed.startsWith('<h3>') || trimmed === '<hr>') {
+      result.push(trimmed)
+      continue
+    }
+
+    // 500자 미만이면 그대로
+    if (trimmed.length < 500) {
+      result.push(trimmed)
+      continue
+    }
+
+    // 500자 이상이면 문장 단위 분할
+    const split = splitBySentences(trimmed)
+    result.push(split)
+  }
+
+  return result.join('\n\n')
+}
+
+/**
+ * "다." 기준으로 문장을 분리해서 280자/4문장마다 \n\n 삽입
+ */
+function splitBySentences(text: string): string {
+  // 한국어 종결어미 + 마침표/느낌표/물음표 패턴
+  const sentencePattern = /([가-힣a-zA-Z0-9\s,'"'""\-–—…·]+?(?:다|요|죠|음|임|함|됨|뇨|까|지|네|세|라|고|며)[.!?])\s*/g
+
+  const sentences: string[] = []
+  let lastIndex = 0
+  let match
+
+  while ((match = sentencePattern.exec(text)) !== null) {
+    const beforeMatch = text.slice(lastIndex, match.index).trim()
+    if (beforeMatch) {
+      if (sentences.length > 0) {
+        sentences[sentences.length - 1] += ' ' + beforeMatch
+      } else {
+        sentences.push(beforeMatch)
+      }
+    }
+    sentences.push(match[1].trim())
+    lastIndex = match.index + match[0].length
+  }
+
+  // 남은 텍스트
+  const remaining = text.slice(lastIndex).trim()
+  if (remaining) {
+    if (sentences.length > 0) {
+      sentences[sentences.length - 1] += ' ' + remaining
+    } else {
+      sentences.push(remaining)
+    }
+  }
+
+  // 문장이 충분하지 않으면 길이 기준 폴백
+  if (sentences.length < 3) {
+    return splitByLength(text, 280)
+  }
+
+  // 280자 또는 4문장마다 \n\n 삽입
+  const paragraphs: string[] = []
+  let current = ''
+  let sentCount = 0
+
+  for (const sentence of sentences) {
+    if (current && (current.length + sentence.length > 280 || sentCount >= 4)) {
+      paragraphs.push(current.trim())
+      current = ''
+      sentCount = 0
+    }
+    current += (current ? ' ' : '') + sentence
+    sentCount++
+  }
+  if (current.trim()) paragraphs.push(current.trim())
+
+  return paragraphs.join('\n\n')
+}
+
+/**
+ * "다." 패턴이 부족할 때 길이 기준으로 분할하는 폴백
+ */
+function splitByLength(text: string, target: number): string {
+  if (text.length <= target) return text
+
+  const paragraphs: string[] = []
+  let remaining = text
+
+  while (remaining.length > target) {
+    let splitPos = -1
+    // target 근처에서 마침표 찾기
+    for (let i = Math.min(target, remaining.length - 1); i >= Math.floor(target * 0.5); i--) {
+      if (remaining[i] === '.' || remaining[i] === '!' || remaining[i] === '?') {
+        splitPos = i + 1
+        break
+      }
+    }
+
+    // 마침표 못 찾으면 공백에서 자르기
+    if (splitPos === -1) {
+      for (let i = Math.min(target, remaining.length - 1); i >= Math.floor(target * 0.5); i--) {
+        if (remaining[i] === ' ' || remaining[i] === ',') {
+          splitPos = i + 1
+          break
+        }
+      }
+    }
+
+    // 그래도 못 찾으면 강제로 자르기
+    if (splitPos === -1) splitPos = target
+
+    paragraphs.push(remaining.slice(0, splitPos).trim())
+    remaining = remaining.slice(splitPos).trim()
+  }
+
+  if (remaining) paragraphs.push(remaining)
+
+  return paragraphs.join('\n\n')
+}
+
 // ━━━ HTML → 리플로우 마크업 변환 ━━━
 function htmlToReflowText(html: string): string {
   // DOMParser로 파싱 (XHTML 우선, 실패 시 HTML)
@@ -119,7 +253,12 @@ function htmlToReflowText(html: string): string {
 
   // 빈 항목 제거 + 중복 제거
   const filtered = parts.filter(p => p.trim().length > 0)
-  return filtered.join('\n\n')
+  let result = filtered.join('\n\n')
+
+  // ★ 문단 자동 분할 적용 (p태그 없는 EPUB 대응)
+  result = ensureParagraphs(result)
+
+  return result
 }
 
 // ━━━ 메인 파서 ━━━
@@ -182,7 +321,6 @@ export async function parseEpub(arrayBuffer: ArrayBuffer): Promise<EpubData> {
         const label = np.querySelector('navLabel text')?.textContent?.trim()
         const src = np.querySelector('content')?.getAttribute('src')
         if (label && src) {
-          // src에서 # 앵커 제거
           const srcFile = src.split('#')[0]
           chapterTitles.set(srcFile, label)
         }
@@ -227,10 +365,8 @@ export async function parseEpub(arrayBuffer: ArrayBuffer): Promise<EpubData> {
 
     const content = htmlToReflowText(xhtml)
 
-    // 빈 챕터 건너뛰기 (목차 페이지 등은 내용이 거의 없을 수 있음)
     if (!content || content.replace(/\s/g, '').length < 5) continue
 
-    // 챕터 제목: TOC에서 찾기 → 없으면 content 첫 h1/h2에서 추출 → 없으면 "챕터 N"
     let chapterTitle = chapterTitles.get(href) || ''
     if (!chapterTitle) {
       const h1Match = content.match(/<h1>(.*?)<\/h1>/)
