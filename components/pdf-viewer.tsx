@@ -133,6 +133,9 @@ export default function PDFViewer({
   const panStartRef = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null)
   const panTranslateRef = useRef({ x: 0, y: 0 })
 
+  // PC 마우스 드래그 pan
+  const mouseDragRef = useRef(false)
+
   const pdfContentRef = useRef<HTMLDivElement>(null)
 
   const scaleRef = useRef(scale)
@@ -394,6 +397,64 @@ export default function PDFViewer({
     }
   }, [])
 
+  // ━━━ PC: 확대 상태에서 마우스 휠 + 드래그로 이동 ━━━
+  useEffect(() => {
+    const overlay = touchOverlayRef.current
+    if (!overlay) return
+
+    const handleWheel = (e: WheelEvent) => {
+      if (scaleRef.current <= 1.05) return
+      e.preventDefault()
+      const speed = 1.5
+      const newX = panTranslateRef.current.x - e.deltaX * speed
+      const newY = panTranslateRef.current.y - e.deltaY * speed
+      panTranslateRef.current = { x: newX, y: newY }
+      applyPanTransform(newX, newY)
+    }
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (scaleRef.current <= 1.05) return
+      if (e.button !== 0) return
+      e.preventDefault()
+      mouseDragRef.current = true
+      panStartRef.current = {
+        x: e.clientX, y: e.clientY,
+        tx: panTranslateRef.current.x, ty: panTranslateRef.current.y,
+      }
+      overlay.style.cursor = 'grabbing'
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!mouseDragRef.current || !panStartRef.current) return
+      e.preventDefault()
+      const dx = e.clientX - panStartRef.current.x
+      const dy = e.clientY - panStartRef.current.y
+      const newX = panStartRef.current.tx + dx
+      const newY = panStartRef.current.ty + dy
+      panTranslateRef.current = { x: newX, y: newY }
+      applyPanTransform(newX, newY)
+    }
+
+    const handleMouseUp = () => {
+      if (!mouseDragRef.current) return
+      mouseDragRef.current = false
+      panStartRef.current = null
+      if (overlay) overlay.style.cursor = ''
+    }
+
+    overlay.addEventListener('wheel', handleWheel, { passive: false })
+    overlay.addEventListener('mousedown', handleMouseDown)
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      overlay.removeEventListener('wheel', handleWheel)
+      overlay.removeEventListener('mousedown', handleMouseDown)
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
+
   // ━━━ 확대 상태에서 오버레이 밖 핀치줌 보조 ━━━
   useEffect(() => {
     const container = containerRef.current
@@ -493,7 +554,7 @@ export default function PDFViewer({
           <div
             ref={touchOverlayRef}
             className="absolute inset-0 z-20"
-            style={{ touchAction: 'none' }}
+            style={{ touchAction: 'none', cursor: scale > 1.05 ? 'grab' : 'default' }}
             onClick={handlePageAreaClick}
           />
         )}
