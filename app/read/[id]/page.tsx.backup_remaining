@@ -1000,23 +1000,6 @@ export default function ReadPage() {
 
   const progress = numPages > 0 ? (pageNumber / numPages) * 100 : 0
 
-  // ★ 남은 시간 계산
-  const getRemainingTime = (): string => {
-    if (numPages <= 1 || pageNumber <= 1 || totalTime < 10) return ''
-    const pagesRead = pageNumber - 1
-    const secPerPage = totalTime / pagesRead
-    const pagesLeft = numPages - pageNumber
-    const secLeft = Math.round(secPerPage * pagesLeft)
-    if (secLeft < 60) return '1분 미만'
-    const minLeft = Math.round(secLeft / 60)
-    if (minLeft < 60) return `약 ${minLeft}분 남음`
-    const hours = Math.floor(minLeft / 60)
-    const mins = minLeft % 60
-    if (mins === 0) return `약 ${hours}시간 남음`
-    return `약 ${hours}시간 ${mins}분 남음`
-  }
-  const remainingTime = getRemainingTime()
-
   const viewerFilterStyle: React.CSSProperties = viewMode === 'reflow' ? {} : {
     filter: [
       brightness !== 100 ? `brightness(${brightness / 100})` : '',
@@ -1216,13 +1199,8 @@ export default function ReadPage() {
       {/* ━━━ 상단 오버레이 ━━━ */}
       {showControls ? (
         <div className="absolute top-0 left-0 right-0 z-50">
-        <div className="h-1 bg-[#2E2620] w-full relative">
+        <div className="h-1 bg-[#2E2620] w-full">
           <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] transition-all duration-300" style={{ width: `${progress}%` }} />
-          {remainingTime && (
-            <span className="absolute right-2 -bottom-4 text-[10px] text-[#9C8B7A] pointer-events-none select-none">
-              {remainingTime}
-            </span>
-          )}
         </div>
 
         <div className="bg-[#241E18] border-b border-[#3A302A] px-2 sm:px-3 py-1.5 overflow-hidden">
@@ -1453,7 +1431,6 @@ export default function ReadPage() {
                 <span>조회수 {document?.view_count.toLocaleString()}회</span>
                 <span>·</span>
                 <span>읽기 시간: {Math.floor(totalTime / 60)}분 {totalTime % 60}초</span>
-                {remainingTime && <><span>·</span><span>⏱ {remainingTime}</span></>}
                 {isEpub && <span>· 📚 EPUB</span>}
               </div>
             </div>

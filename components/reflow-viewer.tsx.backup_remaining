@@ -246,22 +246,9 @@ export default function ReflowViewer({
   const [focusMode, setFocusMode] = useState(false)
   const [focusedBlock, setFocusedBlock] = useState<number | null>(null)
 
-  // ★ 남은 시간 표시
-  const [elapsedSec, setElapsedSec] = useState(0)
-  const elapsedRef = useRef(0)
-
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-
-  // ★ 남은 시간용 경과 시간 타이머
-  useEffect(() => {
-    const timer = setInterval(() => {
-      elapsedRef.current += 10
-      setElapsedSec(elapsedRef.current)
-    }, 10000)
-    return () => clearInterval(timer)
-  }, [])
 
   // ━━━ localStorage 복원 ━━━
   useEffect(() => {
@@ -1083,22 +1070,7 @@ export default function ReflowViewer({
           </div>
           <div className="flex justify-between mt-1">
             <span className="text-[10px]" style={{ color: themeStyle.muted }}>{pageNumber} / {numPages} {pageLabel}</span>
-            <span className="text-[10px]" style={{ color: themeStyle.muted }}>
-              {(() => {
-                if (numPages <= 1 || pageNumber <= 1 || elapsedSec < 10) return `${numPages > 1 ? Math.round(((pageNumber - 1) / (numPages - 1)) * 100) : 0}%`
-                const pagesRead = pageNumber - 1
-                const secPerPage = elapsedSec / pagesRead
-                const pagesLeft = numPages - pageNumber
-                const secLeft = Math.round(secPerPage * pagesLeft)
-                const pct = numPages > 1 ? Math.round(((pageNumber - 1) / (numPages - 1)) * 100) : 0
-                if (secLeft < 60) return `${pct}% · 1분 미만`
-                const minLeft = Math.round(secLeft / 60)
-                if (minLeft < 60) return `${pct}% · 약 ${minLeft}분 남음`
-                const hours = Math.floor(minLeft / 60)
-                const mins = minLeft % 60
-                return mins === 0 ? `${pct}% · 약 ${hours}시간 남음` : `${pct}% · 약 ${hours}시간 ${mins}분 남음`
-              })()}
-            </span>
+            <span className="text-[10px]" style={{ color: themeStyle.muted }}>{numPages > 1 ? Math.round(((pageNumber - 1) / (numPages - 1)) * 100) : 0}%</span>
           </div>
         </div>
       )}
