@@ -742,10 +742,10 @@ export default function ReflowViewer({
     if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) return
     // 집중 모드에서 빈 영역 클릭 시 포커스 해제
     if (focusMode) { setFocusedBlock(null); return }
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const clickX = e.clientX - rect.left
-    if (clickX < rect.width / 2) goToPrev()
-    else goToNext()
+    const clickX = e.clientX
+    const w = window.innerWidth
+    if (clickX < w * 0.45) goToPrev()
+    else if (clickX > w * 0.55) goToNext()
   }
 
   const themeStyle = THEMES[theme]
