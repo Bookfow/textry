@@ -1252,7 +1252,7 @@ export default function ReadPage() {
         <div className="absolute top-0 left-0 right-0 z-50">
         <div className="h-1 bg-[#2E2620] w-full relative">
           <div className="h-full bg-gradient-to-r from-[#B2967D] to-[#E6BEAE] transition-all duration-300" style={{ width: `${progress}%` }} />
-          {remainingTime && (
+          {remainingTime && !isEpub && viewMode !== 'reflow' && (
             <span className="absolute right-2 -bottom-4 text-[10px] text-[#9C8B7A] pointer-events-none select-none">
               {remainingTime}
             </span>
