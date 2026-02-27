@@ -992,7 +992,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 
       {/* ━━━ 페이지네이션 본문 (CSS column) ━━━ */}
       <div
-        className={`flex-1 relative ${focusMode ? 'epub-focus-active' : ''}`}
+        className={`flex-1 min-h-0 relative ${focusMode ? 'epub-focus-active' : ''}`}
         style={{ backgroundColor: themeStyle.bg, userSelect: 'text', WebkitUserSelect: 'text' as any }}
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown} onClick={handleClick} onMouseUp={handleTextSelection}
