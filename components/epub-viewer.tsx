@@ -630,10 +630,10 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
       }
       return
     }
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const clickX = e.clientX - rect.left
-    if (clickX < rect.width / 3) goToPrevPage()
-    else if (clickX > rect.width * 2 / 3) goToNextPage()
+    const clickX = e.clientX
+    const w = window.innerWidth
+    if (clickX < w * 0.4) goToPrevPage()
+    else if (clickX > w * 0.6) goToNextPage()
   }
 
   // 텍스트 선택 → 하이라이트
