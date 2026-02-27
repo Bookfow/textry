@@ -397,6 +397,9 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
             if (h) title = h.textContent?.trim().slice(0, 60) || ''
             if (!title) title = textContent.slice(0, 50) + (textContent.length > 50 ? '...' : '')
 
+            // EPUB 원본 style/link 태그 제거 (우리 CSS와 충돌 방지)
+            body.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => el.remove())
+
             parsedChapters.push({ id: spine.id, href: spine.href, title, html: body.innerHTML, order: parsedChapters.length })
           } catch (err) { console.warn('챕터 파싱 실패:', spine.href, err) }
           setLoadProgress(60 + Math.round((i / spineItems.length) * 30))
@@ -701,8 +704,10 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   const chapterStyledHtml = useMemo(() => {
     if (!currentChapterData) return ''
     return `<style>
-.epub-page-content { all: initial; display: block; user-select: text; -webkit-user-select: text; cursor: text; }
-.epub-page-content * { max-width: 100%; box-sizing: border-box; }
+.epub-page-content { all: initial; display: block; user-select: text !important; -webkit-user-select: text !important; cursor: text; }
+.epub-page-content * { max-width: 100%; box-sizing: border-box; user-select: text !important; -webkit-user-select: text !important; }
+.epub-page-content ::selection { background: rgba(59,130,246,0.4); color: inherit; }
+.epub-page-content ::-moz-selection { background: rgba(59,130,246,0.4); color: inherit; }
 .epub-page-content {
   font-family: ${fontStyle.family}; font-size: ${fontSize}px; line-height: ${lineHeight};
   color: ${themeStyle.text}; word-break: keep-all; overflow-wrap: break-word;
