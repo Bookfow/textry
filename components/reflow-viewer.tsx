@@ -258,7 +258,7 @@ export default function ReflowViewer({
   const [theme, setTheme] = useState<ReflowTheme>('dark')
   const [showSettings, setShowSettings] = useState(false)
 
-  const [marginSize, setMarginSize] = useState(2)
+  const [marginSize, setMarginSize] = useState(40)
   const [letterSpacing, setLetterSpacing] = useState(0)
   const [textAlign, setTextAlign] = useState<ReflowAlign>('left')
   const [showToc, setShowToc] = useState(false)
@@ -360,7 +360,14 @@ export default function ReflowViewer({
         if (s.lineHeight) setLineHeight(s.lineHeight)
         if (s.font) setFont(s.font)
         if (s.theme) setTheme(s.theme)
-        if (s.marginSize) setMarginSize(s.marginSize)
+        if (s.marginSize) {
+          if (s.marginSize <= 4) {
+            const map: Record<number, number> = { 1: 12, 2: 40, 3: 56, 4: 64 }
+            setMarginSize(map[s.marginSize] || 40)
+          } else {
+            setMarginSize(s.marginSize)
+          }
+        }
         if (s.letterSpacing !== undefined) setLetterSpacing(s.letterSpacing)
         if (s.textAlign) setTextAlign(s.textAlign)
         if (s.focusMode !== undefined) setFocusMode(s.focusMode)
@@ -891,14 +898,8 @@ export default function ReflowViewer({
     return items
   })()
 
-  // ━━━ 여백 크기 매핑 ━━━
-  const MARGIN_MAP: Record<number, { maxW: string; px: string; label: string }> = {
-    1: { maxW: '56rem', px: 'px-3 sm:px-4', label: '좁게' },
-    2: { maxW: '42rem', px: 'px-6 sm:px-10', label: '보통' },
-    3: { maxW: '36rem', px: 'px-8 sm:px-14', label: '넓게' },
-    4: { maxW: '28rem', px: 'px-10 sm:px-16', label: '아주 넓게' },
-  }
-  const currentMargin = MARGIN_MAP[marginSize] || MARGIN_MAP[2]
+  // ━━━ 여백 크기 ━━━
+  const REFLOW_MAX_WIDTH = '42rem'
 
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: themeStyle.pageBg }}>
@@ -1127,11 +1128,11 @@ export default function ReflowViewer({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-[10px] font-medium" style={{ color: themeStyle.muted }}>여백</p>
-                    <span className="text-[10px]" style={{ color: themeStyle.text }}>
-                      {marginSize === 1 ? '좁게' : marginSize === 2 ? '보통' : marginSize === 3 ? '넓게' : '아주 넓게'}
+                    <span className="text-[10px] font-mono" style={{ color: themeStyle.text }}>
+                      {marginSize}px
                     </span>
                   </div>
-                  <input type="range" min={1} max={4} step={1} value={marginSize}
+                  <input type="range" min={8} max={80} step={4} value={marginSize}
                     onChange={(e) => setMarginSize(Number(e.target.value))}
                     className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500"
                     style={{ backgroundColor: themeStyle.border }} />
@@ -1139,11 +1140,11 @@ export default function ReflowViewer({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-[10px] font-medium" style={{ color: themeStyle.muted }}>자간</p>
-                    <span className="text-[10px]" style={{ color: themeStyle.text }}>
-                      {letterSpacing === -1 ? '좁게' : letterSpacing === 0 ? '보통' : letterSpacing === 1 ? '넓게' : '아주 넓게'}
+                    <span className="text-[10px] font-mono" style={{ color: themeStyle.text }}>
+                      {(letterSpacing * 0.5).toFixed(1)}px
                     </span>
                   </div>
-                  <input type="range" min={-1} max={2} step={1} value={letterSpacing}
+                  <input type="range" min={-2} max={4} step={0.5} value={letterSpacing}
                     onChange={(e) => setLetterSpacing(Number(e.target.value))}
                     className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500"
                     style={{ backgroundColor: themeStyle.border }} />
@@ -1185,7 +1186,7 @@ export default function ReflowViewer({
       {/* ━━━ 텍스트 본문 ━━━ */}
       <div ref={contentRef} className="flex-1 overflow-y-auto" style={{ backgroundColor: themeStyle.bg, userSelect: 'text', WebkitUserSelect: 'text' as any }}
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onMouseDown={handleMouseDown} onClick={handleClick} onMouseUp={handleTextSelection}>
-        <div style={{ maxWidth: currentMargin.maxW, margin: '0 auto' }} className={`${currentMargin.px} py-8`}>
+        <div style={{ maxWidth: REFLOW_MAX_WIDTH, margin: '0 auto', padding: `2rem ${marginSize}px` }}>
 
           {unsupported && !isEpub && (
             <div className="mb-6 rounded-xl p-5 text-center" style={{
