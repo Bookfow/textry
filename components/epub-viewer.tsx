@@ -225,6 +225,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   const touchEndRef = useRef<{ x: number; y: number } | null>(null)
   const paginationContainerRef = useRef<HTMLDivElement>(null)
   const contentColumnRef = useRef<HTMLDivElement>(null)
+  const selectionOverlayRef = useRef<HTMLDivElement>(null)
   const mouseDownPosRef = useRef<{ x: number; y: number } | null>(null)
   const blobUrlsRef = useRef<string[]>([])
   const [columnWidthPx, setColumnWidthPx] = useState(0) // CSS column-width에 사용할 px 값
@@ -501,7 +502,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     return () => window.removeEventListener('resize', handleResize)
   }, [recalcPages])
 
-  // 페이지 전환 (margin-left — transform은 ::selection 렌더링을 깨뜨림)
+  // 페이지 전환 (translateX)
   useEffect(() => {
     const colEl = contentColumnRef.current
     if (!colEl || columnWidthPx <= 0) return
@@ -509,18 +510,18 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     if (slideDirection) {
       colEl.style.transition = 'none'
       colEl.style.opacity = '0'
-      colEl.style.marginLeft = `${slideDirection === 'left' ? '-' : ''}40px`
+      colEl.style.transform = `translateX(${slideDirection === 'left' ? '40px' : '-40px'})`
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          colEl.style.transition = 'margin-left 0.25s ease-out, opacity 0.25s ease-out'
+          colEl.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out'
           colEl.style.opacity = '1'
-          colEl.style.marginLeft = `-${pageInChapter * columnWidthPx}px`
+          colEl.style.transform = `translateX(-${pageInChapter * columnWidthPx}px)`
         })
       })
       setSlideDirection('')
     } else {
-      colEl.style.transition = 'margin-left 0.2s ease-out'
-      colEl.style.marginLeft = `-${pageInChapter * columnWidthPx}px`
+      colEl.style.transition = 'transform 0.2s ease-out'
+      colEl.style.transform = `translateX(-${pageInChapter * columnWidthPx}px)`
     }
   }, [pageInChapter, slideDirection, columnWidthPx])
 
@@ -694,6 +695,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
       if (!error && data) setHighlights(prev => [...prev, data])
     } catch {}
     setShowHighlightMenu(false); setPendingSelection(null); window.getSelection()?.removeAllRanges()
+    if (selectionOverlayRef.current) selectionOverlayRef.current.innerHTML = ''
   }
 
   const deleteHighlight = async (id: string) => {
@@ -892,6 +894,63 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     return () => { colEl.removeEventListener('click', handleMarkClick) }
   }, [highlights])
 
+  // ━━━ JS 선택 오버레이 (CSS columns에서 ::selection이 안 보이므로) ━━━
+  useEffect(() => {
+    const overlay = selectionOverlayRef.current
+    const container = paginationContainerRef.current
+    if (!overlay || !container) return
+
+    const updateOverlay = () => {
+      const sel = window.getSelection()
+      if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+        overlay.innerHTML = ''
+        return
+      }
+
+      try {
+        const range = sel.getRangeAt(0)
+        const rects = range.getClientRects()
+        const containerRect = container.getBoundingClientRect()
+
+        let html = ''
+        for (let i = 0; i < rects.length; i++) {
+          const r = rects[i]
+          // 컨테이너 영역 내의 rect만 표시
+          if (r.width < 1 || r.height < 1) continue
+          if (r.right < containerRect.left || r.left > containerRect.right) continue
+          if (r.bottom < containerRect.top || r.top > containerRect.bottom) continue
+
+          const left = Math.max(0, r.left - containerRect.left)
+          const top = r.top - containerRect.top
+          const width = Math.min(r.right, containerRect.right) - Math.max(r.left, containerRect.left)
+          const height = r.height
+
+          html += `<div style="position:absolute;left:${left}px;top:${top}px;width:${width}px;height:${height}px;background:rgba(59,130,246,0.35);pointer-events:none;border-radius:2px;"></div>`
+        }
+        overlay.innerHTML = html
+      } catch {
+        overlay.innerHTML = ''
+      }
+    }
+
+    // selectionchange + mouseup으로 오버레이 업데이트
+    const onSelChange = () => requestAnimationFrame(updateOverlay)
+    const onMouseUp = () => {
+      // mouseup 후 약간 딜레이 후 오버레이 제거 (하이라이트 메뉴 표시 후)
+      setTimeout(() => {
+        const sel = window.getSelection()
+        if (!sel || sel.isCollapsed) overlay.innerHTML = ''
+      }, 100)
+    }
+
+    document.addEventListener('selectionchange', onSelChange)
+    document.addEventListener('mouseup', onMouseUp)
+    return () => {
+      document.removeEventListener('selectionchange', onSelChange)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+  }, [])
+
   // ━━━ 글로벌 스타일 주입 (::selection + EPUB 인라인 스타일 오버라이드) ━━━
   useEffect(() => {
     const styleId = 'epub-viewer-global-styles'
@@ -904,14 +963,11 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     styleEl.textContent = `
       .epub-page-content::selection,
       .epub-page-content *::selection {
-        background-color: rgba(59,130,246,0.5) !important;
-        color: white !important;
-        -webkit-text-fill-color: white !important;
+        background-color: rgba(59,130,246,0.4) !important;
       }
       .epub-page-content::-moz-selection,
       .epub-page-content *::-moz-selection {
-        background-color: rgba(59,130,246,0.5) !important;
-        color: white !important;
+        background-color: rgba(59,130,246,0.4) !important;
       }
       .epub-page-content mark[data-hl-color="yellow"] { background-color: rgba(250, 220, 50, 0.3) !important; }
       .epub-page-content mark[data-hl-color="green"] { background-color: rgba(100, 220, 100, 0.25) !important; }
@@ -1124,7 +1180,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
         <div style={{ maxWidth: currentMargin.maxW, margin: '0 auto', padding: `2rem ${currentMargin.px}px`, height: '100%' }}>
           <div
             ref={paginationContainerRef}
-            className="overflow-hidden"
+            className="overflow-hidden relative"
             style={{ height: '100%' }}
           >
         {currentChapterData ? (
@@ -1136,6 +1192,8 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
         ) : (
           <p className="text-center py-8" style={{ color: themeStyle.muted }}>(표시할 내용 없음)</p>
         )}
+            {/* 선택 오버레이 */}
+            <div ref={selectionOverlayRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 5 }} />
           </div>
         </div>
       </div>
@@ -1148,7 +1206,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
             <button key={color} onClick={() => saveHighlight(color)} className="w-7 h-7 rounded-full border-2 hover:scale-110 transition-transform"
               style={{ backgroundColor: bg, borderColor: color === 'yellow' ? '#fbbf24' : color === 'green' ? '#86efac' : color === 'blue' ? '#93c5fd' : '#f9a8d4' }} />
           ))}
-          <button onClick={() => { setShowHighlightMenu(false); setPendingSelection(null); window.getSelection()?.removeAllRanges() }}
+          <button onClick={() => { setShowHighlightMenu(false); setPendingSelection(null); window.getSelection()?.removeAllRanges(); if (selectionOverlayRef.current) selectionOverlayRef.current.innerHTML = '' }}
             className="w-7 h-7 rounded-full flex items-center justify-center" style={{ color: themeStyle.muted }}><X className="w-3.5 h-3.5" /></button>
         </div>
       )}
