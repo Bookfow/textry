@@ -1175,22 +1175,7 @@ export default function ReflowViewer({
                 </div>
               </div>
 
-              {/* 미리보기 */}
-              <div className="rounded-xl p-4 border" style={{ borderColor: themeStyle.border, backgroundColor: themeStyle.pageBg }}>
-                <p className="text-[10px] mb-2" style={{ color: themeStyle.muted }}>미리보기</p>
-                <p style={{
-                  fontFamily: FONTS[font].family,
-                  fontSize: `${fontSize}px`,
-                  lineHeight: lineHeight,
-                  color: themeStyle.text,
-                  letterSpacing: `${letterSpacing * 0.5}px`,
-                  textAlign: textAlign,
-                  textIndent: '1em',
-                  wordBreak: 'keep-all',
-                }}>
-                  가나다라마바사 아자차카타파하. The quick brown fox jumps over the lazy dog. 읽기 설정을 변경하면 이 텍스트에 바로 반영됩니다.
-                </p>
-              </div>
+
 
             </div>
           </div>
