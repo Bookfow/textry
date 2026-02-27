@@ -190,7 +190,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   const [pageInChapter, setPageInChapter] = useState(0)
   const [totalPagesInChapter, setTotalPagesInChapter] = useState(1)
   const [chapterPageCounts, setChapterPageCounts] = useState<number[]>([])
-  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | ''>('')
+  const slideDirectionRef = useRef<'left' | 'right' | ''>('')
 
   // ─── 뷰어 설정 ───
   const [fontSize, setFontSize] = useState(18)
@@ -502,43 +502,46 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     return () => window.removeEventListener('resize', handleResize)
   }, [recalcPages])
 
-  // 페이지 전환 (translateX)
+  // 페이지 전환 (translateX + fade)
   useEffect(() => {
     const colEl = contentColumnRef.current
     if (!colEl || columnWidthPx <= 0) return
 
-    if (slideDirection) {
+    const direction = slideDirectionRef.current
+    slideDirectionRef.current = '' // 즉시 소비 (상태 변경 없음 → 리렌더 없음)
+
+    const targetX = `-${pageInChapter * columnWidthPx}px`
+
+    if (direction) {
+      // 페이드 아웃 → 위치 변경 → 페이드 인
       colEl.style.transition = 'none'
       colEl.style.opacity = '0'
-      colEl.style.transform = `translateX(${slideDirection === 'left' ? '40px' : '-40px'})`
+      colEl.style.transform = `translateX(${targetX})`
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          colEl.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out'
-          colEl.style.opacity = '1'
-          colEl.style.transform = `translateX(-${pageInChapter * columnWidthPx}px)`
-        })
+        colEl.style.transition = 'opacity 0.2s ease-out'
+        colEl.style.opacity = '1'
       })
-      setSlideDirection('')
     } else {
-      colEl.style.transition = 'transform 0.2s ease-out'
-      colEl.style.transform = `translateX(-${pageInChapter * columnWidthPx}px)`
+      // 직접 점프 (설정 변경, 초기 로드 등)
+      colEl.style.transition = 'none'
+      colEl.style.transform = `translateX(${targetX})`
     }
-  }, [pageInChapter, slideDirection, columnWidthPx])
+  }, [pageInChapter, columnWidthPx])
 
   // ━━━ 네비게이션 ━━━
   const goToNextPage = useCallback(() => {
     if (pageInChapter < totalPagesInChapter - 1) {
-      setSlideDirection('left'); setPageInChapter(prev => prev + 1)
+      slideDirectionRef.current = 'left'; setPageInChapter(prev => prev + 1)
     } else if (currentChapterIdx < chapters.length - 1) {
-      setSlideDirection('left'); setCurrentChapterIdx(prev => prev + 1); setPageInChapter(0)
+      slideDirectionRef.current = 'left'; setCurrentChapterIdx(prev => prev + 1); setPageInChapter(0)
     }
   }, [pageInChapter, totalPagesInChapter, currentChapterIdx, chapters.length])
 
   const goToPrevPage = useCallback(() => {
     if (pageInChapter > 0) {
-      setSlideDirection('right'); setPageInChapter(prev => prev - 1)
+      slideDirectionRef.current = 'right'; setPageInChapter(prev => prev - 1)
     } else if (currentChapterIdx > 0) {
-      setSlideDirection('right')
+      slideDirectionRef.current = 'right'
       const prevIdx = currentChapterIdx - 1
       setCurrentChapterIdx(prevIdx)
       setPageInChapter(Math.max(0, (chapterPageCounts[prevIdx] || 1) - 1))
