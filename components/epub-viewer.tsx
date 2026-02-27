@@ -508,23 +508,23 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     if (!colEl || columnWidthPx <= 0) return
 
     const direction = slideDirectionRef.current
-    slideDirectionRef.current = '' // 즉시 소비 (상태 변경 없음 → 리렌더 없음)
+    slideDirectionRef.current = ''
 
-    const targetX = `-${pageInChapter * columnWidthPx}px`
+    const targetX = pageInChapter * columnWidthPx
 
     if (direction) {
-      // 페이드 아웃 → 위치 변경 → 페이드 인
+      const offset = direction === 'left' ? 40 : -40
       colEl.style.transition = 'none'
       colEl.style.opacity = '0'
-      colEl.style.transform = `translateX(${targetX})`
+      colEl.style.transform = `translateX(-${targetX - offset}px)`
       requestAnimationFrame(() => {
-        colEl.style.transition = 'opacity 0.2s ease-out'
+        colEl.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out'
         colEl.style.opacity = '1'
+        colEl.style.transform = `translateX(-${targetX}px)`
       })
     } else {
-      // 직접 점프 (설정 변경, 초기 로드 등)
       colEl.style.transition = 'none'
-      colEl.style.transform = `translateX(${targetX})`
+      colEl.style.transform = `translateX(-${targetX}px)`
     }
   }, [pageInChapter, columnWidthPx])
 
