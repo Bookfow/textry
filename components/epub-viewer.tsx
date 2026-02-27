@@ -992,13 +992,14 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 
       {/* ━━━ 페이지네이션 본문 (CSS column) ━━━ */}
       <div
-        className={`flex-1 overflow-hidden relative ${focusMode ? 'epub-focus-active' : ''}`}
+        className={`flex-1 relative ${focusMode ? 'epub-focus-active' : ''}`}
         style={{ backgroundColor: themeStyle.bg, userSelect: 'text', WebkitUserSelect: 'text' as any }}
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown} onClick={handleClick} onMouseUp={handleTextSelection}
       >
         <div
           ref={paginationContainerRef}
+          className="overflow-hidden"
           style={{ maxWidth: currentMargin.maxW, margin: '0 auto', padding: `2rem ${currentMargin.px}px`, height: '100%' }}
         >
         {currentChapterData ? (
