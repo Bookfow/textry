@@ -68,11 +68,11 @@ const HIGHLIGHT_COLORS: Record<string, string> = {
   pink: 'rgba(245, 130, 180, 0.3)',
 }
 
-const MARGIN_MAP: Record<number, { px: number; label: string }> = {
-  1: { px: 12, label: '좁게' },
-  2: { px: 40, label: '보통' },
-  3: { px: 56, label: '넓게' },
-  4: { px: 64, label: '아주 넓게' },
+const MARGIN_MAP: Record<number, { px: number; maxW: string; label: string }> = {
+  1: { px: 12, maxW: '56rem', label: '좁게' },
+  2: { px: 40, maxW: '42rem', label: '보통' },
+  3: { px: 56, maxW: '36rem', label: '넓게' },
+  4: { px: 64, maxW: '28rem', label: '아주 넓게' },
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -992,12 +992,15 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 
       {/* ━━━ 페이지네이션 본문 (CSS column) ━━━ */}
       <div
-        ref={paginationContainerRef}
         className={`flex-1 overflow-hidden relative ${focusMode ? 'epub-focus-active' : ''}`}
-        style={{ backgroundColor: themeStyle.bg, userSelect: 'text', WebkitUserSelect: 'text' as any, padding: `2rem ${currentMargin.px}px` }}
+        style={{ backgroundColor: themeStyle.bg, userSelect: 'text', WebkitUserSelect: 'text' as any }}
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown} onClick={handleClick} onMouseUp={handleTextSelection}
       >
+        <div
+          ref={paginationContainerRef}
+          style={{ maxWidth: currentMargin.maxW, margin: '0 auto', padding: `2rem ${currentMargin.px}px`, height: '100%' }}
+        >
         {currentChapterData ? (
           <div
             ref={contentColumnRef}
@@ -1007,6 +1010,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
         ) : (
           <p className="text-center py-8" style={{ color: themeStyle.muted }}>(표시할 내용 없음)</p>
         )}
+        </div>
       </div>
 
       {/* ━━━ 하이라이트 색상 팝업 ━━━ */}
