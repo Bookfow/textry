@@ -606,12 +606,18 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   }
 
   // 클릭 좌/우
-  const handleMouseDown = (e: React.MouseEvent) => { mouseDownPosRef.current = { x: e.clientX, y: e.clientY } }
+  const handleMouseDown = (e: React.MouseEvent) => { mouseDownPosRef.current = { x: e.clientX, y: e.clientY, t: Date.now() } as any }
   const handleClick = (e: React.MouseEvent) => {
     if (showSettings || showToc || showHighlightPanel || showMemoModal) return
-    const mdp = mouseDownPosRef.current
+    const mdp = mouseDownPosRef.current as any
+    const isQuickClick = mdp?.t && Date.now() - mdp.t < 300
     if (mdp) { if (Math.sqrt((e.clientX - mdp.x) ** 2 + (e.clientY - mdp.y) ** 2) > 5) { mouseDownPosRef.current = null; return } }
     mouseDownPosRef.current = null
+    // 빠른 클릭 시 잔여 선택 정리
+    if (isQuickClick) {
+      window.getSelection()?.removeAllRanges()
+      setShowHighlightMenu(false)
+    }
     const sel = window.getSelection()
     if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) return
     // 집중 모드: 빈 영역 클릭 시 포커스 해제만, 페이지 이동 안 함
@@ -631,6 +637,9 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   // 텍스트 선택 → 하이라이트
   const handleTextSelection = () => {
     if (focusMode || showSettings) return
+    // 빠른 클릭(300ms 미만)은 페이지 넘김 → 하이라이트 무시
+    const mdp = mouseDownPosRef.current as any
+    if (mdp?.t && Date.now() - mdp.t < 300) return
     const sel = window.getSelection()
     if (!sel || sel.isCollapsed || !sel.toString().trim()) { setShowHighlightMenu(false); return }
     const text = sel.toString().trim(); if (text.length < 2) return
