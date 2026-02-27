@@ -252,14 +252,17 @@ export default function HomePage() {
           {top5.map((doc, index) => (
             <Link key={doc.id} href={`/document/${doc.id}`}>
               <div className="group flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] hover:shadow-md hover:border-[#B2967D]/50 hover:-translate-y-1 transition-all duration-200 cursor-pointer">
-                <span className={`text-2xl font-black flex-shrink-0 w-8 text-center ${
-                  index === 0 ? 'text-amber-500' :
-                  index === 1 ? 'text-[#9C8B7A]' :
-                  index === 2 ? 'text-[#B2967D]' :
-                  'text-[#E7D8C9] dark:text-[#3A302A]'
-                }`}>
-                  {index + 1}
-                </span>
+                <div className="flex-shrink-0 w-8 flex items-center justify-center">
+                  {index === 0 ? (
+                    <Crown className="w-6 h-6 text-amber-500" />
+                  ) : (
+                    <span className={`text-2xl font-black ${
+                      index === 1 ? 'text-[#9C8B7A]' :
+                      index === 2 ? 'text-[#B2967D]' :
+                      'text-[#E7D8C9] dark:text-[#3A302A]'
+                    }`}>{index + 1}</span>
+                  )}
+                </div>
                 <div className="relative w-10 h-14 rounded-md overflow-hidden flex-shrink-0 bg-[#EEE4E1] dark:bg-[#2E2620]">
                   {doc.thumbnail_url ? (
                     <img src={doc.thumbnail_url} alt="" className="w-full h-full object-cover" />
