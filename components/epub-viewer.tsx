@@ -501,7 +501,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     return () => window.removeEventListener('resize', handleResize)
   }, [recalcPages])
 
-  // 페이지 전환 (translateX)
+  // 페이지 전환 (margin-left — transform은 ::selection 렌더링을 깨뜨림)
   useEffect(() => {
     const colEl = contentColumnRef.current
     if (!colEl || columnWidthPx <= 0) return
@@ -509,18 +509,18 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     if (slideDirection) {
       colEl.style.transition = 'none'
       colEl.style.opacity = '0'
-      colEl.style.transform = `translateX(${slideDirection === 'left' ? '40px' : '-40px'})`
+      colEl.style.marginLeft = `${slideDirection === 'left' ? '-' : ''}40px`
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          colEl.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out'
+          colEl.style.transition = 'margin-left 0.25s ease-out, opacity 0.25s ease-out'
           colEl.style.opacity = '1'
-          colEl.style.transform = `translateX(-${pageInChapter * columnWidthPx}px)`
+          colEl.style.marginLeft = `-${pageInChapter * columnWidthPx}px`
         })
       })
       setSlideDirection('')
     } else {
-      colEl.style.transition = 'transform 0.2s ease-out'
-      colEl.style.transform = `translateX(-${pageInChapter * columnWidthPx}px)`
+      colEl.style.transition = 'margin-left 0.2s ease-out'
+      colEl.style.marginLeft = `-${pageInChapter * columnWidthPx}px`
     }
   }, [pageInChapter, slideDirection, columnWidthPx])
 
@@ -902,8 +902,17 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
       document.head.appendChild(styleEl)
     }
     styleEl.textContent = `
-      .epub-page-content ::selection { background: rgba(59,130,246,0.4) !important; color: inherit !important; }
-      .epub-page-content ::-moz-selection { background: rgba(59,130,246,0.4) !important; color: inherit !important; }
+      .epub-page-content::selection,
+      .epub-page-content *::selection {
+        background-color: rgba(59,130,246,0.5) !important;
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+      }
+      .epub-page-content::-moz-selection,
+      .epub-page-content *::-moz-selection {
+        background-color: rgba(59,130,246,0.5) !important;
+        color: white !important;
+      }
       .epub-page-content mark[data-hl-color="yellow"] { background-color: rgba(250, 220, 50, 0.3) !important; }
       .epub-page-content mark[data-hl-color="green"] { background-color: rgba(100, 220, 100, 0.25) !important; }
       .epub-page-content mark[data-hl-color="blue"] { background-color: rgba(90, 180, 250, 0.25) !important; }
