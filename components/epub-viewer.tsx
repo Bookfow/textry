@@ -833,6 +833,13 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 <div class="epub-page-content" data-block-id="${chapterBlockId}">${contentHtml}</div>`
   }, [currentChapterData, fontSize, lineHeight, fontStyle.family, themeStyle, letterSpacing, textAlign, theme, currentChapterIdx, highlights])
 
+  // ━━━ innerHTML 수동 관리 (React 리렌더 시 DOM 교체 방지 → 선택 유지) ━━━
+  useEffect(() => {
+    const colEl = contentColumnRef.current
+    if (!colEl) return
+    colEl.innerHTML = chapterStyledHtml
+  }, [chapterStyledHtml])
+
   // ━━━ 집중 모드: DOM 직접 이벤트 처리 ━━━
   useEffect(() => {
     const colEl = contentColumnRef.current
@@ -1187,7 +1194,6 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
           <div
             ref={contentColumnRef}
             style={{ columnWidth: columnWidthPx > 0 ? `${columnWidthPx}px` : '100vw', columnGap: 0, columnFill: 'auto', height: '100%' }}
-            dangerouslySetInnerHTML={{ __html: chapterStyledHtml }}
           />
         ) : (
           <p className="text-center py-8" style={{ color: themeStyle.muted }}>(표시할 내용 없음)</p>
