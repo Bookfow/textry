@@ -473,11 +473,14 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     if (contentWidth <= 0) return
 
     // DOM에 직접 적용 후 즉시 측정 (React state 대기 없이)
+    const gap = 40
     colEl.style.columnWidth = `${contentWidth}px`
-    setColumnWidthPx(contentWidth)
+    colEl.style.columnGap = `${gap}px`
+    setColumnWidthPx(contentWidth + gap)
 
     // 강제 리플로우 후 측정
-    const totalPages = Math.max(1, Math.round(colEl.scrollWidth / contentWidth))
+    const pageWidth = contentWidth + gap
+    const totalPages = Math.max(1, Math.round(colEl.scrollWidth / pageWidth))
     setTotalPagesInChapter(totalPages)
     setChapterPageCounts(prev => {
       const next = [...prev]
@@ -1200,7 +1203,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
         {currentChapterData ? (
           <div
             ref={contentColumnRef}
-            style={{ columnWidth: columnWidthPx > 0 ? `${columnWidthPx}px` : '100vw', columnGap: 0, columnFill: 'auto', height: '100%' }}
+            style={{ columnWidth: columnWidthPx > 0 ? `${columnWidthPx - 40}px` : '100vw', columnGap: '40px', columnFill: 'auto', height: '100%' }}
           />
         ) : (
           <p className="text-center py-8" style={{ color: themeStyle.muted }}>(표시할 내용 없음)</p>
