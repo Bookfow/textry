@@ -704,15 +704,16 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   const chapterStyledHtml = useMemo(() => {
     if (!currentChapterData) return ''
     return `<style>
-.epub-page-content { all: initial; display: block; user-select: text !important; -webkit-user-select: text !important; cursor: text; }
-.epub-page-content * { max-width: 100%; box-sizing: border-box; user-select: text !important; -webkit-user-select: text !important; }
-.epub-page-content ::selection { background: rgba(59,130,246,0.4); color: inherit; }
-.epub-page-content ::-moz-selection { background: rgba(59,130,246,0.4); color: inherit; }
 .epub-page-content {
+  display: block; margin: 0; padding: 0; border: 0;
   font-family: ${fontStyle.family}; font-size: ${fontSize}px; line-height: ${lineHeight};
   color: ${themeStyle.text}; word-break: keep-all; overflow-wrap: break-word;
   letter-spacing: ${letterSpacing * 0.5}px; text-align: ${textAlign};
+  user-select: text; -webkit-user-select: text; cursor: text;
 }
+.epub-page-content * { max-width: 100%; box-sizing: border-box; user-select: text !important; -webkit-user-select: text !important; }
+.epub-page-content ::selection { background: rgba(59,130,246,0.4); color: inherit; }
+.epub-page-content ::-moz-selection { background: rgba(59,130,246,0.4); color: inherit; }
 .epub-page-content h1,.epub-page-content h2,.epub-page-content h3,
 .epub-page-content h4,.epub-page-content h5,.epub-page-content h6 {
   color: ${themeStyle.headingColor}; font-family: ${fontStyle.family};
@@ -763,9 +764,8 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   opacity: 0.25 !important;
 }
 .epub-page-content mark[data-hl-id] {
-  color: inherit !important; border-radius: 3px; padding: 1px 2px; cursor: pointer;
+  color: inherit; border-radius: 3px; padding: 1px 2px; cursor: pointer;
   box-decoration-break: clone; -webkit-box-decoration-break: clone;
-  background: var(--hl-bg, rgba(255,255,0,0.4)) !important;
 }
 .epub-page-content mark[data-hl-id] .epub-hl-memo { font-size: 0.8em; }
 </style>
@@ -873,7 +873,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 
           const mark = document.createElement('mark')
           mark.setAttribute('data-hl-id', hl.id)
-          mark.style.setProperty('--hl-bg', HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow)
+          mark.style.backgroundColor = HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow
           range.surroundContents(mark)
         } catch {}
       }
