@@ -474,7 +474,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 
     // DOM에 직접 적용 후 즉시 측정 (React state 대기 없이)
     colEl.style.columnWidth = `${contentWidth}px`
-    container.scrollLeft = 0; container.scrollTop = 0 // 네이티브 스크롤 방지
+    container.scrollLeft = 0 // 네이티브 스크롤 방지
     setColumnWidthPx(contentWidth)
 
     // 강제 리플로우 후 측정
@@ -510,7 +510,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     if (!colEl || columnWidthPx <= 0) return
 
     // 네이티브 스크롤이 누적되는 것을 방지
-    if (container) { container.scrollLeft = 0; container.scrollTop = 0 }
+    if (container) container.scrollLeft = 0
 
     if (slideDirection) {
       colEl.style.transition = 'none'
@@ -518,7 +518,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
       colEl.style.transform = `translateX(${slideDirection === 'left' ? '40px' : '-40px'})`
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          if (container) { container.scrollLeft = 0; container.scrollTop = 0 }
+          if (container) container.scrollLeft = 0
           colEl.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out'
           colEl.style.opacity = '1'
           colEl.style.transform = `translateX(-${pageInChapter * columnWidthPx}px)`
@@ -534,26 +534,10 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   // 네이티브 스크롤 차단 (CSS columns가 overflow:hidden 내에서 스크롤되는 것 방지)
   useEffect(() => {
     const container = paginationContainerRef.current
-    const colEl = contentColumnRef.current
     if (!container) return
-    const blockScroll = (e: Event) => {
-      const el = e.currentTarget as HTMLElement
-      el.scrollLeft = 0
-      el.scrollTop = 0
-    }
-    // 포커스 시 브라우저 자동 스크롤 방지
-    const blockFocusScroll = () => {
-      if (container) { container.scrollLeft = 0; container.scrollTop = 0 }
-      if (colEl) { colEl.scrollLeft = 0; colEl.scrollTop = 0 }
-    }
+    const blockScroll = () => { container.scrollLeft = 0 }
     container.addEventListener('scroll', blockScroll)
-    colEl?.addEventListener('scroll', blockScroll)
-    container.addEventListener('focusin', blockFocusScroll)
-    return () => {
-      container.removeEventListener('scroll', blockScroll)
-      colEl?.removeEventListener('scroll', blockScroll)
-      container.removeEventListener('focusin', blockFocusScroll)
-    }
+    return () => container.removeEventListener('scroll', blockScroll)
   }, [])
 
   // ━━━ 네비게이션 ━━━
@@ -633,9 +617,6 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   // 클릭 좌/우
   const handleMouseDown = (e: React.MouseEvent) => { mouseDownPosRef.current = { x: e.clientX, y: e.clientY } }
   const handleClick = (e: React.MouseEvent) => {
-    // 브라우저가 클릭 대상으로 자동 스크롤하는 것을 즉시 리셋
-    const container = paginationContainerRef.current
-    if (container) { container.scrollLeft = 0; container.scrollTop = 0 }
     if (showSettings || showToc || showHighlightPanel || showMemoModal) return
     const mdp = mouseDownPosRef.current
     if (mdp) { if (Math.sqrt((e.clientX - mdp.x) ** 2 + (e.clientY - mdp.y) ** 2) > 5) { mouseDownPosRef.current = null; return } }
@@ -875,7 +856,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     if (!colEl) return
     colEl.innerHTML = chapterStyledHtml
     // 즉시 칼럼 재계산 (세로 레이아웃 깜빡임 방지)
-    if (container) { container.scrollLeft = 0; container.scrollTop = 0 }
+    if (container) container.scrollLeft = 0
     colEl.style.transform = `translateX(-${pageInChapter * columnWidthPx}px)`
     recalcPages()
   }, [chapterStyledHtml])
@@ -1220,7 +1201,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
       {/* ━━━ 페이지네이션 본문 (CSS column) ━━━ */}
       <div
         className={`flex-1 min-h-0 relative overflow-hidden ${focusMode ? 'epub-focus-active' : ''}`}
-        style={{ backgroundColor: themeStyle.bg, userSelect: 'text', WebkitUserSelect: 'text' as any, overscrollBehavior: 'none' as any }}
+        style={{ backgroundColor: themeStyle.bg, userSelect: 'text', WebkitUserSelect: 'text' as any }}
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown} onClick={handleClick} onMouseUp={handleTextSelection}
       >
@@ -1228,12 +1209,12 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
           <div
             ref={paginationContainerRef}
             className="overflow-hidden relative"
-            style={{ height: '100%', overscrollBehavior: 'none' }}
+            style={{ height: '100%' }}
           >
         {currentChapterData ? (
           <div
             ref={contentColumnRef}
-            style={{ columnWidth: columnWidthPx > 0 ? `${columnWidthPx}px` : '100vw', columnGap: 0, columnFill: 'auto', height: '100%', overflow: 'hidden' }}
+            style={{ columnWidth: columnWidthPx > 0 ? `${columnWidthPx}px` : '100vw', columnGap: 0, columnFill: 'auto', height: '100%' }}
           />
         ) : (
           <p className="text-center py-8" style={{ color: themeStyle.muted }}>(표시할 내용 없음)</p>
