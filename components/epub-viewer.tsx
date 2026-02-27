@@ -632,8 +632,8 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     }
     const clickX = e.clientX
     const w = window.innerWidth
-    if (clickX < w * 0.4) goToPrevPage()
-    else if (clickX > w * 0.6) goToNextPage()
+    if (clickX < w * 0.45) goToPrevPage()
+    else if (clickX > w * 0.55) goToNextPage()
   }
 
   // 텍스트 선택 → 하이라이트
