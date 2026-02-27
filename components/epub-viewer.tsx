@@ -701,7 +701,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   const chapterStyledHtml = useMemo(() => {
     if (!currentChapterData) return ''
     return `<style>
-.epub-page-content { all: initial; display: block; }
+.epub-page-content { all: initial; display: block; user-select: text; -webkit-user-select: text; cursor: text; }
 .epub-page-content * { max-width: 100%; box-sizing: border-box; }
 .epub-page-content {
   font-family: ${fontStyle.family}; font-size: ${fontSize}px; line-height: ${lineHeight};
@@ -757,6 +757,11 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 .epub-focus-active .epub-page-content [data-epub-adjacent="true"] {
   opacity: 0.25 !important;
 }
+.epub-page-content mark[data-hl-id] {
+  color: inherit; border-radius: 3px; padding: 1px 2px; cursor: pointer;
+  box-decoration-break: clone; -webkit-box-decoration-break: clone;
+}
+.epub-page-content mark[data-hl-id] .epub-hl-memo { font-size: 0.8em; }
 </style>
 <div class="epub-page-content" data-block-id="ch${String(currentChapterIdx).padStart(3,'0')}">${currentChapterData.html}</div>`
   }, [currentChapterData, fontSize, lineHeight, fontStyle.family, themeStyle, letterSpacing, textAlign, theme, currentChapterIdx])
@@ -799,6 +804,92 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     colEl.addEventListener('click', handleFocusClick, true)
     return () => { colEl.removeEventListener('click', handleFocusClick, true) }
   }, [focusMode, currentChapterIdx, chapterStyledHtml])
+
+  // ━━━ 하이라이트 DOM 주입 ━━━
+  useEffect(() => {
+    const colEl = contentColumnRef.current
+    if (!colEl) return
+    const contentEl = colEl.querySelector('.epub-page-content')
+    if (!contentEl) return
+
+    // 기존 mark 제거 (원본 복원)
+    contentEl.querySelectorAll('mark[data-hl-id]').forEach(mark => {
+      const parent = mark.parentNode
+      if (parent) {
+        while (mark.firstChild) parent.insertBefore(mark.firstChild, mark)
+        parent.removeChild(mark)
+      }
+    })
+    contentEl.normalize() // 분리된 텍스트 노드 합치기
+
+    const blockId = `ch${String(currentChapterIdx).padStart(3, '0')}`
+    const chapterHighlights = highlights.filter(h => h.block_id === blockId)
+    if (chapterHighlights.length === 0) return
+
+    // 텍스트 노드 수집 + 글로벌 오프셋 매핑
+    function getTextNodes(el: Node): { node: Text; start: number }[] {
+      const nodes: { node: Text; start: number }[] = []
+      let offset = 0
+      const walk = (n: Node) => {
+        if (n.nodeType === Node.TEXT_NODE) {
+          nodes.push({ node: n as Text, start: offset })
+          offset += (n as Text).textContent?.length || 0
+        } else {
+          for (let i = 0; i < n.childNodes.length; i++) walk(n.childNodes[i])
+        }
+      }
+      walk(el)
+      return nodes
+    }
+
+    // 오프셋 역순으로 처리 (뒤에서부터 주입해야 앞쪽 오프셋 안 깨짐)
+    const sorted = [...chapterHighlights].sort((a, b) => b.start_offset - a.start_offset)
+
+    for (const hl of sorted) {
+      const textNodes = getTextNodes(contentEl)
+
+      for (let i = textNodes.length - 1; i >= 0; i--) {
+        const tn = textNodes[i]
+        const tnLen = tn.node.textContent?.length || 0
+        const tnEnd = tn.start + tnLen
+
+        // 이 텍스트 노드가 하이라이트 범위와 겹치지 않으면 스킵
+        if (tnEnd <= hl.start_offset || tn.start >= hl.end_offset) continue
+
+        const localStart = Math.max(0, hl.start_offset - tn.start)
+        const localEnd = Math.min(tnLen, hl.end_offset - tn.start)
+        if (localStart >= localEnd) continue
+
+        try {
+          const range = document.createRange()
+          range.setStart(tn.node, localStart)
+          range.setEnd(tn.node, localEnd)
+
+          const mark = document.createElement('mark')
+          mark.setAttribute('data-hl-id', hl.id)
+          mark.style.backgroundColor = HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow
+          range.surroundContents(mark)
+        } catch {}
+      }
+    }
+
+    // mark 클릭 이벤트
+    contentEl.querySelectorAll('mark[data-hl-id]').forEach(mark => {
+      mark.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const hlId = mark.getAttribute('data-hl-id')
+        const hl = chapterHighlights.find(h => h.id === hlId)
+        if (hl) {
+          setEditingHighlight(hl)
+          setMemoText(hl.memo || '')
+          setShowMemoModal(true)
+        }
+      })
+    })
+
+    // 하이라이트 주입 후 페이지 수 재계산
+    setTimeout(recalcPages, 50)
+  }, [currentChapterIdx, highlights, chapterStyledHtml])
 
   // ━━━ 렌더링 ━━━
   if (loading) {
