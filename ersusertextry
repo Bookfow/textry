@@ -1,0 +1,20 @@
+[33m363b6f2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m fix: revert to 1600 with recalculate on resume
+[33mbf0fa06[m fix: recalculate page after locations ready
+[33m6ce38af[m fix: more accurate epub page count
+[33m082bd9c[m fix: resize epub after iframe height fix
+[33m296f3b8[m fix: use maybeSingle to prevent 406 errors
+[33m53f5cc4[m cleanup: remove debug console logs
+[33m10e16b4[m fix: overlay click zones for page navigation
+[33m6251cc3[m fix: capture click with any types
+[33m8ef3b33[m fix: stop epub click event propagation
+[33ma03b301[m feat: epub click to turn pages
+[33mad7ef37[m fix: show loading text while calculating pages
+[33m9f29a94[m fix: epub show total book pages instead of chapter pages
+[33m877ed55[m fix: epub resize on style/margin change
+[33m16a9bde[m fix: epub margin matches reflow viewer sizing
+[33mde0fd73[m fix: epub margin narrow uses 100% instead of 1200px
+[33m08dd61d[m fix: epub margin via container maxWidth
+[33m8799992[m fix: epub margin inside custom theme
+[33mea75e8a[m fix: epub margin setting reactive update
+[33mfb264db[m fix: epub max-width 900px for better readability
+[33ma159896[m fix: epub single page layout

@@ -84,6 +84,17 @@ const ReflowViewer = dynamic(() => import('@/components/reflow-viewer'), {
     </div>
   ),
 })
+const EpubViewer = dynamic(() => import('@/components/epub-viewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[#C4A882]">EPUB 뷰어 로딩 중...</p>
+      </div>
+    </div>
+  ),
+})
 
 // ─── 광고 Tier 설정 ───
 type AdTier = 'micro' | 'short' | 'medium' | 'long' | 'extra'
@@ -732,14 +743,16 @@ export default function ReadPage() {
         case 'ArrowLeft':
         case 'ArrowUp':
           e.preventDefault()
+          if (isEpub) break
           if (viewMode === 'page' || viewMode === 'reflow') goToPrevPage()
           else if (viewMode === 'book') setPageNumber((prev) => Math.max(prev - 2, 1))
           break
-        case 'ArrowRight':
-        case 'ArrowDown':
-        case ' ':
-          e.preventDefault()
-          if (viewMode === 'page' || viewMode === 'reflow') goToNextPage()
+          case 'ArrowRight':
+            case 'ArrowDown':
+            case ' ':
+              e.preventDefault()
+              if (isEpub) break
+              if (viewMode === 'page' || viewMode === 'reflow') goToNextPage()
           else if (viewMode === 'book') setPageNumber((prev) => Math.min(prev + 2, numPages))
           break
         case 'Escape':
@@ -1430,6 +1443,13 @@ export default function ReadPage() {
                   if (!documentReady && total > 0) setDocumentReady(true) // webtoon
                 }}
               />
+            ) : isEpub ? (
+              <EpubViewer
+                epubUrl={pdfUrl}
+                documentId={documentId}
+                onPageChange={handlePageChange}
+                onDocumentLoad={handleDocumentLoad}
+              />
             ) : viewMode === 'reflow' ? (
               <ReflowViewer
                 pdfUrl={pdfUrl}
@@ -1437,7 +1457,7 @@ export default function ReadPage() {
                 pageNumber={pageNumber}
                 onPageChange={handlePageChange}
                 onDocumentLoad={handleDocumentLoad}
-                onSwitchToPdf={isEpub ? undefined : () => setViewMode('page')}
+                onSwitchToPdf={() => setViewMode('page')}
                 fileType={fileType}
               />
             ) : (
