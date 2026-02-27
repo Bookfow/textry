@@ -399,6 +399,17 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 
             // EPUB 원본 style/link 태그 제거 (우리 CSS와 충돌 방지)
             body.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => el.remove())
+            // 인라인 style에서 선택/배경 관련 속성 제거
+            body.querySelectorAll('[style]').forEach(el => {
+              const s = (el as HTMLElement).style
+              s.removeProperty('user-select')
+              s.removeProperty('-webkit-user-select')
+              s.removeProperty('background')
+              s.removeProperty('background-color')
+              s.removeProperty('color')
+              s.removeProperty('font-size')
+              s.removeProperty('font-family')
+            })
 
             parsedChapters.push({ id: spine.id, href: spine.href, title, html: body.innerHTML, order: parsedChapters.length })
           } catch (err) { console.warn('챕터 파싱 실패:', spine.href, err) }
@@ -747,6 +758,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
               range.setEnd(tn.node, localEnd)
               const mark = doc.createElement('mark')
               mark.setAttribute('data-hl-id', hl.id)
+              mark.setAttribute('data-hl-color', hl.color || 'yellow')
               mark.style.backgroundColor = HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow
               range.surroundContents(mark)
             } catch {}
@@ -765,8 +777,6 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   user-select: text; -webkit-user-select: text; cursor: text;
 }
 .epub-page-content * { max-width: 100%; box-sizing: border-box; user-select: text !important; -webkit-user-select: text !important; }
-.epub-page-content ::selection { background: rgba(59,130,246,0.4); color: inherit; }
-.epub-page-content ::-moz-selection { background: rgba(59,130,246,0.4); color: inherit; }
 .epub-page-content h1,.epub-page-content h2,.epub-page-content h3,
 .epub-page-content h4,.epub-page-content h5,.epub-page-content h6 {
   color: ${themeStyle.headingColor}; font-family: ${fontStyle.family};
@@ -791,10 +801,6 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 .epub-page-content hr { border: none; border-top: 1px solid ${themeStyle.border}; margin: 2em 0; }
 .epub-page-content ul,.epub-page-content ol { padding-left: 1.5em; margin-bottom: 1em; }
 .epub-page-content li { margin-bottom: 0.3em; }
-.epub-page-content [style*="color"] { color: ${themeStyle.text} !important; }
-.epub-page-content [style*="background"]:not(mark[data-hl-id]) { background: transparent !important; }
-.epub-page-content [style*="font-size"] { font-size: inherit !important; }
-.epub-page-content [style*="font-family"] { font-family: inherit !important; }
 
 /* ━━━ 집중 모드 ━━━ */
 .epub-focus-active .epub-page-content p,
@@ -817,7 +823,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   opacity: 0.25 !important;
 }
 .epub-page-content mark[data-hl-id] {
-  color: inherit; border-radius: 3px; padding: 1px 2px; cursor: pointer;
+  color: inherit !important; border-radius: 3px; padding: 1px 2px; cursor: pointer;
   box-decoration-break: clone; -webkit-box-decoration-break: clone;
 }
 .epub-page-content mark[data-hl-id] .epub-hl-memo { font-size: 0.8em; }
@@ -885,6 +891,29 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     colEl.addEventListener('click', handleMarkClick)
     return () => { colEl.removeEventListener('click', handleMarkClick) }
   }, [highlights])
+
+  // ━━━ 글로벌 스타일 주입 (::selection + EPUB 인라인 스타일 오버라이드) ━━━
+  useEffect(() => {
+    const styleId = 'epub-viewer-global-styles'
+    let styleEl = document.getElementById(styleId) as HTMLStyleElement | null
+    if (!styleEl) {
+      styleEl = document.createElement('style')
+      styleEl.id = styleId
+      document.head.appendChild(styleEl)
+    }
+    styleEl.textContent = `
+      .epub-page-content ::selection { background: rgba(59,130,246,0.4) !important; color: inherit !important; }
+      .epub-page-content ::-moz-selection { background: rgba(59,130,246,0.4) !important; color: inherit !important; }
+      .epub-page-content mark[data-hl-color="yellow"] { background-color: rgba(250, 220, 50, 0.3) !important; }
+      .epub-page-content mark[data-hl-color="green"] { background-color: rgba(100, 220, 100, 0.25) !important; }
+      .epub-page-content mark[data-hl-color="blue"] { background-color: rgba(90, 180, 250, 0.25) !important; }
+      .epub-page-content mark[data-hl-color="pink"] { background-color: rgba(245, 130, 180, 0.3) !important; }
+      .epub-page-content [style*="color"]:not(mark) { color: ${themeStyle.text} !important; }
+      .epub-page-content [style*="font-size"] { font-size: inherit !important; }
+      .epub-page-content [style*="font-family"] { font-family: inherit !important; }
+    `
+    return () => { styleEl?.remove() }
+  }, [themeStyle.text])
 
   // ━━━ 렌더링 ━━━
   if (loading) {
