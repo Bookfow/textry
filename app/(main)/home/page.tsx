@@ -254,7 +254,7 @@ export default function HomePage() {
               <div className="group flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-[#241E18] border border-[#E7D8C9] dark:border-[#3A302A] hover:shadow-md hover:border-[#B2967D]/50 hover:-translate-y-1 transition-all duration-200 cursor-pointer">
                 <div className="flex-shrink-0 w-8 flex items-center justify-center">
                   {index === 0 ? (
-                    <Crown className="w-6 h-6 text-amber-500" />
+                    <span className="text-2xl">👑</span>
                   ) : (
                     <span className={`text-2xl font-black ${
                       index === 1 ? 'text-[#9C8B7A]' :
@@ -589,7 +589,7 @@ export default function HomePage() {
                             {/* 순위 + 불꽃 */}
                             <div className="flex flex-col items-center flex-shrink-0 w-8">
                               {index === 0 ? (
-                                <Flame className="w-6 h-6 text-orange-500 mb-0.5" />
+                                <span className="text-2xl">🔥</span>
                               ) : (
                                 <span className={`text-xl font-black ${
                                   index === 1 ? 'text-orange-400/70' :
