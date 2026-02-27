@@ -997,11 +997,12 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown} onClick={handleClick} onMouseUp={handleTextSelection}
       >
-        <div
-          ref={paginationContainerRef}
-          className="overflow-hidden"
-          style={{ maxWidth: currentMargin.maxW, margin: '0 auto', padding: `2rem ${currentMargin.px}px`, height: '100%' }}
-        >
+        <div style={{ maxWidth: currentMargin.maxW, margin: '0 auto', padding: `2rem ${currentMargin.px}px`, height: '100%' }}>
+          <div
+            ref={paginationContainerRef}
+            className="overflow-hidden"
+            style={{ height: '100%' }}
+          >
         {currentChapterData ? (
           <div
             ref={contentColumnRef}
@@ -1011,6 +1012,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
         ) : (
           <p className="text-center py-8" style={{ color: themeStyle.muted }}>(표시할 내용 없음)</p>
         )}
+          </div>
         </div>
       </div>
 
