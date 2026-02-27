@@ -14,6 +14,7 @@ interface EpubViewerProps {
   documentId?: string
   onPageChange?: (page: number, total: number) => void
   onDocumentLoad?: (numPages: number) => void
+  onError?: (error: string) => void
 }
 
 interface EpubChapter {
@@ -177,7 +178,7 @@ function parseTocNav(navHtml: string, navDir: string): TocItem[] {
 // 메인 컴포넌트
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocumentLoad }: EpubViewerProps) {
+export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocumentLoad, onError }: EpubViewerProps) {
   // ─── EPUB 데이터 ───
   const [chapters, setChapters] = useState<EpubChapter[]>([])
   const [tocItems, setTocItems] = useState<TocItem[]>([])
@@ -452,7 +453,11 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
         setLoading(false)
         if (onDocumentLoad) onDocumentLoad(parsedChapters.length)
       } catch (err: any) {
-        if (!cancelled) { setError(err.message || 'EPUB을 불러올 수 없습니다'); setLoading(false) }
+        if (!cancelled) {
+          const msg = err.message || 'EPUB을 불러올 수 없습니다'
+          setError(msg); setLoading(false)
+          if (onError) onError(msg)
+        }
       }
     }
     loadEpub()

@@ -159,6 +159,7 @@ export default function ReadPage() {
 
   // ★ 파일 타입 감지
   const [fileType, setFileType] = useState<'pdf' | 'epub'>('pdf')
+  const [epubLoadFailed, setEpubLoadFailed] = useState(false)
 
   // ★ 로그인 유도 팝업
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
@@ -822,10 +823,15 @@ export default function ReadPage() {
         sessionStorage.setItem(viewKey, '1')
       }
 
-      const { data: urlData } = supabase.storage
-        .from('documents')
-        .getPublicUrl(docData.file_path)
-      setPdfUrl(urlData.publicUrl)
+      // file_path가 이미 전체 URL이면 그대로 사용, 아니면 getPublicUrl로 변환
+      if (docData.file_path.startsWith('http')) {
+        setPdfUrl(docData.file_path)
+      } else {
+        const { data: urlData } = supabase.storage
+          .from('documents')
+          .getPublicUrl(docData.file_path)
+        setPdfUrl(urlData.publicUrl)
+      }
 
       loadSeriesInfo(documentId)
     } catch (err) {
@@ -1443,12 +1449,13 @@ export default function ReadPage() {
                   if (!documentReady && total > 0) setDocumentReady(true) // webtoon
                 }}
               />
-            ) : isEpub ? (
+            ) : isEpub && !epubLoadFailed ? (
               <EpubViewer
                 epubUrl={pdfUrl}
                 documentId={documentId}
                 onPageChange={handlePageChange}
                 onDocumentLoad={handleDocumentLoad}
+                onError={() => setEpubLoadFailed(true)}
               />
             ) : viewMode === 'reflow' ? (
               <ReflowViewer
