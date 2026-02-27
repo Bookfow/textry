@@ -69,12 +69,7 @@ const HIGHLIGHT_COLORS: Record<string, string> = {
   pink: 'rgba(245, 130, 180, 0.3)',
 }
 
-const MARGIN_MAP: Record<number, { px: number; maxW: string; label: string }> = {
-  1: { px: 12, maxW: '56rem', label: '좁게' },
-  2: { px: 40, maxW: '42rem', label: '보통' },
-  3: { px: 56, maxW: '36rem', label: '넓게' },
-  4: { px: 64, maxW: '28rem', label: '아주 넓게' },
-}
+const MAX_WIDTH = '42rem'
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // EPUB 파싱 유틸
@@ -199,7 +194,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   const [font, setFont] = useState<ReflowFont>('sans')
   const [theme, setTheme] = useState<ReflowTheme>('dark')
   const [showSettings, setShowSettings] = useState(false)
-  const [marginSize, setMarginSize] = useState(2)
+  const [marginSize, setMarginSize] = useState(40)
   const [letterSpacing, setLetterSpacing] = useState(0)
   const [textAlign, setTextAlign] = useState<ReflowAlign>('left')
   const [showToc, setShowToc] = useState(false)
@@ -232,7 +227,6 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   const [columnWidthPx, setColumnWidthPx] = useState(0) // CSS column-width에 사용할 px 값
   const themeStyle = THEMES[theme]
   const fontStyle = FONTS[font]
-  const currentMargin = MARGIN_MAP[marginSize] || MARGIN_MAP[2]
 
   // ━━━ 가상 페이지 번호 (광고 시스템 호환) ━━━
   const virtualPageNumber = useMemo(() => {
@@ -259,7 +253,15 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
         if (s.lineHeight) setLineHeight(s.lineHeight)
         if (s.font) setFont(s.font)
         if (s.theme) setTheme(s.theme)
-        if (s.marginSize) setMarginSize(s.marginSize)
+        if (s.marginSize) {
+          // 이전 1-4 단계 → px 마이그레이션
+          if (s.marginSize <= 4) {
+            const map: Record<number, number> = { 1: 12, 2: 40, 3: 56, 4: 64 }
+            setMarginSize(map[s.marginSize] || 40)
+          } else {
+            setMarginSize(s.marginSize)
+          }
+        }
         if (s.letterSpacing !== undefined) setLetterSpacing(s.letterSpacing)
         if (s.textAlign) setTextAlign(s.textAlign)
         if (s.focusMode !== undefined) setFocusMode(s.focusMode)
@@ -1179,12 +1181,12 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
             {/* 여백 · 자간 */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="flex items-center justify-between mb-2"><p className="text-[10px] font-medium" style={{ color: themeStyle.muted }}>여백</p><span className="text-[10px]" style={{ color: themeStyle.text }}>{MARGIN_MAP[marginSize]?.label}</span></div>
-                <input type="range" min={1} max={4} step={1} value={marginSize} onChange={e => setMarginSize(Number(e.target.value))} className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500" style={{ backgroundColor: themeStyle.border }} />
+                <div className="flex items-center justify-between mb-2"><p className="text-[10px] font-medium" style={{ color: themeStyle.muted }}>여백</p><span className="text-[10px] font-mono" style={{ color: themeStyle.text }}>{marginSize}px</span></div>
+                <input type="range" min={8} max={80} step={4} value={marginSize} onChange={e => setMarginSize(Number(e.target.value))} className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500" style={{ backgroundColor: themeStyle.border }} />
               </div>
               <div>
-                <div className="flex items-center justify-between mb-2"><p className="text-[10px] font-medium" style={{ color: themeStyle.muted }}>자간</p><span className="text-[10px]" style={{ color: themeStyle.text }}>{letterSpacing === -1 ? '좁게' : letterSpacing === 0 ? '보통' : letterSpacing === 1 ? '넓게' : '아주 넓게'}</span></div>
-                <input type="range" min={-1} max={2} step={1} value={letterSpacing} onChange={e => setLetterSpacing(Number(e.target.value))} className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500" style={{ backgroundColor: themeStyle.border }} />
+                <div className="flex items-center justify-between mb-2"><p className="text-[10px] font-medium" style={{ color: themeStyle.muted }}>자간</p><span className="text-[10px] font-mono" style={{ color: themeStyle.text }}>{(letterSpacing * 0.5).toFixed(1)}px</span></div>
+                <input type="range" min={-2} max={4} step={0.5} value={letterSpacing} onChange={e => setLetterSpacing(Number(e.target.value))} className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500" style={{ backgroundColor: themeStyle.border }} />
               </div>
             </div>
             {/* 정렬 */}
@@ -1210,7 +1212,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown} onClick={handleClick} onMouseUp={handleTextSelection}
       >
-        <div style={{ maxWidth: currentMargin.maxW, margin: '0 auto', padding: `2rem ${currentMargin.px}px`, height: '100%' }}>
+        <div style={{ maxWidth: MAX_WIDTH, margin: '0 auto', padding: `2rem ${marginSize}px`, height: '100%' }}>
           <div
             ref={paginationContainerRef}
             className="relative"
