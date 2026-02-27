@@ -738,7 +738,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 .epub-page-content ul,.epub-page-content ol { padding-left: 1.5em; margin-bottom: 1em; }
 .epub-page-content li { margin-bottom: 0.3em; }
 .epub-page-content [style*="color"] { color: ${themeStyle.text} !important; }
-.epub-page-content [style*="background"] { background: transparent !important; }
+.epub-page-content [style*="background"]:not(mark[data-hl-id]) { background: transparent !important; }
 .epub-page-content [style*="font-size"] { font-size: inherit !important; }
 .epub-page-content [style*="font-family"] { font-family: inherit !important; }
 
@@ -763,8 +763,9 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   opacity: 0.25 !important;
 }
 .epub-page-content mark[data-hl-id] {
-  color: inherit; border-radius: 3px; padding: 1px 2px; cursor: pointer;
+  color: inherit !important; border-radius: 3px; padding: 1px 2px; cursor: pointer;
   box-decoration-break: clone; -webkit-box-decoration-break: clone;
+  background: var(--hl-bg, rgba(255,255,0,0.4)) !important;
 }
 .epub-page-content mark[data-hl-id] .epub-hl-memo { font-size: 0.8em; }
 </style>
@@ -872,7 +873,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 
           const mark = document.createElement('mark')
           mark.setAttribute('data-hl-id', hl.id)
-          mark.style.backgroundColor = HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow
+          mark.style.setProperty('--hl-bg', HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow)
           range.surroundContents(mark)
         } catch {}
       }
