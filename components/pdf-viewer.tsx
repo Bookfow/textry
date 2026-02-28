@@ -298,7 +298,7 @@ export default function PDFViewer({
 
           // 좌우 경계: 헤더/푸터 제외 (상하 10%)
           const yStart = Math.floor(height * 0.10)
-          const yEnd = Math.floor(height * 0.90)
+          const yEnd = Math.floor(height * 0.80)
           for (let y = yStart; y < yEnd; y++) {
             for (let x = 0; x < width; x++) {
               const i = (y * width + x) * 4
