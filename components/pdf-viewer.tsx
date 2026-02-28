@@ -255,16 +255,20 @@ export default function PDFViewer({
     try {
       const pdf = pdfDoc
 
+      // 최대 20페이지 균등 샘플링
+      const sampleCount = Math.min(20, numPages)
       const sampleNums: number[] = []
-      if (numPages >= 1) sampleNums.push(1)
-      if (numPages >= 3) sampleNums.push(2)
-      if (numPages >= 5) sampleNums.push(Math.floor(numPages * 0.25))
-      if (numPages >= 10) sampleNums.push(Math.floor(numPages * 0.5))
-      if (numPages >= 20) sampleNums.push(Math.floor(numPages * 0.75))
+      if (sampleCount <= numPages) {
+        for (let i = 0; i < sampleCount; i++) {
+          sampleNums.push(Math.max(1, Math.round((i / (sampleCount - 1 || 1)) * (numPages - 1)) + 1))
+        }
+      }
       const unique = [...new Set(sampleNums)].filter(n => n >= 1 && n <= numPages)
 
-      let gLeft = 1, gTop = 1, gRight = 0, gBottom = 0
-      let validCount = 0
+      const allLefts: number[] = []
+      const allTops: number[] = []
+      const allRights: number[] = []
+      const allBottoms: number[] = []
 
       for (const pn of unique) {
         try {
@@ -281,7 +285,7 @@ export default function PDFViewer({
           const threshold = 245
           let top = height, left = width, bottom = 0, right = 0
 
-          // 상하 경계: 전체 영역 스캔
+          // 상하 경계: 전체 스캔
           for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
               const i = (y * width + x) * 4
@@ -292,7 +296,7 @@ export default function PDFViewer({
             }
           }
 
-          // 좌우 경계: 헤더/푸터 제외 (상하 15% 무시)
+          // 좌우 경계: 헤더/푸터 제외 (상하 10%)
           const yStart = Math.floor(height * 0.10)
           const yEnd = Math.floor(height * 0.90)
           for (let y = yStart; y < yEnd; y++) {
@@ -306,22 +310,28 @@ export default function PDFViewer({
           }
 
           if (bottom > top && right > left) {
-            gLeft = Math.min(gLeft, left / width)
-            gTop = Math.min(gTop, top / height)
-            gRight = Math.max(gRight, right / width)
-            gBottom = Math.max(gBottom, bottom / height)
-            validCount++
+            allLefts.push(left / width)
+            allTops.push(top / height)
+            allRights.push(right / width)
+            allBottoms.push(bottom / height)
           }
         } catch {}
       }
 
-      if (validCount > 0) {
+      if (allLefts.length > 0) {
+        // 중앙값 함수
+        const median = (arr: number[]) => {
+          const sorted = [...arr].sort((a, b) => a - b)
+          const mid = Math.floor(sorted.length / 2)
+          return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+        }
+
         const pad = 0.015
         const bounds = {
-          top: Math.max(0, gTop - pad),
-          left: Math.max(0, gLeft - pad),
-          bottom: Math.min(1, gBottom + pad),
-          right: Math.min(1, gRight + pad),
+          top: Math.max(0, median(allTops) - pad),
+          left: Math.max(0, median(allLefts) - pad),
+          bottom: Math.min(1, median(allBottoms) + pad),
+          right: Math.min(1, median(allRights) + pad),
         }
         const cw = bounds.right - bounds.left
         const ch = bounds.bottom - bounds.top
