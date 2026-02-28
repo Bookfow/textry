@@ -26,7 +26,6 @@ interface PDFViewerProps {
   onDocumentLoad?: (numPages: number) => void
   onScaleChange?: (scale: number) => void
   bottomOffset?: number
-  autoCrop?: boolean
 }
 
 // ━━━ Lazy 페이지 컴포넌트 (IntersectionObserver) ━━━
@@ -116,15 +115,12 @@ export default function PDFViewer({
   onDocumentLoad,
   onScaleChange,
   bottomOffset = 0,
-  autoCrop = false,
 }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pdfLoading, setPdfLoading] = useState(true)
   const [fitWidth, setFitWidth] = useState<number>(0)
   const [pageAspect, setPageAspect] = useState<number>(1.414)
   const [swipeOffset, setSwipeOffset] = useState(0)
-  const [cropBounds, setCropBounds] = useState<{top: number; left: number; bottom: number; right: number} | null>(null)
-  const [cropDetecting, setCropDetecting] = useState(false)
 
   const pinchStartDistRef = useRef<number | null>(null)
   const pinchStartScaleRef = useRef<number>(1)
@@ -242,94 +238,6 @@ export default function PDFViewer({
       console.error('Error getting page dimensions:', err)
     }
   }
-
-  // ━━━ 자동 여백 감지 ━━━
-  const detectCropBounds = useCallback(async () => {
-    if (!pdfUrl || numPages === 0 || cropDetecting) return
-    setCropDetecting(true)
-    try {
-      const loadingTask = pdfjs.getDocument({ url: pdfUrl, ...pdfOptions })
-      const pdf = await loadingTask.promise
-
-      const sampleNums: number[] = []
-      if (numPages >= 1) sampleNums.push(1)
-      if (numPages >= 3) sampleNums.push(2)
-      if (numPages >= 5) sampleNums.push(Math.floor(numPages * 0.25))
-      if (numPages >= 10) sampleNums.push(Math.floor(numPages * 0.5))
-      if (numPages >= 20) sampleNums.push(Math.floor(numPages * 0.75))
-      const unique = [...new Set(sampleNums)].filter(n => n >= 1 && n <= numPages)
-
-      let gLeft = 1, gTop = 1, gRight = 0, gBottom = 0
-      let validCount = 0
-
-      for (const pn of unique) {
-        try {
-          const pg = await pdf.getPage(pn)
-          const vp = pg.getViewport({ scale: 0.25 })
-          const canvas = window.document.createElement('canvas')
-          canvas.width = vp.width
-          canvas.height = vp.height
-          const ctx = canvas.getContext('2d')!
-          await pg.render({ canvasContext: ctx, viewport: vp } as any).promise
-
-          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-          const { data, width, height } = imgData
-          const threshold = 245
-          let top = height, left = width, bottom = 0, right = 0
-
-          for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-              const i = (y * width + x) * 4
-              if (data[i] < threshold || data[i+1] < threshold || data[i+2] < threshold) {
-                if (y < top) top = y
-                if (y > bottom) bottom = y
-                if (x < left) left = x
-                if (x > right) right = x
-              }
-            }
-          }
-
-          if (bottom > top && right > left) {
-            gLeft = Math.min(gLeft, left / width)
-            gTop = Math.min(gTop, top / height)
-            gRight = Math.max(gRight, right / width)
-            gBottom = Math.max(gBottom, bottom / height)
-            validCount++
-          }
-        } catch {}
-      }
-
-      if (validCount > 0) {
-        const pad = 0.015
-        const bounds = {
-          top: Math.max(0, gTop - pad),
-          left: Math.max(0, gLeft - pad),
-          bottom: Math.min(1, gBottom + pad),
-          right: Math.min(1, gRight + pad),
-        }
-        const cw = bounds.right - bounds.left
-        const ch = bounds.bottom - bounds.top
-        if (cw < 0.92 || ch < 0.92) {
-          setCropBounds(bounds)
-        } else {
-          setCropBounds(null)
-        }
-      }
-    } catch (err) {
-      console.error('Crop detection error:', err)
-    } finally {
-      setCropDetecting(false)
-    }
-  }, [pdfUrl, numPages, cropDetecting])
-
-  useEffect(() => {
-    if (autoCrop && !cropBounds && !cropDetecting && numPages > 0) {
-      detectCropBounds()
-    }
-    if (!autoCrop) {
-      setCropBounds(null)
-    }
-  }, [autoCrop, numPages])
 
   const getTouchDistance = (touches: TouchList) => {
     if (touches.length < 2) return 0
@@ -633,17 +541,6 @@ export default function PDFViewer({
 
   const pageHeight = renderWidth * pageAspect
 
-  // ━━━ 자동 여백 제거 계산 ━━━
-  const isCropping = autoCrop && cropBounds != null
-  const cropContentW = cropBounds ? (cropBounds.right - cropBounds.left) : 1
-  const cropContentH = cropBounds ? (cropBounds.bottom - cropBounds.top) : 1
-  const cropPageWidth = isCropping ? renderWidth / cropContentW : renderWidth
-  const cropPageH = cropPageWidth * pageAspect
-  const cropVisibleW = renderWidth
-  const cropVisibleH = isCropping ? cropPageH * cropContentH : pageHeight
-  const cropOffX = isCropping ? -(cropBounds!.left * cropPageWidth) : 0
-  const cropOffY = isCropping ? -(cropBounds!.top * cropPageH) : 0
-
   return (
     <div ref={containerRef} className="h-full w-full flex flex-col" style={{ overscrollBehavior: 'none' }}>
       <div className="flex-1 relative overflow-hidden" style={{ overscrollBehavior: 'none' }}>
@@ -677,15 +574,11 @@ export default function PDFViewer({
                 className="flex justify-center"
                 options={pdfOptions}
               >
-                <div className="dark:hidden" style={isCropping ? {...frameStyle, width: cropVisibleW, height: cropVisibleH, overflow: 'hidden'} : frameStyle}>
-                  <div style={isCropping ? {transform: `translate(${cropOffX}px, ${cropOffY}px)`} : undefined}>
-                    <Page pageNumber={pageNumber} width={isCropping ? cropPageWidth : renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
-                  </div>
+                <div className="dark:hidden" style={frameStyle}>
+                  <Page pageNumber={pageNumber} width={renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
                 </div>
-                <div className="hidden dark:block" style={isCropping ? {...frameStyleDark, width: cropVisibleW, height: cropVisibleH, overflow: 'hidden'} : frameStyleDark}>
-                  <div style={isCropping ? {transform: `translate(${cropOffX}px, ${cropOffY}px)`} : undefined}>
-                    <Page pageNumber={pageNumber} width={isCropping ? cropPageWidth : renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
-                  </div>
+                <div className="hidden dark:block" style={frameStyleDark}>
+                  <Page pageNumber={pageNumber} width={renderWidth} renderTextLayer={true} renderAnnotationLayer={true} loading="" />
                 </div>
               </PDFDocument>
             </div>
