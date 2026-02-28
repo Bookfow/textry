@@ -1467,7 +1467,7 @@ export default function ReadPage() {
               )}
               {/* ━━━ 검색 버튼 ━━━ */}
               <button onClick={toggleSearch}
-                className={`p-2 rounded-lg transition-colors ${showSearch ? 'bg-[#B2967D] text-[#1A1410]' : 'hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1]'}`}
+                className={`hidden sm:block p-2 rounded-lg transition-colors ${showSearch ? 'bg-[#B2967D] text-[#1A1410]' : 'hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1]'}`}
                 title="본문 검색 (Ctrl+F)">
                 <Search className="w-5 h-5" />
               </button>
