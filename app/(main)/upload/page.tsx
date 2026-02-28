@@ -12,15 +12,11 @@ import { CATEGORIES } from '@/lib/categories'
 import { LANGUAGES } from '@/lib/languages'
 import { FileText, Upload as UploadIcon, LogIn, Palette } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { convertPdfToReflow } from '@/lib/pdf-to-reflow'
-import type { ImageUploadCallback } from '@/lib/pdf-to-reflow'
-
 const WebtoonUploadForm = dynamic(() => import('@/components/webtoon-upload-form'), { ssr: false })
 import { useToast } from '@/components/toast'
 
 // ━━━ R2 업로드 헬퍼 ━━━
 async function uploadToR2(file: File | Blob, fileName: string, contentType: string): Promise<string> {
-  // 1. presigned URL 요청
   const res = await fetch('/api/r2-upload', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -32,7 +28,6 @@ async function uploadToR2(file: File | Blob, fileName: string, contentType: stri
   }
   const { presignedUrl, publicUrl } = await res.json()
 
-  // 2. R2에 직접 업로드
   const uploadRes = await fetch(presignedUrl, {
     method: 'PUT',
     headers: { 'Content-Type': contentType },
@@ -105,83 +100,6 @@ export default function UploadPage() {
       reader.onloadend = () => setThumbnailPreview(reader.result as string)
       reader.readAsDataURL(selectedFile)
     }
-  }
-
-  function isBrokenText(text: string): boolean {
-    if (!text || text.trim().length === 0) return true
-    const cleaned = text.replace(/\s/g, '')
-    if (cleaned.length === 0) return true
-    let meaningfulCount = 0
-    for (let i = 0; i < cleaned.length; i++) {
-      const code = cleaned.charCodeAt(i)
-      if ((code >= 0xAC00 && code <= 0xD7AF) || (code >= 0x3131 && code <= 0x318E)) meaningfulCount++
-      else if ((code >= 0x0041 && code <= 0x005A) || (code >= 0x0061 && code <= 0x007A)) meaningfulCount++
-    }
-    if (cleaned.length >= 10 && meaningfulCount / cleaned.length < 0.15) return true
-    if (cleaned.length >= 30 && meaningfulCount / cleaned.length < 0.25) return true
-    let normalCount = 0
-    for (let i = 0; i < cleaned.length; i++) {
-      const code = cleaned.charCodeAt(i)
-      if ((code >= 0xAC00 && code <= 0xD7AF) || (code >= 0x3131 && code <= 0x318E) || (code >= 0x0041 && code <= 0x005A) || (code >= 0x0061 && code <= 0x007A) || (code >= 0x0030 && code <= 0x0039) || (code >= 0x0020 && code <= 0x007E) || (code >= 0x2000 && code <= 0x206F) || (code >= 0x3000 && code <= 0x303F) || (code >= 0xFF01 && code <= 0xFF5E)) normalCount++
-    }
-    if (cleaned.length >= 5 && normalCount / cleaned.length < 0.4) return true
-    let brokenCount = 0
-    for (let i = 0; i < cleaned.length; i++) {
-      const code = cleaned.charCodeAt(i)
-      if ((code >= 0xE000 && code <= 0xF8FF) || (code < 0x0020 && code !== 0x0009 && code !== 0x000A && code !== 0x000D) || code === 0xFFFD || (code >= 0x2400 && code <= 0x243F)) brokenCount++
-    }
-    if (brokenCount / cleaned.length > 0.3) return true
-    if (/[□▯○◻◼■▪▫]{3,}/.test(cleaned)) return true
-    if (/^[\d$&*%#@!^+=\/\\|<>.,;:'"(){}\[\]\-_~`]{8,}$/.test(cleaned)) return true
-    return false
-  }
-
-  function extractPageText(items: any[]): string {
-    if (items.length === 0) return ''
-    interface LineInfo { text: string; fontSize: number; y: number }
-    const lines: LineInfo[] = []
-    let lastY: number | null = null
-    let currentLine = ''
-    let currentFontSizes: number[] = []
-    let currentY = 0
-    for (const item of items) {
-      if (!('str' in item) || !item.str) continue
-      const y = Math.round(item.transform[5])
-      const fs = Math.round(Math.abs(item.transform[3]) || Math.abs(item.transform[0]) || 12)
-      if (lastY !== null && Math.abs(y - lastY) > 3) {
-        const trimmed = currentLine.trim()
-        if (trimmed) {
-          const avgFs = currentFontSizes.length > 0 ? currentFontSizes.reduce((a, b) => a + b, 0) / currentFontSizes.length : 12
-          lines.push({ text: trimmed, fontSize: Math.round(avgFs), y: currentY })
-        }
-        currentLine = ''; currentFontSizes = []
-      }
-      currentLine += item.str; currentFontSizes.push(fs); currentY = y; lastY = y
-    }
-    const trimmedLast = currentLine.trim()
-    if (trimmedLast) {
-      const avgFs = currentFontSizes.length > 0 ? currentFontSizes.reduce((a, b) => a + b, 0) / currentFontSizes.length : 12
-      lines.push({ text: trimmedLast, fontSize: Math.round(avgFs), y: currentY })
-    }
-    if (lines.length === 0) return ''
-    const cleanLines = lines.filter(l => !isBrokenText(l.text))
-    if (cleanLines.length === 0) return ''
-    const fsCount = new Map<number, number>()
-    for (const l of cleanLines) fsCount.set(l.fontSize, (fsCount.get(l.fontSize) || 0) + l.text.length)
-    let bodyFontSize = 12; let maxWeight = 0
-    for (const [fs, weight] of fsCount) { if (weight > maxWeight) { maxWeight = weight; bodyFontSize = fs } }
-    const parts: string[] = []; let currentParagraph = ''; let lastLineY: number | null = null
-    const avgLineGap = cleanLines.length > 1 ? cleanLines.slice(1).reduce((sum, l, i) => sum + Math.abs(l.y - cleanLines[i].y), 0) / (cleanLines.length - 1) : 20
-    for (let i = 0; i < cleanLines.length; i++) {
-      const line = cleanLines[i]; const fsDiff = line.fontSize - bodyFontSize
-      if (lastLineY !== null) { const gap = Math.abs(line.y - lastLineY); if (gap > avgLineGap * 2.5 && currentParagraph) { parts.push(currentParagraph); currentParagraph = ''; parts.push('<hr>') } }
-      if (fsDiff >= 4 && line.text.length < 80) { if (currentParagraph) { parts.push(currentParagraph); currentParagraph = '' }; if (fsDiff >= 8) parts.push(`<h1>${line.text}</h1>`); else parts.push(`<h2>${line.text}</h2>`) }
-      else if (fsDiff >= 2 && line.text.length < 50) { if (currentParagraph) { parts.push(currentParagraph); currentParagraph = '' }; parts.push(`<h3>${line.text}</h3>`) }
-      else { if (currentParagraph) currentParagraph += ' '; currentParagraph += line.text }
-      lastLineY = line.y
-    }
-    if (currentParagraph) parts.push(currentParagraph)
-    return parts.join('\n\n')
   }
 
   async function convertFileToEpub(originalFile: File): Promise<{ epubBlob: Blob; epubData: any } | null> {
@@ -302,7 +220,7 @@ export default function UploadPage() {
       const isEpub = fileExt === 'epub' || file.type === 'application/epub+zip'
       const isConvertedEpub = isTxtOrDocx && convertedEpubData
 
-      let pageCount = 0; let pdfDoc: any = null
+      let pageCount = 0
 
       if (isPdf) {
         setProgressMessage('PDF 분석 중...')
@@ -310,7 +228,7 @@ export default function UploadPage() {
           const { pdfjs } = await import('react-pdf')
           pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
           const arrayBuffer = await file.arrayBuffer()
-          pdfDoc = await pdfjs.getDocument({ data: arrayBuffer, cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`, cMapPacked: true }).promise
+          const pdfDoc = await pdfjs.getDocument({ data: arrayBuffer, cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`, cMapPacked: true }).promise
           pageCount = pdfDoc.numPages
         } catch (e) { console.warn('PDF 페이지 수 읽기 실패:', e) }
       }
@@ -332,133 +250,11 @@ export default function UploadPage() {
         pageCount = epubData.chapters.length
       }
 
-      setProgress(60); setProgressMessage('콘텐츠 정보 저장 중...')
+      setProgress(70); setProgressMessage('콘텐츠 정보 저장 중...')
       const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, curator_comment: curatorComment.trim() || null, category, language, file_path: filePublicUrl, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: Math.floor(file.size / 1000), page_count: pageCount || null, is_published: true }).select('id').single()
       if (dbError) throw dbError
 
-      setProgress(70)
-
-      if (isPdf && pdfDoc && docData?.id) {
-        try {
-          setProgressMessage('PDF 리플로우 변환 중...')
-
-          // ━━━ 이미지 R2 업로드 콜백 ━━━
-          const imageUploader: ImageUploadCallback = async (blob: Blob, fileName: string) => {
-            const storagePath = `pdf-images/${user.id}/${docData.id}/${fileName}`
-            const publicUrl = await uploadToR2(blob, storagePath, blob.type)
-            return publicUrl
-          }
-
-          const reflowPages = await convertPdfToReflow(
-            pdfDoc,
-            (stage, progressValue) => {
-              setProgress(70 + Math.round(progressValue * 0.25))
-              setProgressMessage(stage)
-            },
-            imageUploader
-          )
-
-          const batchSize = 10
-          const rows: any[] = []
-          for (let i = 0; i < reflowPages.length; i++) {
-            rows.push({
-              document_id: docData.id,
-              page_number: reflowPages[i].pageNumber,
-              text_content: reflowPages[i].textContent,
-            })
-            if (rows.length >= batchSize || i === reflowPages.length - 1) {
-              await supabase.from('document_pages_text').insert(rows)
-              rows.length = 0
-            }
-            setProgress(70 + Math.round(((i + 1) / reflowPages.length) * 25))
-            setProgressMessage(`리플로우 페이지 저장... ${i + 1}/${reflowPages.length}`)
-          }
-
-          try {
-            const blockRows: any[] = []
-            for (let i = 0; i < reflowPages.length; i++) {
-              const pageNum = reflowPages[i].pageNumber
-              const text = reflowPages[i].textContent
-              const parts = text.split('\n\n')
-              let blockOrder = 0
-              for (const part of parts) {
-                const trimmed = part.trim()
-                if (!trimmed) continue
-                let blockType = 'body'
-                let content = trimmed
-                if (trimmed.startsWith('<h1>') && trimmed.endsWith('</h1>')) { blockType = 'heading1'; content = trimmed.slice(4, -5) }
-                else if (trimmed.startsWith('<h2>') && trimmed.endsWith('</h2>')) { blockType = 'heading2'; content = trimmed.slice(4, -5) }
-                else if (trimmed.startsWith('<h3>') && trimmed.endsWith('</h3>')) { blockType = 'heading3'; content = trimmed.slice(4, -5) }
-                else if (trimmed === '<hr>') { blockType = 'separator'; content = '' }
-                else if (/<(p|h[1-6]|figure|div|br|img|strong|em)[\s>/]/i.test(trimmed)) { blockType = 'html'; content = trimmed }
-                blockRows.push({
-                  document_id: docData.id,
-                  block_id: `p${String(pageNum).padStart(3, '0')}_b${String(blockOrder).padStart(3, '0')}`,
-                  block_type: blockType,
-                  content: content,
-                  page_number: pageNum,
-                  block_order: blockOrder++,
-                })
-              }
-            }
-            for (let b = 0; b < blockRows.length; b += 50) {
-              const batch = blockRows.slice(b, b + 50)
-              await supabase.from('document_blocks').insert(batch)
-            }
-          } catch (blockErr) { console.warn('document_blocks 저장 실패 (무시):', blockErr) }
-
-          if (reflowPages.length > 0) {
-            await supabase.from('documents')
-              .update({ page_count: reflowPages.length })
-              .eq('id', docData.id)
-          }
-
-          setProgressMessage('PDF 리플로우 변환 완료!')
-        } catch (convertErr) {
-          console.warn('PDF 리플로우 변환 실패, 기존 방식으로 폴백:', convertErr)
-          try {
-            const batchSize = 10; const rows: any[] = []
-            for (let i = 1; i <= pageCount; i++) {
-              try {
-                const page = await pdfDoc.getPage(i)
-                const textContent = await page.getTextContent()
-                const text = extractPageText(textContent.items as any[])
-                rows.push({ document_id: docData.id, page_number: i, text_content: text })
-                if (rows.length >= batchSize || i === pageCount) {
-                  await supabase.from('document_pages_text').insert(rows); rows.length = 0
-                }
-                setProgress(70 + Math.round((i / pageCount) * 25))
-                setProgressMessage(`텍스트 추출 중... ${i}/${pageCount}`)
-              } catch (pageErr) { console.warn(`${i}페이지 실패:`, pageErr) }
-            }
-            try {
-              const pdfBlockRows: any[] = []
-              const { data: pdfTexts } = await supabase
-                .from('document_pages_text')
-                .select('page_number, text_content')
-                .eq('document_id', docData.id)
-                .order('page_number', { ascending: true })
-              if (pdfTexts) {
-                for (const pt of pdfTexts) {
-                  pdfBlockRows.push({
-                    document_id: docData.id,
-                    block_id: `p${String(pt.page_number).padStart(3, '0')}_b000`,
-                    block_type: 'body',
-                    content: (pt.text_content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
-                    page_number: pt.page_number,
-                    block_order: 0,
-                  })
-                }
-                for (let b = 0; b < pdfBlockRows.length; b += 50) {
-                  await supabase.from('document_blocks').insert(pdfBlockRows.slice(b, b + 50))
-                }
-              }
-            } catch (pdfBlockErr) { console.warn('PDF document_blocks 저장 실패 (무시):', pdfBlockErr) }
-          } catch (fallbackErr) { console.warn('폴백 텍스트 추출도 실패:', fallbackErr) }
-        }
-      }
-
-      if (!isPdf) setProgress(95)
+      setProgress(95)
 
       setProgress(100); setProgressMessage('완료!'); await notifySubscribers(docData.id, title.trim())
       toast.success('업로드가 완료되었습니다!'); router.push('/dashboard')

@@ -1343,11 +1343,7 @@ export default function ReadPage() {
                     title="스크롤 모드">
                     <ScrollText className="w-4 h-4" />
                   </button>
-                  <button onClick={() => setViewMode('reflow')}
-                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'reflow' ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1]'}`}
-                    title="리플로우 모드">
-                    <AlignLeft className="w-4 h-4" />
-                  </button>
+            
                 </div>
               )}
 
