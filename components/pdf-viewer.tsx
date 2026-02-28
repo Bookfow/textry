@@ -156,8 +156,8 @@ export default function PDFViewer({
   const onScaleChangeRef = useRef(onScaleChange)
 
   // ━━━ 돋보기 (Magnifier) ━━━
-  const MAGNIFIER_SIZE = 160
   const MAGNIFIER_ZOOM = 2.5
+  const magnifierSizeRef = useRef({ w: 300, h: 250 })
   const LONG_PRESS_MS = 500
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const magnifierElRef = useRef<HTMLDivElement>(null)
@@ -453,6 +453,9 @@ export default function PDFViewer({
 
     try {
       const imgSrc = targetCanvas.toDataURL()
+      const magW = Math.min(targetRect.width, window.innerWidth - 16)
+      const magH = targetRect.height * 0.45
+      magnifierSizeRef.current = { w: magW, h: magH }
       magnifierCanvasRef.current = {
         imgSrc,
         rect: targetRect,
@@ -461,6 +464,8 @@ export default function PDFViewer({
       }
       magnifierActiveRef.current = true
       el.style.display = 'block'
+      el.style.width = `${magW}px`
+      el.style.height = `${magH}px`
       el.style.backgroundImage = `url(${imgSrc})`
       el.style.backgroundSize = `${targetRect.width * MAGNIFIER_ZOOM}px ${targetRect.height * MAGNIFIER_ZOOM}px`
       updateMagnifier(clientX, clientY)
@@ -475,17 +480,19 @@ export default function PDFViewer({
     const data = magnifierCanvasRef.current
     if (!el || !data) return
 
-    // 돋보기 위치: 손가락/커서 위 30px
-    const magX = clientX - MAGNIFIER_SIZE / 2
-    const magY = clientY - MAGNIFIER_SIZE - 30
+    const { w: magW, h: magH } = magnifierSizeRef.current
+
+    // 돋보기 위치: 손가락/커서 위 20px, 화면 안에 유지
+    const magX = Math.max(4, Math.min(clientX - magW / 2, window.innerWidth - magW - 4))
+    const magY = clientY - magH - 20
     el.style.left = `${magX}px`
-    el.style.top = `${Math.max(0, magY)}px`
+    el.style.top = `${Math.max(4, magY)}px`
 
     // 배경 위치 계산
     const relX = (clientX - data.rect.left) / data.displayW
     const relY = (clientY - data.rect.top) / data.displayH
-    const bgX = relX * data.displayW * MAGNIFIER_ZOOM - MAGNIFIER_SIZE / 2
-    const bgY = relY * data.displayH * MAGNIFIER_ZOOM - MAGNIFIER_SIZE / 2
+    const bgX = relX * data.displayW * MAGNIFIER_ZOOM - magW / 2
+    const bgY = relY * data.displayH * MAGNIFIER_ZOOM - magH / 2
     el.style.backgroundPosition = `-${bgX}px -${bgY}px`
   }
 
@@ -1152,11 +1159,9 @@ export default function PDFViewer({
         className="fixed pointer-events-none z-[100]"
         style={{
           display: 'none',
-          width: MAGNIFIER_SIZE,
-          height: MAGNIFIER_SIZE,
-          borderRadius: '50%',
+          borderRadius: '10px',
           border: '3px solid rgba(178, 150, 125, 0.9)',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15), inset 0 0 20px rgba(0,0,0,0.1)',
+          boxShadow: '0 6px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1)',
           overflow: 'hidden',
           backgroundRepeat: 'no-repeat',
           backgroundColor: '#fff',
