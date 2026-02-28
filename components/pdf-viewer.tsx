@@ -193,7 +193,7 @@ export default function PDFViewer({
     const contentWidth = availableWidth - frameSize - 16
     const contentHeight = availableHeight - frameSize - 16
 
-    const effectiveAspect = (autoCrop && cropBounds)
+    const effectiveAspect = (autoCrop && cropBounds && viewMode !== 'scroll')
       ? pageAspect * ((cropBounds.bottom - cropBounds.top) / (cropBounds.right - cropBounds.left))
       : pageAspect
 
