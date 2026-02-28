@@ -1196,6 +1196,14 @@ export default function PDFViewer({
         {/* 스크롤 모드 (IntersectionObserver lazy load) */}
         {viewMode === 'scroll' && (
           <>
+            {pdfLoading && (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-10 h-10 border-4 border-[#B2967D] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                  <p className="text-[#C4A882] text-sm">PDF 로딩 중...</p>
+                </div>
+              </div>
+            )}
             <div ref={scrollContainerRef} className="h-full overflow-y-auto" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}>
               <div className="py-4 flex flex-col items-center gap-4">
                 <PDFDocument
