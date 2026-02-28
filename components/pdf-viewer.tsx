@@ -542,15 +542,17 @@ export default function PDFViewer({
 
     // 돋보기 위치: 손가락/커서 위 20px, 화면 안에 유지
     const magX = Math.max(4, Math.min(clientX - magW / 2, window.innerWidth - magW - 4))
-    const magY = clientY - magH - 20
+    const magY = Math.max(4, clientY - magH - 20)
     el.style.left = `${magX}px`
-    el.style.top = `${Math.max(4, magY)}px`
+    el.style.top = `${magY}px`
 
-    // 배경 위치 계산
-    const relX = (clientX - data.rect.left) / data.displayW
-    const relY = (clientY - data.rect.top) / data.displayH
+    // 배경 위치: 돋보기 렌즈 뒷부분(렌즈 중심 좌표)을 확대
+    const magCenterX = magX + magW / 2
+    const magCenterY = magY + magH / 2
+    const relX = (magCenterX - data.rect.left) / data.displayW
+    const relY = (magCenterY - data.rect.top) / data.displayH
     const bgX = relX * data.displayW * MAGNIFIER_ZOOM - magW / 2
-    const bgY = relY * data.displayH * MAGNIFIER_ZOOM - magH * 0.15
+    const bgY = relY * data.displayH * MAGNIFIER_ZOOM - magH / 2
     el.style.backgroundPosition = `-${bgX}px -${bgY}px`
   }
 
