@@ -882,10 +882,24 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   box-decoration-break: clone; -webkit-box-decoration-break: clone;
   position: relative;
 }
-.epub-page-content mark[data-memo]::after {
-  content: '💬 ' attr(data-memo);
+.epub-page-content mark[data-memo]::before {
+  content: '';
   position: absolute;
-  left: 0; bottom: calc(100% + 6px);
+  left: 12px; bottom: calc(100% + 2px);
+  border: 5px solid transparent;
+  border-top-color: ${theme === 'dark' ? '#3A302A' : theme === 'sepia' ? '#d4c5a9' : '#E7D8C9'};
+  pointer-events: none;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 51;
+}
+.epub-page-content mark[data-memo]:hover::before {
+  opacity: 1; visibility: visible;
+}
+.epub-page-content mark[data-memo]::after {
+  content: '✎  ' attr(data-memo);
+  position: absolute;
+  left: -4px; bottom: calc(100% + 10px);
   max-width: 240px; width: max-content;
   padding: 6px 10px;
   border-radius: 8px;
