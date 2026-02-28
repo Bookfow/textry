@@ -18,6 +18,33 @@ import type { ImageUploadCallback } from '@/lib/pdf-to-reflow'
 const WebtoonUploadForm = dynamic(() => import('@/components/webtoon-upload-form'), { ssr: false })
 import { useToast } from '@/components/toast'
 
+// ━━━ R2 업로드 헬퍼 ━━━
+async function uploadToR2(file: File | Blob, fileName: string, contentType: string): Promise<string> {
+  // 1. presigned URL 요청
+  const res = await fetch('/api/r2-upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fileName, contentType }),
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(`Presigned URL 생성 실패: ${err.error}`)
+  }
+  const { presignedUrl, publicUrl } = await res.json()
+
+  // 2. R2에 직접 업로드
+  const uploadRes = await fetch(presignedUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': contentType },
+    body: file,
+  })
+  if (!uploadRes.ok) {
+    throw new Error(`R2 업로드 실패: ${uploadRes.status}`)
+  }
+
+  return publicUrl
+}
+
 export default function UploadPage() {
   const { user } = useAuth()
   const router = useRouter()
@@ -54,10 +81,9 @@ export default function UploadPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
-      if (selectedFile.size > 100 * 1024 * 1024) { toast.warning('파일 크기는 100MB 이하여야 합니다.'); return }
+      if (selectedFile.size > 500 * 1024 * 1024) { toast.warning('파일 크기는 500MB 이하여야 합니다.'); return }
       setFile(selectedFile)
 
-      // txt/docx 변환 안내
       const ext = selectedFile.name.split('.').pop()?.toLowerCase() || ''
       if (ext === 'docx') {
         setConvertNotice('docx 파일은 텍스트 위주로 변환됩니다. 표, 이미지 등 복잡한 서식은 일부 손실될 수 있습니다.')
@@ -158,7 +184,6 @@ export default function UploadPage() {
     return parts.join('\n\n')
   }
 
-  // ━━━ txt/docx → epub 변환 ━━━
   async function convertFileToEpub(originalFile: File): Promise<{ epubBlob: Blob; epubData: any } | null> {
     const ext = originalFile.name.split('.').pop()?.toLowerCase() || ''
 
@@ -171,7 +196,6 @@ export default function UploadPage() {
       const authorName = user?.email?.split('@')[0] || '작자 미상'
       const epubBlob = await convertTxtToEpub(text, title.trim() || originalFile.name.replace(/\.txt$/i, ''), authorName)
 
-      // 변환된 epub 파싱
       const { parseEpub } = await import('@/lib/epub-parser')
       const arrayBuffer = await epubBlob.arrayBuffer()
       const epubData = await parseEpub(arrayBuffer)
@@ -187,7 +211,6 @@ export default function UploadPage() {
       const authorName = user?.email?.split('@')[0] || '작자 미상'
       const epubBlob = await convertDocxToEpub(arrayBuffer, title.trim() || originalFile.name.replace(/\.docx$/i, ''), authorName)
 
-      // 변환된 epub 파싱
       const { parseEpub } = await import('@/lib/epub-parser')
       const epubArrayBuffer = await epubBlob.arrayBuffer()
       const epubData = await parseEpub(epubArrayBuffer)
@@ -198,8 +221,6 @@ export default function UploadPage() {
     return null
   }
 
-
-  // ━━━ 구독자 알림 발송 ━━━
   const notifySubscribers = async (documentId: string, documentTitle: string) => {
     try {
       const { data: subs } = await supabase
@@ -223,7 +244,6 @@ export default function UploadPage() {
         is_read: false,
       }))
 
-      // 50명씩 배치 INSERT
       for (let i = 0; i < notifications.length; i += 50) {
         await supabase.from('notifications').insert(notifications.slice(i, i + 50))
       }
@@ -240,9 +260,9 @@ export default function UploadPage() {
       const fileExt = file.name.split('.').pop()?.toLowerCase() || ''
       const isTxtOrDocx = fileExt === 'txt' || fileExt === 'docx'
 
-      // ━━━ txt/docx → epub 변환 ━━━
       let uploadFile: File | Blob = file
       let uploadFileName: string
+      let uploadContentType: string = file.type || 'application/octet-stream'
       let convertedEpubData: any = null
 
       if (isTxtOrDocx) {
@@ -252,7 +272,8 @@ export default function UploadPage() {
           if (!result) { setUploading(false); setProgress(0); setProgressMessage(''); return }
           uploadFile = result.epubBlob
           convertedEpubData = result.epubData
-          uploadFileName = `${user.id}/${Date.now()}.epub`
+          uploadFileName = `documents/${user.id}/${Date.now()}.epub`
+          uploadContentType = 'application/epub+zip'
           setProgress(30)
           setProgressMessage('변환 완료! 업로드 중...')
         } catch (convertErr: any) {
@@ -261,22 +282,19 @@ export default function UploadPage() {
           setUploading(false); setProgress(0); setProgressMessage(''); return
         }
       } else {
-        uploadFileName = `${user.id}/${Date.now()}.${fileExt}`
+        uploadFileName = `documents/${user.id}/${Date.now()}.${fileExt}`
       }
 
+      // ━━━ R2에 파일 업로드 ━━━
       setProgress(20); setProgressMessage('파일 업로드 중...')
-      const { error: uploadError } = await supabase.storage.from('documents').upload(uploadFileName, uploadFile)
-      if (uploadError) throw uploadError
+      const filePublicUrl = await uploadToR2(uploadFile, uploadFileName, uploadContentType)
 
       setProgress(40); setProgressMessage('썸네일 처리 중...')
       let thumbnailUrl = null
       if (thumbnail) {
         const thumbExt = thumbnail.name.split('.').pop()
-        const thumbFileName = `${user.id}/${Date.now()}.${thumbExt}`
-        const { error: thumbError } = await supabase.storage.from('thumbnails').upload(thumbFileName, thumbnail)
-        if (thumbError) throw thumbError
-        const { data: thumbUrlData } = supabase.storage.from('thumbnails').getPublicUrl(thumbFileName)
-        thumbnailUrl = thumbUrlData.publicUrl
+        const thumbFileName = `thumbnails/${user.id}/${Date.now()}.${thumbExt}`
+        thumbnailUrl = await uploadToR2(thumbnail, thumbFileName, thumbnail.type)
       }
       setProgress(50)
 
@@ -309,14 +327,13 @@ export default function UploadPage() {
         } catch (e) { console.warn('EPUB 파싱 실패:', e); toast.error('EPUB 파일 파싱에 실패했습니다.'); setUploading(false); setProgress(0); setProgressMessage(''); return }
       }
 
-      // 변환된 epub 데이터 사용
       if (isConvertedEpub) {
         epubData = convertedEpubData
         pageCount = epubData.chapters.length
       }
 
       setProgress(60); setProgressMessage('콘텐츠 정보 저장 중...')
-      const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, curator_comment: curatorComment.trim() || null, category, language, file_path: uploadFileName, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: Math.floor(file.size / 1000), page_count: pageCount || null, is_published: true }).select('id').single()
+      const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, curator_comment: curatorComment.trim() || null, category, language, file_path: filePublicUrl, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: Math.floor(file.size / 1000), page_count: pageCount || null, is_published: true }).select('id').single()
       if (dbError) throw dbError
 
       setProgress(70)
@@ -325,20 +342,13 @@ export default function UploadPage() {
         try {
           setProgressMessage('PDF 리플로우 변환 중...')
 
-          // 이미지 Storage 업로드 콜백
+          // ━━━ 이미지 R2 업로드 콜백 ━━━
           const imageUploader: ImageUploadCallback = async (blob: Blob, fileName: string) => {
-            const storagePath = `${user.id}/pdf-images/${docData.id}/${fileName}`
-            const { error: imgUploadErr } = await supabase.storage
-              .from('documents')
-              .upload(storagePath, blob, { contentType: blob.type })
-            if (imgUploadErr) throw imgUploadErr
-            const { data: urlData } = supabase.storage
-              .from('documents')
-              .getPublicUrl(storagePath)
-            return urlData.publicUrl
+            const storagePath = `pdf-images/${user.id}/${docData.id}/${fileName}`
+            const publicUrl = await uploadToR2(blob, storagePath, blob.type)
+            return publicUrl
           }
 
-          // 새 변환 엔진으로 리플로우 변환 (텍스트 + 이미지)
           const reflowPages = await convertPdfToReflow(
             pdfDoc,
             (stage, progressValue) => {
@@ -348,7 +358,6 @@ export default function UploadPage() {
             imageUploader
           )
 
-          // document_pages_text에 저장
           const batchSize = 10
           const rows: any[] = []
           for (let i = 0; i < reflowPages.length; i++) {
@@ -365,7 +374,6 @@ export default function UploadPage() {
             setProgressMessage(`리플로우 페이지 저장... ${i + 1}/${reflowPages.length}`)
           }
 
-          // ★ document_blocks에도 저장
           try {
             const blockRows: any[] = []
             for (let i = 0; i < reflowPages.length; i++) {
@@ -399,7 +407,6 @@ export default function UploadPage() {
             }
           } catch (blockErr) { console.warn('document_blocks 저장 실패 (무시):', blockErr) }
 
-          // 리플로우 페이지 수로 page_count 업데이트
           if (reflowPages.length > 0) {
             await supabase.from('documents')
               .update({ page_count: reflowPages.length })
@@ -409,7 +416,6 @@ export default function UploadPage() {
           setProgressMessage('PDF 리플로우 변환 완료!')
         } catch (convertErr) {
           console.warn('PDF 리플로우 변환 실패, 기존 방식으로 폴백:', convertErr)
-          // ━━━ 폴백: 기존 extractPageText 방식 ━━━
           try {
             const batchSize = 10; const rows: any[] = []
             for (let i = 1; i <= pageCount; i++) {
@@ -425,7 +431,6 @@ export default function UploadPage() {
                 setProgressMessage(`텍스트 추출 중... ${i}/${pageCount}`)
               } catch (pageErr) { console.warn(`${i}페이지 실패:`, pageErr) }
             }
-            // ★ PDF 폴백 텍스트도 document_blocks에 저장
             try {
               const pdfBlockRows: any[] = []
               const { data: pdfTexts } = await supabase
@@ -453,7 +458,6 @@ export default function UploadPage() {
         }
       }
 
-      // EPUB은 뷰어가 원본 파일을 직접 렌더링하므로 텍스트 추출/저장 불필요
       if (!isPdf) setProgress(95)
 
       setProgress(100); setProgressMessage('완료!'); await notifySubscribers(docData.id, title.trim())
@@ -473,7 +477,6 @@ export default function UploadPage() {
             <p className="text-[#9C8B7A]">새로운 콘텐츠를 공유하세요</p>
           </div>
 
-          {/* 문서/웹툰 탭 */}
           <div className="flex gap-2 mb-4">
             <button onClick={() => setUploadTab('document')}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
@@ -532,7 +535,7 @@ export default function UploadPage() {
                 <div className="space-y-2">
                   <Label htmlFor="file" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">콘텐츠 파일 *</Label>
                   <Input id="file" type="file" onChange={handleFileChange} disabled={uploading} accept=".pdf,.epub,.txt,.docx" required className={inputClass} />
-                  <p className="text-xs text-[#9C8B7A]">지원 형식: PDF, EPUB, TXT, DOCX (최대 100MB)</p>
+                  <p className="text-xs text-[#9C8B7A]">지원 형식: PDF, EPUB, TXT, DOCX (최대 500MB)</p>
                   {file && (<div className="flex items-center gap-2 text-sm text-[#5C4A38] dark:text-[#C4A882]"><FileText className="w-4 h-4" /><span>{file.name}</span><span className="text-xs">({(file.size / 1024 / 1024).toFixed(2)} MB)</span></div>)}
                   {convertNotice && (
                     <div className="bg-[#B2967D]/10 border border-[#B2967D]/30 rounded-lg px-3 py-2 mt-2">
