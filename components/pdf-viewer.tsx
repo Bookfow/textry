@@ -227,16 +227,15 @@ export default function PDFViewer({
     return () => container.removeEventListener('scroll', handleScroll)
   }, [viewMode, numPages, onPageChange])
 
-  const onDocumentLoadSuccess = async ({ numPages: total }: { numPages: number }) => {
+  const onDocumentLoadSuccess = async (pdfProxy: any) => {
+    const total = pdfProxy.numPages
     setNumPages(total)
     setPdfLoading(false)
+    setPdfDoc(pdfProxy)
     if (onDocumentLoad) onDocumentLoad(total)
 
     try {
-      const loadingTask = pdfjs.getDocument(pdfUrl)
-      const pdf = await loadingTask.promise
-      setPdfDoc(pdf)
-      const page = await pdf.getPage(1)
+      const page = await pdfProxy.getPage(1)
       const viewport = page.getViewport({ scale: 1 })
       const aspect = viewport.height / viewport.width
       setPageAspect(aspect)
