@@ -368,10 +368,11 @@ export default function PDFViewer({
         }
 
         const pad = 0.015
+        const padBottom = 0.035
         const bounds = {
           top: Math.max(0, median(allTops) - pad),
           left: Math.max(0, median(allLefts) - pad),
-          bottom: Math.min(1, median(allBottoms) + pad),
+          bottom: Math.min(1, median(allBottoms) + padBottom),
           right: Math.min(1, median(allRights) + pad),
         }
         const cw = bounds.right - bounds.left
