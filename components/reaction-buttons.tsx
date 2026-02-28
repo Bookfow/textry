@@ -33,7 +33,7 @@ export function ReactionButtons({ documentId, initialLikes, initialDislikes }: R
         .select('reaction_type')
         .eq('document_id', documentId)
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
       if (data) {
         setUserReaction(data.reaction_type as 'like' | 'dislike')
