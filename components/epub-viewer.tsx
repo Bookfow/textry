@@ -216,6 +216,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   const [memoText, setMemoText] = useState('')
   const [showMemoModal, setShowMemoModal] = useState(false)
   const [showHighlightPanel, setShowHighlightPanel] = useState(false)
+  const [memoTooltip, setMemoTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
 
   // ─── refs ───
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
@@ -882,42 +883,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   box-decoration-break: clone; -webkit-box-decoration-break: clone;
   position: relative;
 }
-.epub-page-content mark[data-memo]::before {
-  content: '';
-  position: absolute;
-  left: 12px; bottom: calc(100% + 2px);
-  border: 5px solid transparent;
-  border-top-color: ${theme === 'dark' ? '#3A302A' : theme === 'sepia' ? '#d4c5a9' : '#E7D8C9'};
-  pointer-events: none;
-  opacity: 0; visibility: hidden;
-  transition: opacity 0.15s ease, visibility 0.15s ease;
-  z-index: 51;
-}
-.epub-page-content mark[data-memo]:hover::before {
-  opacity: 1; visibility: visible;
-}
-.epub-page-content mark[data-memo]::after {
-  content: '✎  ' attr(data-memo);
-  position: absolute;
-  left: -4px; bottom: calc(100% + 10px);
-  max-width: 240px; width: max-content;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: ${Math.round(fontSize * 0.75)}px;
-  line-height: 1.4;
-  color: ${themeStyle.text};
-  background: ${theme === 'dark' ? '#2E2620' : theme === 'sepia' ? '#e8dcc8' : '#f5f0eb'};
-  border: 1px solid ${themeStyle.border};
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  white-space: pre-wrap; word-break: keep-all;
-  pointer-events: none;
-  opacity: 0; visibility: hidden;
-  transition: opacity 0.15s ease, visibility 0.15s ease;
-  z-index: 50;
-}
-.epub-page-content mark[data-memo]:hover::after {
-  opacity: 1; visibility: visible;
-}
+
 </style>
 <div class="epub-page-content" data-block-id="${chapterBlockId}">${contentHtml}</div>`
   }, [currentChapterData, fontSize, lineHeight, fontStyle.family, themeStyle, letterSpacing, textAlign, theme, currentChapterIdx, highlights])
@@ -971,7 +937,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     return () => { colEl.removeEventListener('click', handleFocusClick, true) }
   }, [focusMode, currentChapterIdx, chapterStyledHtml])
 
-  // ━━━ 하이라이트 mark 클릭 이벤트 위임 ━━━
+  // ━━━ 하이라이트 mark 클릭 + 호버 이벤트 위임 ━━━
   useEffect(() => {
     const colEl = contentColumnRef.current
     if (!colEl) return
@@ -983,14 +949,36 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
       const hlId = mark.getAttribute('data-hl-id')
       const hl = highlights.find(h => h.id === hlId)
       if (hl) {
+        setMemoTooltip(null)
         setEditingHighlight(hl)
         setMemoText(hl.memo || '')
         setShowMemoModal(true)
       }
     }
 
+    const handleMarkEnter = (e: Event) => {
+      const mark = (e.target as HTMLElement).closest('mark[data-memo]')
+      if (!mark) return
+      const memo = mark.getAttribute('data-memo')
+      if (!memo) return
+      const rect = mark.getBoundingClientRect()
+      setMemoTooltip({ text: memo, x: rect.left, y: rect.top })
+    }
+
+    const handleMarkLeave = (e: Event) => {
+      const related = (e as MouseEvent).relatedTarget as HTMLElement | null
+      if (related?.closest?.('mark[data-memo]')) return
+      setMemoTooltip(null)
+    }
+
     colEl.addEventListener('click', handleMarkClick)
-    return () => { colEl.removeEventListener('click', handleMarkClick) }
+    colEl.addEventListener('mouseover', handleMarkEnter)
+    colEl.addEventListener('mouseout', handleMarkLeave)
+    return () => {
+      colEl.removeEventListener('click', handleMarkClick)
+      colEl.removeEventListener('mouseover', handleMarkEnter)
+      colEl.removeEventListener('mouseout', handleMarkLeave)
+    }
   }, [highlights])
 
   // ━━━ JS 선택 오버레이 (CSS columns에서 ::selection이 안 보이므로) ━━━
@@ -1308,7 +1296,36 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
             className="w-7 h-7 rounded-full flex items-center justify-center" style={{ color: themeStyle.muted }}><X className="w-3.5 h-3.5" /></button>
         </div>
       )}
-
+{/* ━━━ 메모 툴팁 (호버) ━━━ */}
+{memoTooltip && (
+        <div className="fixed z-[80] pointer-events-none" style={{
+          left: Math.max(8, Math.min(memoTooltip.x, (typeof window !== 'undefined' ? window.innerWidth : 400) - 260)),
+          top: Math.max(8, memoTooltip.y - 8),
+          transform: 'translateY(-100%)',
+        }}>
+          <div style={{
+            maxWidth: 250,
+            padding: '8px 12px',
+            borderRadius: 10,
+            fontSize: Math.round(fontSize * 0.75),
+            lineHeight: 1.5,
+            color: themeStyle.text,
+            background: theme === 'dark' ? '#2E2620' : theme === 'sepia' ? '#e8dcc8' : '#f5f0eb',
+            border: `1px solid ${themeStyle.border}`,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+            wordBreak: 'keep-all',
+            whiteSpace: 'pre-wrap',
+          }}>
+            <span style={{ opacity: 0.5, marginRight: 4 }}>✎</span>{memoTooltip.text}
+          </div>
+          <div style={{
+            width: 0, height: 0, marginLeft: 14,
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderTop: `6px solid ${themeStyle.border}`,
+          }} />
+        </div>
+      )}
       {/* ━━━ 메모 모달 ━━━ */}
       {showMemoModal && editingHighlight && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
