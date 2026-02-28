@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Document as PDFDocument, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Play, Pause, Minus, Plus } from 'lucide-react'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 
@@ -192,6 +192,14 @@ export default function PDFViewer({
 
   const [scrollCurrentPage, setScrollCurrentPage] = useState(1)
 
+  // ━━━ 자동 스크롤 (Auto Scroll) ━━━
+  const [autoScrollActive, setAutoScrollActive] = useState(false)
+  const [autoScrollSpeed, setAutoScrollSpeed] = useState(2) // 1~5
+  const autoScrollRef = useRef<number | null>(null)
+  const autoScrollActiveRef = useRef(false)
+  const autoScrollSpeedRef = useRef(2)
+  const AUTO_SCROLL_SPEEDS: Record<number, number> = { 1: 0.4, 2: 0.8, 3: 1.5, 4: 2.5, 5: 4.0 } // px per 16ms frame
+
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const touchOverlayRef = useRef<HTMLDivElement>(null)
@@ -251,6 +259,56 @@ export default function PDFViewer({
     container.addEventListener('scroll', handleScroll)
     return () => container.removeEventListener('scroll', handleScroll)
   }, [viewMode, numPages, onPageChange])
+
+  // ━━━ 자동 스크롤 ref 동기화 ━━━
+  useEffect(() => { autoScrollActiveRef.current = autoScrollActive }, [autoScrollActive])
+  useEffect(() => { autoScrollSpeedRef.current = autoScrollSpeed }, [autoScrollSpeed])
+
+  // ━━━ 뷰모드 바뀌면 자동 스크롤 중지 ━━━
+  useEffect(() => {
+    if (viewMode !== 'scroll') setAutoScrollActive(false)
+  }, [viewMode])
+
+  // ━━━ 자동 스크롤 애니메이션 루프 ━━━
+  useEffect(() => {
+    if (!autoScrollActive || viewMode !== 'scroll') {
+      if (autoScrollRef.current) {
+        cancelAnimationFrame(autoScrollRef.current)
+        autoScrollRef.current = null
+      }
+      return
+    }
+
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    let lastTime = 0
+    const step = (timestamp: number) => {
+      if (!autoScrollActiveRef.current) return
+      if (lastTime) {
+        const delta = timestamp - lastTime
+        const px = AUTO_SCROLL_SPEEDS[autoScrollSpeedRef.current] * (delta / 16)
+        container.scrollBy(0, px)
+
+        // 끝까지 스크롤하면 자동 정지
+        if (container.scrollTop + container.clientHeight >= container.scrollHeight - 2) {
+          setAutoScrollActive(false)
+          return
+        }
+      }
+      lastTime = timestamp
+      autoScrollRef.current = requestAnimationFrame(step)
+    }
+
+    autoScrollRef.current = requestAnimationFrame(step)
+
+    return () => {
+      if (autoScrollRef.current) {
+        cancelAnimationFrame(autoScrollRef.current)
+        autoScrollRef.current = null
+      }
+    }
+  }, [autoScrollActive, viewMode])
 
   const onDocumentLoadSuccess = async (pdfProxy: any) => {
     const total = pdfProxy.numPages
@@ -819,6 +877,10 @@ export default function PDFViewer({
       if (e.touches.length !== 1) return
       clearLongPressTimer()
       hideMagnifier()
+      // 자동 스크롤 중이면 터치 시 일시정지
+      if (autoScrollActiveRef.current) {
+        setAutoScrollActive(false)
+      }
       const tx = e.touches[0].clientX
       const ty = e.touches[0].clientY
       longPressPosRef.current = { x: tx, y: ty }
@@ -1122,34 +1184,66 @@ export default function PDFViewer({
 
         {/* 스크롤 모드 (IntersectionObserver lazy load) */}
         {viewMode === 'scroll' && (
-          <div ref={scrollContainerRef} className="h-full overflow-y-auto" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}>
-            <div className="py-4 flex flex-col items-center gap-4">
-              <PDFDocument
-                file={pdfUrl}
-                onLoadSuccess={onDocumentLoadSuccess}
-                loading=""
-                className="flex flex-col items-center gap-4"
-                options={pdfOptions}
-              >
-                {Array.from({ length: numPages }, (_, index) => (
-                  <LazyPage
-                    key={`page_${index + 1}`}
-                    pageNum={index + 1}
-                    width={renderWidth}
-                    height={isCropping ? cropVisibleH : pageHeight}
-                    frameStyle={frameStyle}
-                    frameStyleDark={frameStyleDark}
-                    isCropping={isCropping}
-                    cropPageWidth={cropPageWidth}
-                    cropVisibleW={cropVisibleW}
-                    cropVisibleH={cropVisibleH}
-                    cropOffX={cropOffX}
-                    cropOffY={cropOffY}
-                  />
-                ))}
-              </PDFDocument>
+          <>
+            <div ref={scrollContainerRef} className="h-full overflow-y-auto" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}>
+              <div className="py-4 flex flex-col items-center gap-4">
+                <PDFDocument
+                  file={pdfUrl}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                  loading=""
+                  className="flex flex-col items-center gap-4"
+                  options={pdfOptions}
+                >
+                  {Array.from({ length: numPages }, (_, index) => (
+                    <LazyPage
+                      key={`page_${index + 1}`}
+                      pageNum={index + 1}
+                      width={renderWidth}
+                      height={isCropping ? cropVisibleH : pageHeight}
+                      frameStyle={frameStyle}
+                      frameStyleDark={frameStyleDark}
+                      isCropping={isCropping}
+                      cropPageWidth={cropPageWidth}
+                      cropVisibleW={cropVisibleW}
+                      cropVisibleH={cropVisibleH}
+                      cropOffX={cropOffX}
+                      cropOffY={cropOffY}
+                    />
+                  ))}
+                </PDFDocument>
+              </div>
             </div>
-          </div>
+
+            {/* ━━━ 자동 스크롤 플로팅 컨트롤 ━━━ */}
+            {numPages > 0 && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/60 dark:bg-black/70 backdrop-blur-md rounded-full px-2.5 py-1.5 shadow-lg border border-white/10">
+                {autoScrollActive && (
+                  <>
+                    <button
+                      onClick={() => setAutoScrollSpeed(s => Math.max(1, s - 1))}
+                      className="w-7 h-7 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-xs font-mono text-white/90 w-5 text-center select-none">{autoScrollSpeed}x</span>
+                    <button
+                      onClick={() => setAutoScrollSpeed(s => Math.min(5, s + 1))}
+                      className="w-7 h-7 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="w-px h-4 bg-white/20 mx-0.5" />
+                  </>
+                )}
+                <button
+                  onClick={() => setAutoScrollActive(a => !a)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/15 transition-colors"
+                >
+                  {autoScrollActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
