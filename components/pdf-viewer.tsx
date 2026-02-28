@@ -125,6 +125,7 @@ export default function PDFViewer({
   const [swipeOffset, setSwipeOffset] = useState(0)
   const [cropBounds, setCropBounds] = useState<{top: number; left: number; bottom: number; right: number} | null>(null)
   const [cropDetecting, setCropDetecting] = useState(false)
+  const [pdfDoc, setPdfDoc] = useState<any>(null)
 
   const pinchStartDistRef = useRef<number | null>(null)
   const pinchStartScaleRef = useRef<number>(1)
@@ -234,6 +235,7 @@ export default function PDFViewer({
     try {
       const loadingTask = pdfjs.getDocument(pdfUrl)
       const pdf = await loadingTask.promise
+      setPdfDoc(pdf)
       const page = await pdf.getPage(1)
       const viewport = page.getViewport({ scale: 1 })
       const aspect = viewport.height / viewport.width
@@ -243,13 +245,12 @@ export default function PDFViewer({
     }
   }
 
-  // ━━━ 자동 여백 감지 ━━━
+  // ━━━ 자동 여백 감지 (기존 PDF 객체 재사용) ━━━
   const detectCropBounds = useCallback(async () => {
-    if (!pdfUrl || numPages === 0 || cropDetecting) return
+    if (!pdfDoc || numPages === 0 || cropDetecting) return
     setCropDetecting(true)
     try {
-      const loadingTask = pdfjs.getDocument({ url: pdfUrl, ...pdfOptions })
-      const pdf = await loadingTask.promise
+      const pdf = pdfDoc
 
       const sampleNums: number[] = []
       if (numPages >= 1) sampleNums.push(1)
@@ -320,16 +321,16 @@ export default function PDFViewer({
     } finally {
       setCropDetecting(false)
     }
-  }, [pdfUrl, numPages, cropDetecting])
+  }, [pdfDoc, numPages, cropDetecting])
 
   useEffect(() => {
-    if (autoCrop && !cropBounds && !cropDetecting && numPages > 0) {
+    if (autoCrop && !cropBounds && !cropDetecting && numPages > 0 && pdfDoc) {
       detectCropBounds()
     }
     if (!autoCrop) {
       setCropBounds(null)
     }
-  }, [autoCrop, numPages])
+  }, [autoCrop, numPages, pdfDoc])
 
   const getTouchDistance = (touches: TouchList) => {
     if (touches.length < 2) return 0
