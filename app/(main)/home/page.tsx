@@ -14,7 +14,6 @@ type DocWithAuthor = Document & { profiles?: { username: string | null; email: s
 
 export default function HomePage() {
   const { user } = useAuth()
-  const [continueReading, setContinueReading] = useState<DocWithAuthor[]>([])
   const [subscribedDocs, setSubscribedDocs] = useState<DocWithAuthor[]>([])
   const [popularDocs, setPopularDocs] = useState<DocWithAuthor[]>([])
   const [recentDocs, setRecentDocs] = useState<DocWithAuthor[]>([])
@@ -31,30 +30,6 @@ export default function HomePage() {
   const loadAllSections = async () => {
     try {
       if (user) {
-        const { data: progress } = await supabase
-          .from('reading_progress')
-          .select('document_id, progress, updated_at')
-          .eq('user_id', user.id)
-          .lt('progress', 100)
-          .gt('progress', 0)
-          .order('updated_at', { ascending: false })
-          .limit(10)
-
-        if (progress && progress.length > 0) {
-          const { data: docs } = await supabase
-            .from('documents')
-            .select('*, profiles!documents_author_id_fkey(username, email, avatar_url)')
-            .in('id', progress.map(r => r.document_id))
-            .eq('is_published', true)
-
-          if (docs) {
-            const ordered = progress
-              .map(p => docs.find(d => d.id === p.document_id))
-              .filter(Boolean) as DocWithAuthor[]
-            setContinueReading(ordered)
-          }
-        }
-
         const { data: subs } = await supabase
           .from('subscriptions')
           .select('author_id')
@@ -428,7 +403,7 @@ export default function HomePage() {
     )
   }
 
-  const hasAnyContent = continueReading.length > 0 || sessionContinue.length > 0 || subscribedDocs.length > 0 || popularDocs.length > 0 || recentDocs.length > 0
+  const hasAnyContent = sessionContinue.length > 0 || subscribedDocs.length > 0 || popularDocs.length > 0 || recentDocs.length > 0
 
   return (
     <div className="min-h-screen">
