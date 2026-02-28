@@ -281,12 +281,24 @@ export default function PDFViewer({
           const threshold = 245
           let top = height, left = width, bottom = 0, right = 0
 
+          // 상하 경계: 전체 영역 스캔
           for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
               const i = (y * width + x) * 4
               if (data[i] < threshold || data[i+1] < threshold || data[i+2] < threshold) {
                 if (y < top) top = y
                 if (y > bottom) bottom = y
+              }
+            }
+          }
+
+          // 좌우 경계: 헤더/푸터 제외 (상하 15% 무시)
+          const yStart = Math.floor(height * 0.15)
+          const yEnd = Math.floor(height * 0.85)
+          for (let y = yStart; y < yEnd; y++) {
+            for (let x = 0; x < width; x++) {
+              const i = (y * width + x) * 4
+              if (data[i] < threshold || data[i+1] < threshold || data[i+2] < threshold) {
                 if (x < left) left = x
                 if (x > right) right = x
               }
