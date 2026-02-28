@@ -368,7 +368,7 @@ export default function PDFViewer({
         }
 
         const pad = 0.015
-        const padLeft = 0.03
+        const padLeft = 0.05
         const padBottom = 0.035
         const bounds = {
           top: Math.max(0, median(allTops) - pad),
