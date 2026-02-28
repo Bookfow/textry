@@ -30,9 +30,10 @@ interface PDFViewerProps {
 }
 
 // ━━━ Lazy 페이지 컴포넌트 (IntersectionObserver) ━━━
-function LazyPage({ pageNum, width, height, frameStyle, frameStyleDark }: {
+function LazyPage({ pageNum, width, height, frameStyle, frameStyleDark, isCropping, cropPageWidth, cropVisibleW, cropVisibleH, cropOffX, cropOffY }: {
   pageNum: number; width: number; height: number;
-  frameStyle: React.CSSProperties; frameStyleDark: React.CSSProperties
+  frameStyle: React.CSSProperties; frameStyleDark: React.CSSProperties;
+  isCropping?: boolean; cropPageWidth?: number; cropVisibleW?: number; cropVisibleH?: number; cropOffX?: number; cropOffY?: number;
 }) {
   const [isVisible, setIsVisible] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
@@ -67,33 +68,37 @@ function LazyPage({ pageNum, width, height, frameStyle, frameStyleDark }: {
     <div ref={ref} data-page-number={pageNum}>
       {isVisible ? (
         <>
-          <div className="dark:hidden" style={frameStyle}>
-            <Page
-              pageNumber={pageNum}
-              width={width}
-              renderTextLayer={true}
-              renderAnnotationLayer={true}
-              loading={
-                <div className="flex items-center justify-center bg-gray-100"
-                  style={{ width, height }}>
-                  <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin" />
-                </div>
-              }
-            />
+          <div className="dark:hidden" style={isCropping ? {...frameStyle, width: cropVisibleW, height: cropVisibleH, overflow: 'hidden'} : frameStyle}>
+            <div style={isCropping ? {transform: `translate(${cropOffX}px, ${cropOffY}px)`} : undefined}>
+              <Page
+                pageNumber={pageNum}
+                width={isCropping ? cropPageWidth! : width}
+                renderTextLayer={true}
+                renderAnnotationLayer={true}
+                loading={
+                  <div className="flex items-center justify-center bg-gray-100"
+                    style={{ width: isCropping ? cropVisibleW : width, height: isCropping ? cropVisibleH : height }}>
+                    <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin" />
+                  </div>
+                }
+              />
+            </div>
           </div>
-          <div className="hidden dark:block" style={frameStyleDark}>
-            <Page
-              pageNumber={pageNum}
-              width={width}
-              renderTextLayer={true}
-              renderAnnotationLayer={true}
-              loading={
-                <div className="flex items-center justify-center bg-gray-900"
-                  style={{ width, height }}>
-                  <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin" />
-                </div>
-              }
-            />
+          <div className="hidden dark:block" style={isCropping ? {...frameStyleDark, width: cropVisibleW, height: cropVisibleH, overflow: 'hidden'} : frameStyleDark}>
+            <div style={isCropping ? {transform: `translate(${cropOffX}px, ${cropOffY}px)`} : undefined}>
+              <Page
+                pageNumber={pageNum}
+                width={isCropping ? cropPageWidth! : width}
+                renderTextLayer={true}
+                renderAnnotationLayer={true}
+                loading={
+                  <div className="flex items-center justify-center bg-gray-900"
+                    style={{ width: isCropping ? cropVisibleW : width, height: isCropping ? cropVisibleH : height }}>
+                    <div className="w-6 h-6 border-2 border-[#B2967D] border-t-transparent rounded-full animate-spin" />
+                  </div>
+                }
+              />
+            </div>
           </div>
         </>
       ) : (
@@ -883,13 +888,19 @@ export default function PDFViewer({
               >
                 {Array.from({ length: numPages }, (_, index) => (
                   <LazyPage
-                    key={`page_${index + 1}`}
-                    pageNum={index + 1}
-                    width={renderWidth}
-                    height={pageHeight}
-                    frameStyle={frameStyle}
-                    frameStyleDark={frameStyleDark}
-                  />
+                  key={`page_${index + 1}`}
+                  pageNum={index + 1}
+                  width={renderWidth}
+                  height={isCropping ? cropVisibleH : pageHeight}
+                  frameStyle={frameStyle}
+                  frameStyleDark={frameStyleDark}
+                  isCropping={isCropping}
+                  cropPageWidth={cropPageWidth}
+                  cropVisibleW={cropVisibleW}
+                  cropVisibleH={cropVisibleH}
+                  cropOffX={cropOffX}
+                  cropOffY={cropOffY}
+                />
                 ))}
               </PDFDocument>
             </div>
