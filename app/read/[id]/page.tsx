@@ -508,8 +508,7 @@ export default function ReadPage() {
         if (savedBrightness) setBrightness(Number(savedBrightness))
           const savedContrast = localStorage.getItem('textry_contrast')
           if (savedContrast) setContrast(Number(savedContrast))
-          const savedCrop = localStorage.getItem('textry_autocrop')
-          if (savedCrop === 'true') setAutoCrop(true)
+         
         } catch {}
   }, [])
 
@@ -525,9 +524,7 @@ export default function ReadPage() {
     try { localStorage.setItem('textry_contrast', String(contrast)) } catch {}
   }, [contrast])
 
-  useEffect(() => {
-    try { localStorage.setItem('textry_autocrop', String(autoCrop)) } catch {}
-  }, [autoCrop])
+
 
   useEffect(() => {
     if (!showThemePopup) return
