@@ -1216,28 +1216,27 @@ export default function PDFViewer({
 
             {/* ━━━ 자동 스크롤 플로팅 컨트롤 ━━━ */}
             {numPages > 0 && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/60 dark:bg-black/70 backdrop-blur-md rounded-full px-2.5 py-1.5 shadow-lg border border-white/10">
-                {autoScrollActive && (
-                  <>
-                    <button
-                      onClick={() => setAutoScrollSpeed(s => Math.max(1, s - 1))}
-                      className="w-7 h-7 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-xs font-mono text-white/90 w-5 text-center select-none">{autoScrollSpeed}x</span>
-                    <button
-                      onClick={() => setAutoScrollSpeed(s => Math.min(5, s + 1))}
-                      className="w-7 h-7 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                    <div className="w-px h-4 bg-white/20 mx-0.5" />
-                  </>
-                )}
+              <div className="absolute bottom-6 right-4 z-30 flex items-center">
+                {/* 속도 조절: 왼쪽으로 확장 */}
+                <div className={`flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-1.5 py-1 mr-1.5 border border-white/10 transition-all duration-200 ${autoScrollActive ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none w-0 px-0 mr-0 overflow-hidden'}`}>
+                  <button
+                    onClick={() => setAutoScrollSpeed(s => Math.max(1, s - 1))}
+                    className="w-7 h-7 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-xs font-mono text-white/80 w-5 text-center select-none">{autoScrollSpeed}x</span>
+                  <button
+                    onClick={() => setAutoScrollSpeed(s => Math.min(5, s + 1))}
+                    className="w-7 h-7 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {/* 재생/정지 버튼: 위치 고정 */}
                 <button
                   onClick={() => setAutoScrollActive(a => !a)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/15 transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md text-white/80 hover:text-white hover:bg-black/50 transition-all shadow-lg border border-white/10"
                 >
                   {autoScrollActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
                 </button>
