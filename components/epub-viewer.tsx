@@ -813,6 +813,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
               const mark = doc.createElement('mark')
               mark.setAttribute('data-hl-id', hl.id)
               mark.setAttribute('data-hl-color', hl.color || 'yellow')
+              if (hl.memo) mark.setAttribute('data-memo', hl.memo)
               mark.style.backgroundColor = HIGHLIGHT_COLORS[hl.color] || HIGHLIGHT_COLORS.yellow
               range.surroundContents(mark)
             } catch {}
@@ -879,8 +880,30 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
 .epub-page-content mark[data-hl-id] {
   color: inherit !important; border-radius: 3px; padding: 1px 2px; cursor: pointer;
   box-decoration-break: clone; -webkit-box-decoration-break: clone;
+  position: relative;
 }
-.epub-page-content mark[data-hl-id] .epub-hl-memo { font-size: 0.8em; }
+.epub-page-content mark[data-memo]::after {
+  content: '💬 ' attr(data-memo);
+  position: absolute;
+  left: 0; bottom: calc(100% + 6px);
+  max-width: 240px; width: max-content;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: ${Math.round(fontSize * 0.75)}px;
+  line-height: 1.4;
+  color: ${themeStyle.text};
+  background: ${theme === 'dark' ? '#2E2620' : theme === 'sepia' ? '#e8dcc8' : '#f5f0eb'};
+  border: 1px solid ${themeStyle.border};
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  white-space: pre-wrap; word-break: keep-all;
+  pointer-events: none;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 50;
+}
+.epub-page-content mark[data-memo]:hover::after {
+  opacity: 1; visibility: visible;
+}
 </style>
 <div class="epub-page-content" data-block-id="${chapterBlockId}">${contentHtml}</div>`
   }, [currentChapterData, fontSize, lineHeight, fontStyle.family, themeStyle, letterSpacing, textAlign, theme, currentChapterIdx, highlights])
