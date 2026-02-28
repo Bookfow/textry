@@ -285,22 +285,61 @@ export default function PDFViewer({
           const threshold = 245
           let top = height, left = width, bottom = 0, right = 0
 
-          // 상하 경계: 좌우 가운데 60%만 스캔 (페이지 번호 등 가장자리 무시)
-          const xStart = Math.floor(width * 0.20)
-          const xEnd = Math.floor(width * 0.80)
+          // 상하 경계: 행별 콘텐츠 유무 → 큰 빈 갭으로 헤더/푸터 분리
+          const rowHasContent: boolean[] = []
           for (let y = 0; y < height; y++) {
-            for (let x = xStart; x < xEnd; x++) {
+            let found = false
+            for (let x = 0; x < width; x++) {
               const i = (y * width + x) * 4
               if (data[i] < threshold || data[i+1] < threshold || data[i+2] < threshold) {
-                if (y < top) top = y
-                if (y > bottom) bottom = y
+                found = true; break
               }
+            }
+            rowHasContent.push(found)
+          }
+
+          // 전체 top/bottom 먼저 찾기
+          let rawTop = 0, rawBottom = height - 1
+          for (let y = 0; y < height; y++) { if (rowHasContent[y]) { rawTop = y; break } }
+          for (let y = height - 1; y >= 0; y--) { if (rowHasContent[y]) { rawBottom = y; break } }
+
+          // 아래에서 위로: 페이지 높이 3% 이상 빈 갭 찾으면 그 위가 본문 끝
+          const gapMin = Math.floor(height * 0.03)
+          bottom = rawBottom
+          for (let y = rawBottom; y >= rawTop; y--) {
+            if (!rowHasContent[y]) {
+              let gapSize = 0
+              let gy = y
+              while (gy >= rawTop && !rowHasContent[gy]) { gapSize++; gy-- }
+              if (gapSize >= gapMin) {
+                bottom = gy
+                break
+              }
+              y = gy
+            }
+          }
+
+          // 위에서 아래로: 동일하게 헤더 분리
+          top = rawTop
+          for (let y = rawTop; y <= bottom; y++) {
+            if (!rowHasContent[y]) {
+              let gapSize = 0
+              let gy = y
+              while (gy <= bottom && !rowHasContent[gy]) { gapSize++; gy++ }
+              if (gapSize >= gapMin) {
+                top = gy
+                break
+              }
+              y = gy
+            } else {
+              top = y
+              break
             }
           }
 
           // 좌우 경계: 헤더/푸터 제외 (상하 10%)
           const yStart = Math.floor(height * 0.10)
-          const yEnd = Math.floor(height * 0.50)
+          const yEnd = Math.floor(height * 0.80)
           for (let y = yStart; y < yEnd; y++) {
             for (let x = 0; x < width; x++) {
               const i = (y * width + x) * 4
