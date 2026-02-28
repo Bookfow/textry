@@ -16,6 +16,7 @@ interface ReflowViewerProps {
   onSwitchToPdf?: () => void
   fileType?: 'pdf' | 'epub'
   customToc?: { title: string }[] | null
+  hideTopBar?: boolean
 }
 
 // ━━━ 리플로우 설정 ━━━
@@ -242,6 +243,7 @@ export default function ReflowViewer({
   onSwitchToPdf,
   fileType = 'pdf',
   customToc,
+  hideTopBar,
 }: ReflowViewerProps) {
   const [pageTexts, setPageTexts] = useState<Map<number, string>>(new Map())
   const [numPages, setNumPages] = useState(0)
@@ -349,6 +351,33 @@ export default function ReflowViewer({
     }, 10000)
     return () => clearInterval(timer)
   }, [])
+
+  // ━━━ CustomEvent: 상태 발신 (page.tsx 헤더 연동) ━━━
+  useEffect(() => {
+    if (!hideTopBar) return
+    const detail = {
+      focusMode, showToc, showHighlightPanel, showSettings,
+      page: pageNumber, totalPages: numPages,
+      highlightCount: highlights.length,
+    }
+    window.dispatchEvent(new CustomEvent('viewer-state-update', { detail }))
+  }, [hideTopBar, focusMode, showToc, showHighlightPanel, showSettings, pageNumber, numPages, highlights.length])
+
+  // ━━━ CustomEvent: 토글 명령 수신 ━━━
+  useEffect(() => {
+    if (!hideTopBar) return
+    const handler = (e: Event) => {
+      const { action } = (e as CustomEvent).detail || {}
+      switch (action) {
+        case 'toc': setShowToc(prev => !prev); break
+        case 'focus': setFocusMode(prev => !prev); break
+        case 'highlight': setShowHighlightPanel(prev => !prev); break
+        case 'settings': setShowSettings(prev => !prev); break
+      }
+    }
+    window.addEventListener('viewer-toggle', handler)
+    return () => window.removeEventListener('viewer-toggle', handler)
+  }, [hideTopBar])
 
   // ━━━ localStorage 복원 ━━━
   useEffect(() => {
@@ -987,7 +1016,7 @@ export default function ReflowViewer({
       )}
 
       {/* ━━━ 미니멀 상단 바 ━━━ */}
-      <div className="grid grid-cols-5 px-2 py-2 border-b max-w-lg mx-auto w-full" style={{ borderColor: themeStyle.border }}>
+      {!hideTopBar && <div className="grid grid-cols-5 px-2 py-2 border-b max-w-lg mx-auto w-full" style={{ borderColor: themeStyle.border }}>
         <button onClick={() => setShowToc(!showToc)}
           className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-opacity hover:opacity-70"
           style={{ color: showToc ? '#3b82f6' : themeStyle.muted }}>
@@ -1028,7 +1057,7 @@ export default function ReflowViewer({
           <Settings2 className="w-4 h-4" />
           <span className="text-xs">설정</span>
         </button>
-      </div>
+      </div>}
 
       {/* ━━━ 설정 바텀 시트 ━━━ */}
       {showSettings && (

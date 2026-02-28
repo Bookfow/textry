@@ -15,6 +15,7 @@ interface EpubViewerProps {
   onPageChange?: (page: number, total: number) => void
   onDocumentLoad?: (numPages: number) => void
   onError?: (error: string) => void
+  hideTopBar?: boolean
 }
 
 interface EpubChapter {
@@ -173,7 +174,7 @@ function parseTocNav(navHtml: string, navDir: string): TocItem[] {
 // 메인 컴포넌트
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocumentLoad, onError }: EpubViewerProps) {
+export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocumentLoad, onError, hideTopBar }: EpubViewerProps) {
   // ─── EPUB 데이터 ───
   const [chapters, setChapters] = useState<EpubChapter[]>([])
   const [tocItems, setTocItems] = useState<TocItem[]>([])
@@ -309,6 +310,33 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
     if (chapters.length === 0) return
     if (onPageChange) onPageChange(virtualPageNumber, virtualTotalPages)
   }, [virtualPageNumber, virtualTotalPages, chapters.length])
+
+  // ━━━ CustomEvent: 상태 발신 (page.tsx 헤더 연동) ━━━
+  useEffect(() => {
+    if (!hideTopBar) return
+    const detail = {
+      focusMode, showToc, showHighlightPanel, showSettings,
+      page: virtualPageNumber, totalPages: virtualTotalPages,
+      highlightCount: highlights.length,
+    }
+    window.dispatchEvent(new CustomEvent('viewer-state-update', { detail }))
+  }, [hideTopBar, focusMode, showToc, showHighlightPanel, showSettings, virtualPageNumber, virtualTotalPages, highlights.length])
+
+  // ━━━ CustomEvent: 토글 명령 수신 ━━━
+  useEffect(() => {
+    if (!hideTopBar) return
+    const handler = (e: Event) => {
+      const { action } = (e as CustomEvent).detail || {}
+      switch (action) {
+        case 'toc': setShowToc(prev => !prev); break
+        case 'focus': setFocusMode(prev => !prev); break
+        case 'highlight': setShowHighlightPanel(prev => !prev); break
+        case 'settings': setShowSettings(prev => !prev); break
+      }
+    }
+    window.addEventListener('viewer-toggle', handler)
+    return () => window.removeEventListener('viewer-toggle', handler)
+  }, [hideTopBar])
 
   // ━━━ EPUB 로드 ━━━
   useEffect(() => {
@@ -858,7 +886,6 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
   }, [currentChapterData, fontSize, lineHeight, fontStyle.family, themeStyle, letterSpacing, textAlign, theme, currentChapterIdx, highlights])
 
   // ━━━ innerHTML 수동 관리 (React 리렌더 시 DOM 교체 방지 → 선택 유지) ━━━
-  // ━━━ innerHTML 수동 관리 (React 리렌더 시 DOM 교체 방지 → 선택 유지) ━━━
   useEffect(() => {
     const colEl = contentColumnRef.current
     if (!colEl) return
@@ -1110,7 +1137,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
       )}
 
       {/* ━━━ 상단 바 ━━━ */}
-      <div className="grid grid-cols-5 px-2 py-2 border-b max-w-lg mx-auto w-full" style={{ borderColor: themeStyle.border }}>
+      {!hideTopBar && <div className="grid grid-cols-5 px-2 py-2 border-b max-w-lg mx-auto w-full" style={{ borderColor: themeStyle.border }}>
         <button onClick={() => setShowToc(!showToc)} className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg hover:opacity-70" style={{ color: showToc ? '#3b82f6' : themeStyle.muted }}>
           <List className="w-4 h-4" /><span className="text-xs">목차</span>
         </button>
@@ -1127,7 +1154,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
         <button onClick={() => setShowSettings(!showSettings)} className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg hover:opacity-70" style={{ color: showSettings ? '#3b82f6' : themeStyle.muted }}>
           <Settings2 className="w-4 h-4" /><span className="text-xs">설정</span>
         </button>
-      </div>
+      </div>}
 
       {/* ━━━ 설정 바텀시트 ━━━ */}
       {showSettings && (<>

@@ -28,6 +28,10 @@ import {
   ChevronUp,
   ChevronDown,
   Play,
+  List,
+  Focus,
+  Highlighter,
+  Settings2,
 } from 'lucide-react'
 import { AdBanner } from '@/components/ad-banner'
 import { AdOverlay } from '@/components/ad-overlay'
@@ -209,6 +213,37 @@ export default function ReadPage() {
 
   // 시리즈 상태
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null)
+
+  // ━━━ 뷰어 컨트롤 상태 (EPUB/Reflow 헤더 통합) ━━━
+  type ViewerControlState = {
+    focusMode: boolean
+    showToc: boolean
+    showHighlightPanel: boolean
+    showSettings: boolean
+    page: number
+    totalPages: number
+    highlightCount: number
+  }
+  const [viewerCtrl, setViewerCtrl] = useState<ViewerControlState>({
+    focusMode: false, showToc: false, showHighlightPanel: false,
+    showSettings: false, page: 0, totalPages: 0, highlightCount: 0,
+  })
+  const isViewerMode = fileType === 'epub' || viewMode === 'reflow'
+
+  // ━━━ 뷰어 상태 수신 ━━━
+  useEffect(() => {
+    if (!isViewerMode) return
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (detail) setViewerCtrl(detail)
+    }
+    window.addEventListener('viewer-state-update', handler)
+    return () => window.removeEventListener('viewer-state-update', handler)
+  }, [isViewerMode])
+
+  const dispatchViewerToggle = (action: string) => {
+    window.dispatchEvent(new CustomEvent('viewer-toggle', { detail: { action } }))
+  }
 
   // 읽기 시간 추적
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -1312,6 +1347,38 @@ export default function ReadPage() {
                 </div>
               )}
 
+              {/* ━━━ EPUB/Reflow 뷰어 컨트롤 (헤더 통합) ━━━ */}
+              {isViewerMode && document?.content_type !== 'webtoon' && (
+                <>
+                  <div className="w-px h-4 bg-[#3A302A]" />
+                  <button onClick={() => dispatchViewerToggle('toc')}
+                    className={`p-1.5 rounded-lg transition-colors ${viewerCtrl.showToc ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1] hover:bg-[#2E2620]'}`}
+                    title="목차">
+                    <List className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => dispatchViewerToggle('focus')}
+                    className={`p-1.5 rounded-lg transition-colors ${viewerCtrl.focusMode ? 'bg-blue-500/20 text-blue-400' : 'text-[#C4A882] hover:text-[#EEE4E1] hover:bg-[#2E2620]'}`}
+                    title="집중 모드">
+                    <Focus className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => dispatchViewerToggle('highlight')}
+                    className={`p-1.5 rounded-lg transition-colors ${viewerCtrl.showHighlightPanel ? 'bg-amber-500/20 text-amber-400' : viewerCtrl.highlightCount > 0 ? 'text-amber-400 hover:bg-[#2E2620]' : 'text-[#C4A882] hover:text-[#EEE4E1] hover:bg-[#2E2620]'}`}
+                    title="형광펜">
+                    <Highlighter className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-4 bg-[#3A302A]" />
+                  <span className="text-xs text-[#C4A882] tabular-nums px-1">
+                    {viewerCtrl.page}/{viewerCtrl.totalPages}
+                  </span>
+                  <div className="w-px h-4 bg-[#3A302A]" />
+                  <button onClick={() => dispatchViewerToggle('settings')}
+                    className={`p-1.5 rounded-lg transition-colors ${viewerCtrl.showSettings ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1] hover:bg-[#2E2620]'}`}
+                    title="뷰어 설정">
+                    <Settings2 className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+
               {/* ━━━ PDF 전용 컨트롤 ━━━ */}
               {viewMode !== 'reflow' && !isEpub && document?.content_type !== 'webtoon' && (
                 <>
@@ -1456,6 +1523,7 @@ export default function ReadPage() {
                 onPageChange={handlePageChange}
                 onDocumentLoad={handleDocumentLoad}
                 onError={() => setEpubLoadFailed(true)}
+                hideTopBar
               />
             ) : viewMode === 'reflow' ? (
               <ReflowViewer
@@ -1466,6 +1534,7 @@ export default function ReadPage() {
                 onDocumentLoad={handleDocumentLoad}
                 onSwitchToPdf={() => setViewMode('page')}
                 fileType={fileType}
+                hideTopBar
               />
             ) : (
               pdfUrl && (
