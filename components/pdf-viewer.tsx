@@ -983,9 +983,11 @@ export default function PDFViewer({
     if (!rect) return
     const step = viewMode === 'book' ? 2 : 1
     const clickX = e.clientX - rect.left
-    const center = rect.width / 2
-    if (clickX < center) onPageChange(Math.max(pageNumber - step, 1), numPages)
-    else onPageChange(Math.min(pageNumber + step, numPages), numPages)
+const ratio = clickX / rect.width
+// 좌 25% = 이전, 우 25% = 다음, 가운데 50% = 무시
+if (ratio < 0.25) onPageChange(Math.max(pageNumber - step, 1), numPages)
+else if (ratio > 0.75) onPageChange(Math.min(pageNumber + step, numPages), numPages)
+// 가운데 50%는 아무 동작 없음
   }
 
   const renderWidth = fitWidth * scale
