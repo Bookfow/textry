@@ -692,11 +692,14 @@ export default function PDFViewer({
       touchEndRef.current = null
     }
 
+    const preventContext = (e: Event) => e.preventDefault()
+    overlay.addEventListener('contextmenu', preventContext)
     overlay.addEventListener('touchstart', handleTouchStart, { passive: false })
     overlay.addEventListener('touchmove', handleTouchMove, { passive: false })
     overlay.addEventListener('touchend', handleTouchEnd)
 
     return () => {
+      overlay.removeEventListener('contextmenu', preventContext)
       overlay.removeEventListener('touchstart', handleTouchStart)
       overlay.removeEventListener('touchmove', handleTouchMove)
       overlay.removeEventListener('touchend', handleTouchEnd)
@@ -841,11 +844,14 @@ export default function PDFViewer({
       }
     }
 
+    const preventContext = (e: Event) => { if (magnifierActiveRef.current) e.preventDefault() }
+    container.addEventListener('contextmenu', preventContext)
     container.addEventListener('touchstart', handleTouchStart, { passive: true })
     container.addEventListener('touchmove', handleTouchMove, { passive: false })
     container.addEventListener('touchend', handleTouchEnd)
 
     return () => {
+      container.removeEventListener('contextmenu', preventContext)
       container.removeEventListener('touchstart', handleTouchStart)
       container.removeEventListener('touchmove', handleTouchMove)
       container.removeEventListener('touchend', handleTouchEnd)
@@ -959,7 +965,7 @@ export default function PDFViewer({
           <div
             ref={touchOverlayRef}
             className="absolute inset-0 z-20"
-            style={{ touchAction: 'none', cursor: scale > 1.05 ? 'grab' : 'default' }}
+            style={{ touchAction: 'none', cursor: scale > 1.05 ? 'grab' : 'default', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
             onClick={handlePageAreaClick}
           />
         )}
@@ -1109,7 +1115,7 @@ export default function PDFViewer({
 
         {/* 스크롤 모드 (IntersectionObserver lazy load) */}
         {viewMode === 'scroll' && (
-          <div ref={scrollContainerRef} className="h-full overflow-y-auto" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
+          <div ref={scrollContainerRef} className="h-full overflow-y-auto" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}>
             <div className="py-4 flex flex-col items-center gap-4">
               <PDFDocument
                 file={pdfUrl}
