@@ -33,11 +33,9 @@ export function ReadingListButton({ documentId, compact = false }: ReadingListBu
         .select('id')
         .eq('user_id', user.id)
         .eq('document_id', documentId)
-        .single()
+        .maybeSingle()
       setInList(!!data)
-    } catch (err) {
-      // 없으면 에러 발생 (정상)
-    }
+    } catch {}
   }
 
   const handleToggle = async () => {
