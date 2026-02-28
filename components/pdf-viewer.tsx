@@ -492,7 +492,7 @@ export default function PDFViewer({
     const relX = (clientX - data.rect.left) / data.displayW
     const relY = (clientY - data.rect.top) / data.displayH
     const bgX = relX * data.displayW * MAGNIFIER_ZOOM - magW / 2
-    const bgY = relY * data.displayH * MAGNIFIER_ZOOM - magH / 2
+    const bgY = relY * data.displayH * MAGNIFIER_ZOOM - magH * 0.15
     el.style.backgroundPosition = `-${bgX}px -${bgY}px`
   }
 
