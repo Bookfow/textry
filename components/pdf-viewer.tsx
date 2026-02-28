@@ -463,12 +463,12 @@ export default function PDFViewer({
         displayH: targetRect.height,
       }
       magnifierActiveRef.current = true
-      el.style.display = 'block'
       el.style.width = `${magW}px`
       el.style.height = `${magH}px`
       el.style.backgroundImage = `url(${imgSrc})`
       el.style.backgroundSize = `${targetRect.width * MAGNIFIER_ZOOM}px ${targetRect.height * MAGNIFIER_ZOOM}px`
       updateMagnifier(clientX, clientY)
+      el.style.display = 'block'
       return true
     } catch {
       return false
