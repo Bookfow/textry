@@ -37,7 +37,6 @@ import { AdBanner } from '@/components/ad-banner'
 import { AdOverlay } from '@/components/ad-overlay'
 import { ReactionButtons } from '@/components/reaction-buttons'
 import { SubscribeButton } from '@/components/subscribe-button'
-import { ShareButton } from '@/components/share-button'
 import { ReadingListButton } from '@/components/reading-list-button'
 import { CommentsSection } from '@/components/comments-section'
 
@@ -1477,7 +1476,6 @@ export default function ReadPage() {
                 <Bookmark className="w-5 h-5" fill={isCurrentPageBookmarked ? 'currentColor' : 'none'} />
               </button>
               <ReadingListButton documentId={documentId} compact />
-              <ShareButton documentId={documentId} title={document?.title || ''} />
               <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-[#2E2620] text-[#C4A882] hover:text-[#EEE4E1] transition-colors" title="전체화면 (F키)">
                 {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
               </button>
