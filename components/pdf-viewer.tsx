@@ -188,17 +188,21 @@ export default function PDFViewer({
     const contentWidth = availableWidth - frameSize - 16
     const contentHeight = availableHeight - frameSize - 16
 
+    const effectiveAspect = (autoCrop && cropBounds)
+      ? pageAspect * ((cropBounds.bottom - cropBounds.top) / (cropBounds.right - cropBounds.left))
+      : pageAspect
+
     if (viewMode === 'book') {
       const halfWidth = (contentWidth - 4) / 2
-      const widthFromHeight = contentHeight / pageAspect
+      const widthFromHeight = contentHeight / effectiveAspect
       const optimal = Math.min(halfWidth, widthFromHeight)
       setFitWidth(Math.max(optimal, 150))
     } else {
-      const widthFromHeight = contentHeight / pageAspect
+      const widthFromHeight = contentHeight / effectiveAspect
       const optimal = Math.min(contentWidth, widthFromHeight)
       setFitWidth(Math.max(optimal, 200))
     }
-  }, [showSidePanel, pageAspect, viewMode, bottomOffset])
+  }, [showSidePanel, pageAspect, viewMode, bottomOffset, autoCrop, cropBounds])
 
   useEffect(() => {
     calculateFitWidth()
