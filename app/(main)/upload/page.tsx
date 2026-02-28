@@ -1,66 +1,5 @@
 'use client'
 
-// ─── epub 문단 간격 CSS 자동 주입 ───
-function injectParagraphCSS(html: string): string {
-  if (!html) return html;
-  // 이미 p 태그에 margin 또는 line-height가 있으면 건너뜀
-  if (/p\s*\{[^}]*(margin|padding)[^}]*\}/i.test(html) && /p\s*\{[^}]*line-height[^}]*\}/i.test(html)) return html;
-  const css = 'p { margin: 0.5em 0; line-height: 1.8; }';
-  if (html.includes('</style>')) return html.replace('</style>', css + '\n</style>');
-  if (html.includes('</head>')) return html.replace('</head>', '<style>' + css + '</style>\n</head>');
-  return '<style>' + css + '</style>\n' + html;
-}
-
-// ─── epub 긴 챕터 자동 분할 ───
-function splitByDelim(text: string, delim: string, target: number): string[] {
-  const parts = text.split(delim)
-  const pages: string[] = []
-  let cur = ''
-  for (const part of parts) {
-    const t = part.trim()
-    if (!t) continue
-    if (cur.length > 0 && (cur.length + t.length + delim.length) > target) {
-      if (cur.length >= 500) { pages.push(cur.trim()); cur = t }
-      else { cur += delim + t }
-    } else { cur += (cur ? delim : '') + t }
-  }
-  if (cur.trim()) {
-    if (pages.length > 0 && cur.trim().length < 500) pages[pages.length - 1] += delim + cur.trim()
-    else pages.push(cur.trim())
-  }
-  return pages.length > 0 ? pages : [text]
-}
-function splitLongChapter(text: string, targetChars = 2000): string[] {
-  if (text.length <= targetChars * 1.3) return [text]
-  // 1차: \n\n 분할
-  const first = splitByDelim(text, '\n\n', targetChars)
-  // 2차: 여전히 긴 페이지는 \n 분할
-  const second: string[] = []
-  for (const p of first) {
-    if (p.length > targetChars * 1.3) { for (const s of splitByDelim(p, '\n', targetChars)) second.push(s) }
-    else second.push(p)
-  }
-  // 3차: 그래도 길면 마침표 기준 강제 분할
-  const final: string[] = []
-  for (const p of second) {
-    if (p.length > targetChars * 2) {
-      let rem = p
-      while (rem.length > targetChars * 1.3) {
-        let cut = -1
-        for (let i = targetChars; i >= targetChars * 0.5; i--) {
-          if (rem[i] === '.' || rem[i] === '다' || rem[i] === '요') { cut = i + 1; break }
-        }
-        if (cut === -1) cut = targetChars
-        final.push(rem.substring(0, cut).trim())
-        rem = rem.substring(cut).trim()
-      }
-      if (rem) final.push(rem)
-    } else final.push(p)
-  }
-  return final.length > 0 ? final : [text]
-}
-
-
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
@@ -514,64 +453,8 @@ export default function UploadPage() {
         }
       }
 
-      // EPUB 챕터 저장 (기존 epub + 변환된 epub 모두)
-      if ((isEpub || isConvertedEpub) && epubData && docData?.id) {
-        try {
-          setProgressMessage('챕터 저장 중...')
-          // 긴 챕터 자동 분할
-          const allPages: string[] = []
-          for (const chapter of epubData.chapters) {
-            const splits = splitLongChapter(injectParagraphCSS(chapter.content))
-            for (const s of splits) allPages.push(s)
-          }
-          const batchSize = 10
-          const rows: any[] = []
-          for (let i = 0; i < allPages.length; i++) {
-            rows.push({ document_id: docData.id, page_number: i + 1, text_content: allPages[i] })
-            if (rows.length >= batchSize || i === allPages.length - 1) {
-              await supabase.from('document_pages_text').insert(rows)
-              rows.length = 0
-            }
-            setProgress(70 + Math.round(((i + 1) / allPages.length) * 25))
-            setProgressMessage(`페이지 저장 중... ${i + 1}/${allPages.length}`)
-          }
-          // 분할로 페이지 수가 바뀌었으면 page_count 업데이트
-          if (allPages.length !== epubData.chapters.length) {
-            await supabase.from('documents').update({ page_count: allPages.length }).eq('id', docData.id)
-          }
-          // ★ EPUB 분할 결과도 document_blocks에 저장
-          try {
-            const splitBlockRows: any[] = []
-            for (let i = 0; i < allPages.length; i++) {
-              const pageNum = i + 1
-              const text = allPages[i]
-              const parts = text.split('\n\n')
-              let blockOrder = 0
-              for (const part of parts) {
-                const trimmed = part.trim()
-                if (!trimmed) continue
-                let blockType = 'body'
-                let content = trimmed
-                if (trimmed.startsWith('<h1>') && trimmed.endsWith('</h1>')) { blockType = 'heading1'; content = trimmed.slice(4, -5) }
-                else if (trimmed.startsWith('<h2>') && trimmed.endsWith('</h2>')) { blockType = 'heading2'; content = trimmed.slice(4, -5) }
-                else if (trimmed.startsWith('<h3>') && trimmed.endsWith('</h3>')) { blockType = 'heading3'; content = trimmed.slice(4, -5) }
-                else if (trimmed === '<hr>') { blockType = 'separator'; content = '' }
-                splitBlockRows.push({
-                  document_id: docData.id,
-                  block_id: `p${String(pageNum).padStart(3, '0')}_b${String(blockOrder).padStart(3, '0')}`,
-                  block_type: blockType,
-                  content: content,
-                  page_number: pageNum,
-                  block_order: blockOrder++,
-                })
-              }
-            }
-            for (let b = 0; b < splitBlockRows.length; b += 50) {
-              await supabase.from('document_blocks').insert(splitBlockRows.slice(b, b + 50))
-            }
-          } catch (splitBlockErr) { console.warn('EPUB분할 document_blocks 저장 실패 (무시):', splitBlockErr) }
-        } catch (extractErr) { console.warn('챕터 저장 실패:', extractErr) }
-      }
+      // EPUB은 뷰어가 원본 파일을 직접 렌더링하므로 텍스트 추출/저장 불필요
+      if (!isPdf) setProgress(95)
 
       setProgress(100); setProgressMessage('완료!'); await notifySubscribers(docData.id, title.trim())
       toast.success('업로드가 완료되었습니다!'); router.push('/dashboard')
