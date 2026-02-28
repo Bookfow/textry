@@ -285,9 +285,11 @@ export default function PDFViewer({
           const threshold = 245
           let top = height, left = width, bottom = 0, right = 0
 
-          // 상하 경계: 전체 스캔
+          // 상하 경계: 좌우 가운데 60%만 스캔 (페이지 번호 등 가장자리 무시)
+          const xStart = Math.floor(width * 0.20)
+          const xEnd = Math.floor(width * 0.80)
           for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
+            for (let x = xStart; x < xEnd; x++) {
               const i = (y * width + x) * 4
               if (data[i] < threshold || data[i+1] < threshold || data[i+2] < threshold) {
                 if (y < top) top = y
