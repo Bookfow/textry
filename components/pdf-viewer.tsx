@@ -155,6 +155,22 @@ export default function PDFViewer({
   const onPageChangeRef = useRef(onPageChange)
   const onScaleChangeRef = useRef(onScaleChange)
 
+  // ━━━ 돋보기 (Magnifier) ━━━
+  const MAGNIFIER_SIZE = 160
+  const MAGNIFIER_ZOOM = 2.5
+  const LONG_PRESS_MS = 500
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const magnifierElRef = useRef<HTMLDivElement>(null)
+  const magnifierActiveRef = useRef(false)
+  const magnifierWasActiveRef = useRef(false)
+  const longPressPosRef = useRef<{ x: number; y: number } | null>(null)
+  const magnifierCanvasRef = useRef<{
+    imgSrc: string
+    rect: DOMRect
+    displayW: number
+    displayH: number
+  } | null>(null)
+
   useEffect(() => { scaleRef.current = scale }, [scale])
   useEffect(() => { viewModeRef.current = viewMode }, [viewMode])
   useEffect(() => { pageNumberRef.current = pageNumber }, [pageNumber])
@@ -406,6 +422,87 @@ export default function PDFViewer({
     }
   }, [autoCrop, numPages, pdfDoc])
 
+  // ━━━ 돋보기 헬퍼 함수 ━━━
+  const clearLongPressTimer = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+    longPressPosRef.current = null
+  }
+
+  const startMagnifier = (clientX: number, clientY: number): boolean => {
+    const el = magnifierElRef.current
+    const container = containerRef.current
+    if (!el || !container) return false
+
+    const canvases = container.querySelectorAll('canvas')
+    let targetCanvas: HTMLCanvasElement | null = null
+    let targetRect: DOMRect | null = null
+
+    for (const c of canvases) {
+      const rect = c.getBoundingClientRect()
+      if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+        targetCanvas = c as HTMLCanvasElement
+        targetRect = rect
+        break
+      }
+    }
+
+    if (!targetCanvas || !targetRect) return false
+
+    try {
+      const imgSrc = targetCanvas.toDataURL()
+      magnifierCanvasRef.current = {
+        imgSrc,
+        rect: targetRect,
+        displayW: targetRect.width,
+        displayH: targetRect.height,
+      }
+      magnifierActiveRef.current = true
+      el.style.display = 'block'
+      el.style.backgroundImage = `url(${imgSrc})`
+      el.style.backgroundSize = `${targetRect.width * MAGNIFIER_ZOOM}px ${targetRect.height * MAGNIFIER_ZOOM}px`
+      updateMagnifier(clientX, clientY)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  const updateMagnifier = (clientX: number, clientY: number) => {
+    const el = magnifierElRef.current
+    const data = magnifierCanvasRef.current
+    if (!el || !data) return
+
+    // 돋보기 위치: 손가락/커서 위 30px
+    const magX = clientX - MAGNIFIER_SIZE / 2
+    const magY = clientY - MAGNIFIER_SIZE - 30
+    el.style.left = `${magX}px`
+    el.style.top = `${Math.max(0, magY)}px`
+
+    // 배경 위치 계산
+    const relX = (clientX - data.rect.left) / data.displayW
+    const relY = (clientY - data.rect.top) / data.displayH
+    const bgX = relX * data.displayW * MAGNIFIER_ZOOM - MAGNIFIER_SIZE / 2
+    const bgY = relY * data.displayH * MAGNIFIER_ZOOM - MAGNIFIER_SIZE / 2
+    el.style.backgroundPosition = `-${bgX}px -${bgY}px`
+  }
+
+  const hideMagnifier = () => {
+    const el = magnifierElRef.current
+    if (el) {
+      el.style.display = 'none'
+      el.style.backgroundImage = ''
+    }
+    magnifierCanvasRef.current = null
+    if (magnifierActiveRef.current) {
+      magnifierActiveRef.current = false
+      magnifierWasActiveRef.current = true
+      setTimeout(() => { magnifierWasActiveRef.current = false }, 200)
+    }
+  }
+
   const getTouchDistance = (touches: TouchList) => {
     if (touches.length < 2) return 0
     const dx = touches[0].clientX - touches[1].clientX
@@ -444,6 +541,10 @@ export default function PDFViewer({
     if (!overlay) return
 
     const handleTouchStart = (e: TouchEvent) => {
+      // 돋보기 정리
+      clearLongPressTimer()
+      hideMagnifier()
+
       if (e.touches.length === 2) {
         e.preventDefault()
         e.stopPropagation()
@@ -467,15 +568,26 @@ export default function PDFViewer({
         return
       }
 
+      // 롱프레스 타이머 시작 (돋보기)
+      const tx = e.touches[0].clientX
+      const ty = e.touches[0].clientY
+      longPressPosRef.current = { x: tx, y: ty }
+      longPressTimerRef.current = setTimeout(() => {
+        if (longPressPosRef.current) {
+          startMagnifier(longPressPosRef.current.x, longPressPosRef.current.y)
+        }
+      }, LONG_PRESS_MS)
+
       if (viewModeRef.current === 'scroll') return
       touchEndRef.current = null
-      touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+      touchStartRef.current = { x: tx, y: ty }
     }
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault()
         e.stopPropagation()
+        clearLongPressTimer()
         isPanningRef.current = false
         if (!isPinchingRef.current) {
           const dist = getTouchDistance(e.touches)
@@ -497,6 +609,22 @@ export default function PDFViewer({
         return
       }
 
+      // 돋보기 활성: 위치 업데이트
+      if (magnifierActiveRef.current && e.touches.length === 1) {
+        e.preventDefault()
+        updateMagnifier(e.touches[0].clientX, e.touches[0].clientY)
+        return
+      }
+
+      // 롱프레스 타이머: 움직이면 취소
+      if (longPressPosRef.current && e.touches.length === 1) {
+        const dx = e.touches[0].clientX - longPressPosRef.current.x
+        const dy = e.touches[0].clientY - longPressPosRef.current.y
+        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+          clearLongPressTimer()
+        }
+      }
+
       if (isPanningRef.current && panStartRef.current) {
         e.preventDefault()
         const dx = e.touches[0].clientX - panStartRef.current.x
@@ -516,6 +644,17 @@ export default function PDFViewer({
     }
 
     const handleTouchEnd = () => {
+      clearLongPressTimer()
+
+      // 돋보기가 활성이었으면 숨기고 종료 (스와이프/페이지 이동 안함)
+      if (magnifierActiveRef.current) {
+        hideMagnifier()
+        setSwipeOffset(0)
+        touchStartRef.current = null
+        touchEndRef.current = null
+        return
+      }
+
       if (isPinchingRef.current) {
         clearPinchTransform()
         const finalScale = Math.min(Math.max(pinchStartScaleRef.current * pinchRatioRef.current, 0.5), 3.0)
@@ -564,7 +703,7 @@ export default function PDFViewer({
     }
   }, [])
 
-  // ━━━ PC: 확대 상태에서 마우스 휠 + 드래그로 이동 ━━━
+  // ━━━ PC: 확대 상태에서 마우스 휠 + 드래그 + 롱프레스 돋보기 ━━━
   useEffect(() => {
     const overlay = touchOverlayRef.current
     if (!overlay) return
@@ -580,18 +719,49 @@ export default function PDFViewer({
     }
 
     const handleMouseDown = (e: MouseEvent) => {
-      if (scaleRef.current <= 1.05) return
-      if (e.button !== 0) return
-      e.preventDefault()
-      mouseDragRef.current = true
-      panStartRef.current = {
-        x: e.clientX, y: e.clientY,
-        tx: panTranslateRef.current.x, ty: panTranslateRef.current.y,
+      clearLongPressTimer()
+      hideMagnifier()
+
+      if (scaleRef.current > 1.05) {
+        if (e.button !== 0) return
+        e.preventDefault()
+        mouseDragRef.current = true
+        panStartRef.current = {
+          x: e.clientX, y: e.clientY,
+          tx: panTranslateRef.current.x, ty: panTranslateRef.current.y,
+        }
+        overlay.style.cursor = 'grabbing'
+        return
       }
-      overlay.style.cursor = 'grabbing'
+
+      // 롱프레스 타이머 시작 (돋보기, PC)
+      if (e.button === 0) {
+        longPressPosRef.current = { x: e.clientX, y: e.clientY }
+        longPressTimerRef.current = setTimeout(() => {
+          if (longPressPosRef.current) {
+            startMagnifier(longPressPosRef.current.x, longPressPosRef.current.y)
+          }
+        }, LONG_PRESS_MS)
+      }
     }
 
     const handleMouseMove = (e: MouseEvent) => {
+      // 돋보기 활성: 위치 업데이트
+      if (magnifierActiveRef.current) {
+        e.preventDefault()
+        updateMagnifier(e.clientX, e.clientY)
+        return
+      }
+
+      // 롱프레스 타이머: 움직이면 취소
+      if (longPressPosRef.current) {
+        const dx = e.clientX - longPressPosRef.current.x
+        const dy = e.clientY - longPressPosRef.current.y
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+          clearLongPressTimer()
+        }
+      }
+
       if (!mouseDragRef.current || !panStartRef.current) return
       e.preventDefault()
       const dx = e.clientX - panStartRef.current.x
@@ -603,6 +773,13 @@ export default function PDFViewer({
     }
 
     const handleMouseUp = () => {
+      clearLongPressTimer()
+
+      if (magnifierActiveRef.current) {
+        hideMagnifier()
+        return
+      }
+
       if (!mouseDragRef.current) return
       mouseDragRef.current = false
       panStartRef.current = null
@@ -621,6 +798,59 @@ export default function PDFViewer({
       window.removeEventListener('mouseup', handleMouseUp)
     }
   }, [])
+
+  // ━━━ 스크롤 모드: 돋보기 전용 이벤트 ━━━
+  useEffect(() => {
+    if (viewMode !== 'scroll') return
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return
+      clearLongPressTimer()
+      hideMagnifier()
+      const tx = e.touches[0].clientX
+      const ty = e.touches[0].clientY
+      longPressPosRef.current = { x: tx, y: ty }
+      longPressTimerRef.current = setTimeout(() => {
+        if (longPressPosRef.current) {
+          startMagnifier(longPressPosRef.current.x, longPressPosRef.current.y)
+        }
+      }, LONG_PRESS_MS)
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (magnifierActiveRef.current && e.touches.length === 1) {
+        e.preventDefault()
+        updateMagnifier(e.touches[0].clientX, e.touches[0].clientY)
+        return
+      }
+      if (longPressPosRef.current && e.touches.length === 1) {
+        const dx = e.touches[0].clientX - longPressPosRef.current.x
+        const dy = e.touches[0].clientY - longPressPosRef.current.y
+        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+          clearLongPressTimer()
+        }
+      }
+    }
+
+    const handleTouchEnd = () => {
+      clearLongPressTimer()
+      if (magnifierActiveRef.current) {
+        hideMagnifier()
+      }
+    }
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true })
+    container.addEventListener('touchmove', handleTouchMove, { passive: false })
+    container.addEventListener('touchend', handleTouchEnd)
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart)
+      container.removeEventListener('touchmove', handleTouchMove)
+      container.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [viewMode])
 
   // ━━━ 확대 상태에서 오버레이 밖 핀치줌 보조 ━━━
   useEffect(() => {
@@ -671,6 +901,7 @@ export default function PDFViewer({
   }, [])
 
   const handlePageAreaClick = (e: React.MouseEvent) => {
+    if (magnifierWasActiveRef.current) return
     if (viewMode === 'scroll' || !onPageChange) return
     if (scale > 1.05) return
     const rect = containerRef.current?.getBoundingClientRect()
@@ -889,25 +1120,42 @@ export default function PDFViewer({
               >
                 {Array.from({ length: numPages }, (_, index) => (
                   <LazyPage
-                  key={`page_${index + 1}`}
-                  pageNum={index + 1}
-                  width={renderWidth}
-                  height={isCropping ? cropVisibleH : pageHeight}
-                  frameStyle={frameStyle}
-                  frameStyleDark={frameStyleDark}
-                  isCropping={isCropping}
-                  cropPageWidth={cropPageWidth}
-                  cropVisibleW={cropVisibleW}
-                  cropVisibleH={cropVisibleH}
-                  cropOffX={cropOffX}
-                  cropOffY={cropOffY}
-                />
+                    key={`page_${index + 1}`}
+                    pageNum={index + 1}
+                    width={renderWidth}
+                    height={isCropping ? cropVisibleH : pageHeight}
+                    frameStyle={frameStyle}
+                    frameStyleDark={frameStyleDark}
+                    isCropping={isCropping}
+                    cropPageWidth={cropPageWidth}
+                    cropVisibleW={cropVisibleW}
+                    cropVisibleH={cropVisibleH}
+                    cropOffX={cropOffX}
+                    cropOffY={cropOffY}
+                  />
                 ))}
               </PDFDocument>
             </div>
           </div>
         )}
       </div>
+
+      {/* ━━━ 돋보기 UI ━━━ */}
+      <div
+        ref={magnifierElRef}
+        className="fixed pointer-events-none z-[100]"
+        style={{
+          display: 'none',
+          width: MAGNIFIER_SIZE,
+          height: MAGNIFIER_SIZE,
+          borderRadius: '50%',
+          border: '3px solid rgba(178, 150, 125, 0.9)',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15), inset 0 0 20px rgba(0,0,0,0.1)',
+          overflow: 'hidden',
+          backgroundRepeat: 'no-repeat',
+          backgroundColor: '#fff',
+        }}
+      />
     </div>
   )
 }
