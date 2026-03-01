@@ -20,6 +20,7 @@ import { getLanguageFlag } from '@/lib/languages'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DashboardSkeleton } from '@/components/loading-skeleton'
 import { useToast } from '@/components/toast'
+import RichTextEditor from '@/components/rich-text-editor'
 
 type TabType = 'overview' | 'content' | 'analytics' | 'revenue'
 
@@ -230,12 +231,11 @@ export default function DashboardPage() {
     if (!user) return
     setSavingDescription(true)
     try {
-      const tocItems = newTocText.trim()
-        ? newTocText.trim().split('\n').filter(line => line.trim()).map(line => ({ title: line.trim() }))
-        : null
+      const cleanTocCheck = newTocText.replace(/<br\s*\/?>/gi, '').replace(/<[^>]+>/g, '').trim()
+      const customToc = cleanTocCheck ? [{ title: newTocText }] : null
       const { error } = await supabase
         .from('documents')
-        .update({ title: newTitle.trim(), description: newDescription.trim() || null, author_name: newAuthorName.trim() || null, author_bio: newAuthorBio.trim() || null, custom_toc: tocItems })
+        .update({ title: newTitle.trim(), description: newDescription.trim() || null, author_name: newAuthorName.trim() || null, author_bio: newAuthorBio.trim() || null, custom_toc: customToc })
         .eq('id', docId)
       if (error) throw error
       toast.success('콘텐츠가 수정되었습니다.')
@@ -557,7 +557,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="col-span-2 flex items-center justify-center gap-2">
                         <button
-                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || ''); setNewAuthorName((doc as any).author_name || ''); setNewAuthorBio((doc as any).author_bio || ''); setNewTocText((doc as any).custom_toc ? (doc as any).custom_toc.map((item: any) => item.title).join('\n') : '') }}
+                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || ''); setNewAuthorName((doc as any).author_name || ''); setNewAuthorBio((doc as any).author_bio || ''); setNewTocText((doc as any).custom_toc && (doc as any).custom_toc.length > 0 ? (doc as any).custom_toc[0].title : '') }}
                           className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-colors"
                           title="수정"
                         >
@@ -907,7 +907,7 @@ export default function DashboardPage() {
       }}>
         <DialogContent>
           <DialogHeader><DialogTitle>콘텐츠 수정</DialogTitle></DialogHeader>
-          <div className="space-y-4 pt-4">
+          <div className="space-y-4 pt-4 max-h-[70vh] overflow-y-auto">
             {(() => {
               const descDoc = documents.find(d => d.id === editingDescription)
               if (!descDoc) return null
@@ -922,19 +922,6 @@ export default function DashboardPage() {
                       placeholder="콘텐츠 제목"
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-description">설명 (최대 50자)</Label>
-                    <textarea
-                      id="edit-description"
-                      value={newDescription}
-                      onChange={(e) => { if (e.target.value.length <= 50) setNewDescription(e.target.value) }}
-                      placeholder="콘텐츠에 대한 간단한 설명"
-                      rows={2}
-                      maxLength={50}
-                      className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                    />
-                    <p className="text-xs text-gray-400 dark:text-gray-500 text-right">{newDescription.length}/50</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-author-name">창작자명</Label>
@@ -957,18 +944,14 @@ export default function DashboardPage() {
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
                   </div>
-                  {/* ━━━ 목차 편집 ━━━ */}
                   <div className="space-y-2">
-                    <Label htmlFor="edit-toc">목차</Label>
-                    <textarea
-                      id="edit-toc"
-                      value={newTocText}
-                      onChange={(e) => setNewTocText(e.target.value)}
-                      placeholder="목차를 입력하세요"
-                      rows={6}
-                      className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                    />
-                    <p className="text-xs text-gray-400 dark:text-gray-500">한 줄에 하나씩 입력하세요. 비워두면 자동 추출됩니다.</p>
+                    <Label>설명</Label>
+                    <RichTextEditor value={newDescription} onChange={setNewDescription} placeholder="콘텐츠에 대한 설명" minHeight="80px" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>목차</Label>
+                    <RichTextEditor value={newTocText} onChange={setNewTocText} placeholder="목차를 입력하세요" minHeight="120px" />
+                    <p className="text-xs text-gray-400 dark:text-gray-500">비워두면 자동 추출됩니다.</p>
                   </div>
                   <div className="flex gap-2 justify-end">
                     <Button variant="outline" onClick={() => { setEditingDescription(null); setNewTitle(''); setNewDescription(''); setNewAuthorName(''); setNewAuthorBio('') }}>취소</Button>

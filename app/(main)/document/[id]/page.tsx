@@ -532,7 +532,7 @@ export default function DocumentDetailPage() {
           {activeTab === 'intro' && (
             <div>
               {doc.description ? (
-                <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed whitespace-pre-wrap">{doc.description}</p>
+                <div className="text-sm text-[#5C4A38] dark:text-[#C4A882] leading-relaxed" dangerouslySetInnerHTML={{ __html: doc.description }} />
               ) : (
                 <p className="text-sm text-[#9C8B7A] italic">소개가 등록되지 않았습니다.</p>
               )}
@@ -768,7 +768,7 @@ export default function DocumentDetailPage() {
             <div>
               {(doc as any).custom_toc && (doc as any).custom_toc.length > 0 ? (
                 <div className="px-3">
-                  <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] font-medium whitespace-pre-wrap">{(doc as any).custom_toc.map((item: { title: string }) => item.title).join('\n')}</p>
+                  <div className="text-sm text-[#5C4A38] dark:text-[#C4A882] font-medium leading-relaxed" dangerouslySetInnerHTML={{ __html: (doc as any).custom_toc[0]?.title || '' }} />
                 </div>
               ) : tocLoading ? (
                 <div className="flex items-center justify-center py-8">
