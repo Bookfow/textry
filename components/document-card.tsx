@@ -23,6 +23,7 @@ interface DocumentCardProps {
     likes?: number
     total_reading_time?: number
     page_count?: number
+    file_path?: string | null
     profiles?: { username?: string | null; email?: string; avatar_url?: string | null } | null
   }
   authorName?: string | null
@@ -189,8 +190,10 @@ export function DocumentCard({
               </div>
               <div className="flex items-center gap-1.5 text-[10px]">
                 <span>{getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}</span>
-                {doc.total_reading_time && doc.total_reading_time > 0 && (
-                  <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{doc.total_reading_time < 3600 ? `${Math.floor(doc.total_reading_time / 60)}분` : `${Math.floor(doc.total_reading_time / 3600)}시간`}</span>
+                {doc.file_path?.includes('.pdf') ? (
+                  doc.page_count && doc.page_count > 0 && <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{doc.page_count}p</span>
+                ) : (
+                  doc.total_reading_time && doc.total_reading_time > 0 && <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{doc.total_reading_time < 3600 ? `${Math.floor(doc.total_reading_time / 60)}분` : `${Math.floor(doc.total_reading_time / 3600)}시간`}</span>
                 )}
               </div>
             </div>
@@ -251,8 +254,10 @@ export function DocumentCard({
             </div>
             <div className="flex items-center gap-1.5 text-[10px]">
               <span>{getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}</span>
-              {doc.total_reading_time && doc.total_reading_time > 0 && (
-                  <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{doc.total_reading_time < 3600 ? `${Math.floor(doc.total_reading_time / 60)}분` : `${Math.floor(doc.total_reading_time / 3600)}시간`}</span>
+              {doc.file_path?.includes('.pdf') ? (
+                  doc.page_count && doc.page_count > 0 && <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{doc.page_count}p</span>
+                ) : (
+                  doc.total_reading_time && doc.total_reading_time > 0 && <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{doc.total_reading_time < 3600 ? `${Math.floor(doc.total_reading_time / 60)}분` : `${Math.floor(doc.total_reading_time / 3600)}시간`}</span>
                 )}
               </div>
             {progress !== null && lastReadAt && (

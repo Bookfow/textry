@@ -453,8 +453,10 @@ export default function DocumentDetailPage() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-sm text-[#9C8B7A] mb-5">
                 <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {doc.view_count.toLocaleString()}</span>
                 <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> {doc.likes_count.toLocaleString()}</span>
-                {doc.file_size > 0 && (
-                  <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {formatFileSize(doc.file_size)}</span>
+                {doc.file_path?.includes('.pdf') ? (
+                  doc.page_count > 0 && <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {doc.page_count}p</span>
+                ) : (
+                  doc.file_size > 0 && <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {formatFileSize(doc.file_size)}</span>
                 )}
                 {doc.total_reading_time > 0 && (
                   <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatReadingTime(doc.total_reading_time)}</span>
