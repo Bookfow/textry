@@ -48,7 +48,7 @@ export default function UploadPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [curatorComment, setCuratorComment] = useState('')
-  const [category, setCategory] = useState('technology')
+  const [category, setCategory] = useState('essay')
   const [language, setLanguage] = useState('ko')
   const [file, setFile] = useState<File | null>(null)
   const [thumbnail, setThumbnail] = useState<File | null>(null)
@@ -311,7 +311,7 @@ export default function UploadPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description" className="text-[#2D2016] dark:text-[#EEE4E1] text-sm">설명</Label>
-                  <Textarea id="description" value={description} onChange={(e) => { if (e.target.value.length <= 50) setDescription(e.target.value) }} placeholder="콘텐츠에 대한 간단한 설명 (최대 50자)" rows={2} maxLength={50} className={`${inputClass} resize-none`} />
+                  <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="콘텐츠에 대한 간단한 설명" rows={2} maxLength={50} className={`${inputClass} resize-none`} />
                   <p className="text-xs text-[#9C8B7A] text-right">{description.length}/50</p>
                 </div>
                 <div className="space-y-4">
