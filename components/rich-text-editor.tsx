@@ -55,6 +55,19 @@ export default function RichTextEditor({ value, onChange, placeholder = '', minH
         </button>
         <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1" />
         <select
+          onChange={(e) => { if (e.target.value) execCmd('fontName', e.target.value); e.target.value = '' }}
+          defaultValue=""
+          className="text-xs px-1 py-1 rounded bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300"
+        >
+          <option value="" disabled>글꼴</option>
+          <option value="system-ui, sans-serif" style={{fontFamily:'system-ui'}}>고딕</option>
+          <option value="Georgia, serif" style={{fontFamily:'Georgia, serif'}}>명조</option>
+          <option value="monospace" style={{fontFamily:'monospace'}}>고정폭</option>
+          <option value="'Nanum Myeongjo', serif" style={{fontFamily:'Nanum Myeongjo, serif'}}>나눔명조</option>
+          <option value="cursive" style={{fontFamily:'cursive'}}>손글씨</option>
+        </select>
+        <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1" />
+        <select
           onChange={(e) => { execCmd('fontSize', e.target.value); e.target.value = '' }}
           defaultValue=""
           className="text-xs px-1 py-1 rounded bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300"
