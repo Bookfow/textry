@@ -964,7 +964,7 @@ export default function DashboardPage() {
                       id="edit-toc"
                       value={newTocText}
                       onChange={(e) => setNewTocText(e.target.value)}
-                      placeholder={"한 줄에 하나씩 입력\n예시:\n서론\n1장 시작\n2장 전개\n3장 결말\n에필로그"}
+                      placeholder="목차를 입력하세요"
                       rows={6}
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
