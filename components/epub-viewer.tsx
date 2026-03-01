@@ -1370,7 +1370,7 @@ export default function EpubViewer({ epubUrl, documentId, onPageChange, onDocume
             <button onClick={e => { e.stopPropagation(); goToNextPage() }} disabled={isLastPage} className="p-1 rounded disabled:opacity-30" style={{ color: themeStyle.muted }}><ChevronRight className="w-4 h-4" /></button>
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-[10px]" style={{ color: themeStyle.muted }}>{virtualPageNumber} / {virtualTotalPages} 페이지</span>
+            <span className="text-[10px]" style={{ color: themeStyle.muted }}>{currentChapterIdx + 1}/{chapters.length} 챕터</span>
             <span className="text-[10px]" style={{ color: themeStyle.muted }}>
               {(() => {
                 const pct = virtualTotalPages > 1 ? Math.round(((virtualPageNumber - 1) / (virtualTotalPages - 1)) * 100) : 0
