@@ -453,8 +453,8 @@ export default function DocumentDetailPage() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-sm text-[#9C8B7A] mb-5">
                 <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {doc.view_count.toLocaleString()}</span>
                 <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> {doc.likes_count.toLocaleString()}</span>
-                {doc.page_count > 0 && (
-                  <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {doc.page_count}p</span>
+                {doc.file_size > 0 && (
+                  <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {formatFileSize(doc.file_size)}</span>
                 )}
                 {doc.total_reading_time > 0 && (
                   <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatReadingTime(doc.total_reading_time)}</span>
@@ -547,12 +547,7 @@ export default function DocumentDetailPage() {
                     {getCategoryIcon(doc.category)} {getCategoryLabel(doc.category)}
                   </p>
                 </div>
-                {doc.page_count > 0 && (
-                  <div>
-                    <p className="text-xs text-[#9C8B7A] mb-1">페이지</p>
-                    <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{doc.page_count}페이지</p>
-                  </div>
-                )}
+            
                 {doc.file_size > 0 && (
                   <div>
                     <p className="text-xs text-[#9C8B7A] mb-1">파일 크기</p>

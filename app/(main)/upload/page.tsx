@@ -254,7 +254,7 @@ export default function UploadPage() {
       }
 
       setProgress(70); setProgressMessage('콘텐츠 정보 저장 중...')
-      const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, curator_comment: curatorComment.trim() || null, category, language, file_path: filePublicUrl, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: Math.floor(file.size / 1000), page_count: pageCount || null, is_published: true }).select('id').single()
+      const { data: docData, error: dbError } = await supabase.from('documents').insert({ title: title.trim(), description: description.trim() || null, curator_comment: curatorComment.trim() || null, category, language, file_path: filePublicUrl, thumbnail_url: thumbnailUrl, author_id: user.id, file_size: file.size, total_reading_time: isPdf ? (pageCount * 90) : (pageCount * 600), page_count: pageCount || null, is_published: true }).select('id').single()
       if (dbError) throw dbError
 
       setProgress(95)

@@ -189,8 +189,8 @@ export function DocumentCard({
               </div>
               <div className="flex items-center gap-1.5 text-[10px]">
                 <span>{getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}</span>
-                {doc.page_count && doc.page_count > 0 && (
-                  <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{doc.page_count}p</span>
+                {doc.total_reading_time && doc.total_reading_time > 0 && (
+                  <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{doc.total_reading_time < 3600 ? `${Math.floor(doc.total_reading_time / 60)}분` : `${Math.floor(doc.total_reading_time / 3600)}시간`}</span>
                 )}
               </div>
             </div>
@@ -251,10 +251,10 @@ export function DocumentCard({
             </div>
             <div className="flex items-center gap-1.5 text-[10px]">
               <span>{getCategoryIcon(doc.category || '')} {getCategoryLabel(doc.category || '')}</span>
-              {doc.page_count && doc.page_count > 0 && (
-                <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{doc.page_count}p</span>
-              )}
-            </div>
+              {doc.total_reading_time && doc.total_reading_time > 0 && (
+                  <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{doc.total_reading_time < 3600 ? `${Math.floor(doc.total_reading_time / 60)}분` : `${Math.floor(doc.total_reading_time / 3600)}시간`}</span>
+                )}
+              </div>
             {progress !== null && lastReadAt && (
               <div className="flex items-center gap-1 text-[11px]">
                 <span className="text-blue-600 font-medium">{progress}%</span>
