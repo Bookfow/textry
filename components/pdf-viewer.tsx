@@ -1206,7 +1206,7 @@ export default function PDFViewer({
                 </div>
               </div>
             )}
-            <div ref={scrollContainerRef} className="h-full overflow-y-auto" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}>
+            <div ref={scrollContainerRef} className="h-full overflow-y-auto" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', display: pdfLoading ? 'none' : undefined }}>
               <div className="py-4 flex flex-col items-center gap-4">
                 <PDFDocument
                   file={pdfUrl}
