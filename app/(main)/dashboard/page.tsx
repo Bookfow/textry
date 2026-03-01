@@ -390,7 +390,7 @@ export default function DashboardPage() {
                 {(authorTier?.tier || 0) < 2 && (
                   <div>
                     <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                      <span>누적 읽기 시간: {formatReadingHours(authorTier?.total_reading_hours_12m || 0)}시간</span>
+                      <span>누적 예상 독서 시간: {formatReadingHours(authorTier?.total_reading_hours_12m || 0)}시간</span>
                       <span>목표: {tierProgress.target.toLocaleString()}시간</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
