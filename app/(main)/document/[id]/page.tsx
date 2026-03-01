@@ -771,11 +771,10 @@ export default function DocumentDetailPage() {
                   {(doc as any).custom_toc.map((item: { title: string }, i: number) => (
                     <div
                       key={i}
-                      onClick={() => router.push(`/read/${documentId}`)}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#EEE4E1] dark:hover:bg-[#2E2620] cursor-pointer transition-colors"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
                     >
                       <span className="text-xs text-[#9C8B7A] flex-shrink-0 w-5 text-center tabular-nums">{i + 1}</span>
-                      <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] font-medium truncate">{item.title}</span>
+                      <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] font-medium">{item.title}</span>
                     </div>
                   ))}
                 </div>

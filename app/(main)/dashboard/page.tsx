@@ -230,9 +230,12 @@ export default function DashboardPage() {
     if (!user) return
     setSavingDescription(true)
     try {
+      const tocItems = newTocText.trim()
+        ? newTocText.trim().split('\n').filter(line => line.trim()).map(line => ({ title: line.trim() }))
+        : null
       const { error } = await supabase
         .from('documents')
-        .update({ title: newTitle.trim(), description: newDescription.trim() || null, author_name: newAuthorName.trim() || null, author_bio: newAuthorBio.trim() || null })
+        .update({ title: newTitle.trim(), description: newDescription.trim() || null, author_name: newAuthorName.trim() || null, author_bio: newAuthorBio.trim() || null, custom_toc: tocItems })
         .eq('id', docId)
       if (error) throw error
       toast.success('콘텐츠가 수정되었습니다.')
