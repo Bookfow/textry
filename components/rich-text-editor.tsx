@@ -55,8 +55,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', minH
         </button>
         <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1" />
         <select
-          onMouseDown={prevent}
-          onChange={(e) => execCmd('fontSize', e.target.value)}
+          onChange={(e) => { execCmd('fontSize', e.target.value); e.target.value = '3' }}
           defaultValue="3"
           className="text-xs px-1 py-1 rounded bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300"
         >
