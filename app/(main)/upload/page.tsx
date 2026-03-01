@@ -203,6 +203,20 @@ export default function UploadPage() {
         uploadFileName = `documents/${user.id}/${Date.now()}.${fileExt}`
       }
 
+      // ━━━ PDF 페이지 수 미리 읽기 (업로드 전) ━━━
+      let pageCount = 0
+      if (file.type === 'application/pdf' || fileExt === 'pdf') {
+        setProgressMessage('PDF 분석 중...')
+        try {
+          const { pdfjs } = await import('react-pdf')
+          pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+          const arrayBuffer = await file.arrayBuffer()
+          const pdfDoc = await pdfjs.getDocument({ data: arrayBuffer, cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`, cMapPacked: true }).promise
+          pageCount = pdfDoc.numPages
+          pdfDoc.destroy()
+        } catch (e) { console.warn('PDF 페이지 수 읽기 실패:', e) }
+      }
+
       // ━━━ R2에 파일 업로드 ━━━
       setProgress(20); setProgressMessage('파일 업로드 중...')
       const filePublicUrl = await uploadToR2(uploadFile, uploadFileName, uploadContentType)
@@ -220,18 +234,7 @@ export default function UploadPage() {
       const isEpub = fileExt === 'epub' || file.type === 'application/epub+zip'
       const isConvertedEpub = isTxtOrDocx && convertedEpubData
 
-      let pageCount = 0
-
-      if (isPdf) {
-        setProgressMessage('PDF 분석 중...')
-        try {
-          const { pdfjs } = await import('react-pdf')
-          pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
-          const arrayBuffer = await file.arrayBuffer()
-          const pdfDoc = await pdfjs.getDocument({ data: arrayBuffer, cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`, cMapPacked: true }).promise
-          pageCount = pdfDoc.numPages
-        } catch (e) { console.warn('PDF 페이지 수 읽기 실패:', e) }
-      }
+      
 
       let epubData: any = null
       if (isEpub) {
