@@ -74,6 +74,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', minH
         >
           <option value="" disabled>크기</option>
           <option value="1">작게</option>
+          <option value="2">조금 작게</option>
           <option value="3">보통</option>
           <option value="5">크게</option>
           <option value="7">아주 크게</option>
