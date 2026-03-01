@@ -504,9 +504,9 @@ export default function DocumentDetailPage() {
           {[
             { key: 'intro' as const, label: '소개' },
             ...(seriesDocs.length > 0 && seriesContentType === 'webtoon' ? [{ key: 'episodes' as const, label: `회차 (${seriesDocs.length})` }] : []),
-            { key: 'info' as const, label: doc.content_type === 'webtoon' ? '웹툰정보' : '도서정보' },
-            { key: 'author' as const, label: (doc as any).author_name && (doc as any).author_name !== author?.username ? '창작자·큐레이터' : '큐레이터' },
             ...(doc.content_type !== 'webtoon' ? [{ key: 'toc' as const, label: '목차' }] : []),
+            { key: 'author' as const, label: (doc as any).author_name && (doc as any).author_name !== author?.username ? '창작자·큐레이터' : '큐레이터' },
+            { key: 'info' as const, label: doc.content_type === 'webtoon' ? '웹툰정보' : '도서정보' },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -591,9 +591,11 @@ export default function DocumentDetailPage() {
                   <span className="px-2.5 py-1 bg-[#EEE4E1] dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-md font-medium">
                     {doc.file_path?.endsWith('.epub') ? 'EPUB' : 'PDF'}
                   </span>
-                  <span className="px-2.5 py-1 bg-[#EEE4E1] dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-md font-medium">
-                    리플로우
-                  </span>
+                  {doc.file_path?.endsWith('.epub') && (
+                    <span className="px-2.5 py-1 bg-[#EEE4E1] dark:bg-[#2E2620] text-[#5C4A38] dark:text-[#C4A882] text-xs rounded-md font-medium">
+                      리플로우
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
