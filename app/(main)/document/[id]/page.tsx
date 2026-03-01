@@ -770,12 +770,11 @@ export default function DocumentDetailPage() {
                 <div className="space-y-1">
                   {(doc as any).custom_toc.map((item: { title: string }, i: number) => (
                     <div
-                      key={i}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
-                    >
-                      <span className="text-xs text-[#9C8B7A] flex-shrink-0 w-5 text-center tabular-nums">{i + 1}</span>
-                      <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] font-medium">{item.title}</span>
-                    </div>
+                    key={i}
+                    className="px-3 py-2.5 rounded-lg"
+                  >
+                    <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] font-medium">{item.title}</span>
+                  </div>
                   ))}
                 </div>
               ) : tocLoading ? (
