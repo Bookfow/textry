@@ -767,12 +767,12 @@ export default function DocumentDetailPage() {
           {activeTab === 'toc' && (
             <div>
               {(doc as any).custom_toc && (doc as any).custom_toc.length > 0 ? (
-                <div className="space-y-1">
-                  {(doc as any).custom_toc.map((item: { title: string }, i: number) => (
-                    <div
-                    key={i}
-                    className="px-3 py-2.5 rounded-lg"
-                  >
+                <div>
+                {(doc as any).custom_toc.map((item: { title: string }, i: number) => (
+                  <div
+                  key={i}
+                  className="px-3 py-1"
+                >
                     <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] font-medium">{item.title}</span>
                   </div>
                   ))}
