@@ -1,19 +1,18 @@
 export const CATEGORIES = [
-  { value: 'business', label: '비즈니스', icon: '💼', color: 'purple' },
   { value: 'novel', label: '소설', icon: '📖', color: 'pink' },
-  { value: 'poetry', label: '시', icon: '🪶', color: 'slate' },
   { value: 'essay', label: '에세이', icon: '✍️', color: 'green' },
+  { value: 'webtoon', label: '웹툰', icon: '🎨', color: 'violet' },
+  { value: 'manga', label: '만화', icon: '📖', color: 'rose' },
+  { value: 'business', label: '비즈니스', icon: '💼', color: 'purple' },
   { value: 'science', label: '과학', icon: '🔬', color: 'cyan' },
   { value: 'art', label: '예술', icon: '🎨', color: 'red' },
   { value: 'education', label: '교육', icon: '🎓', color: 'yellow' },
   { value: 'health', label: '건강', icon: '💪', color: 'emerald' },
-  { value: 'food', label: '요리', icon: '🍳', color: 'orange' },
   { value: 'travel', label: '여행', icon: '✈️', color: 'indigo' },
-  { value: 'technology', label: '기술/IT', icon: '💻', color: 'blue' },
-
-  { value: 'webtoon', label: '웹툰', icon: '🎨', color: 'violet' },
-  { value: 'manga', label: '만화', icon: '📖', color: 'rose' },
+  { value: 'food', label: '요리', icon: '🍳', color: 'orange' },
   { value: 'illustration', label: '일러스트', icon: '🖼️', color: 'amber' },
+  { value: 'technology', label: '기술/IT', icon: '💻', color: 'blue' },
+  { value: 'poetry', label: '시', icon: '🪶', color: 'slate' },
   { value: 'other', label: '기타', icon: '📝', color: 'gray' },
 ] as const
   
