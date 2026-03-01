@@ -593,7 +593,7 @@ export default function DocumentDetailPage() {
                 </div>
                 {doc.total_reading_time > 0 && (
                   <div>
-                    <p className="text-xs text-[#9C8B7A] mb-1">총 읽기 시간</p>
+                    <p className="text-xs text-[#9C8B7A] mb-1">예상 독서 시간</p>
                     <p className="text-sm text-[#2D2016] dark:text-[#EEE4E1] font-medium">{formatReadingTime(doc.total_reading_time)}</p>
                   </div>
                 )}
