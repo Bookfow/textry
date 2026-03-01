@@ -35,6 +35,7 @@ export default function DocumentDetailPage() {
   const [progress, setProgress] = useState<number | null>(null)
   const [readerCount, setReaderCount] = useState(0)
   const [completionRate, setCompletionRate] = useState<number | null>(null)
+  const [estimatedReadingTime, setEstimatedReadingTime] = useState(0)
 
   // ━━━ 탭 상태 ━━━
   const [activeTab, setActiveTab] = useState<'intro' | 'info' | 'author' | 'toc' | 'episodes'>('intro')
@@ -155,7 +156,19 @@ export default function DocumentDetailPage() {
         .order('created_at', { ascending: false })
         .limit(6)
       if (otherDocs) setMoreDocs(otherDocs)
-
+// ━━━ EPUB 예상 독서 시간 계산 ━━━
+      if (docData.file_path?.endsWith('.epub')) {
+        try {
+          const { data: textData } = await supabase
+            .from('document_pages_text')
+            .select('text_content')
+            .eq('document_id', documentId)
+          if (textData && textData.length > 0) {
+            const totalChars = textData.reduce((sum, row) => sum + (row.text_content?.replace(/<[^>]+>/g, '').length || 0), 0)
+            setEstimatedReadingTime(Math.ceil(totalChars / 400))
+          }
+        } catch {}
+      }
       // ━━━ 독자 수 & 완독률 ━━━
       try {
         const { data: readers } = await supabase
@@ -456,7 +469,9 @@ export default function DocumentDetailPage() {
                 {doc.file_path?.includes('.pdf') ? (
                   doc.page_count > 0 && <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {doc.page_count}p</span>
                 ) : (
-                  doc.file_size > 0 && <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {formatFileSize(doc.file_size)}</span>
+                  estimatedReadingTime > 0 ? (
+                    <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> 약 {estimatedReadingTime >= 60 ? `${Math.floor(estimatedReadingTime / 60)}시간 ${estimatedReadingTime % 60}분` : `${estimatedReadingTime}분`}</span>
+                  ) : doc.file_size > 0 && <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {formatFileSize(doc.file_size)}</span>
                 )}
                 {doc.total_reading_time > 0 && (
                   <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatReadingTime(doc.total_reading_time)}</span>
