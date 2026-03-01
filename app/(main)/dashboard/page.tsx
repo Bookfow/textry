@@ -70,6 +70,7 @@ export default function DashboardPage() {
   const [newAuthorName, setNewAuthorName] = useState('')
   const [newAuthorBio, setNewAuthorBio] = useState('')
   const [newTocText, setNewTocText] = useState('')
+  const [newCategory, setNewCategory] = useState('')
   const [sortBy, setSortBy] = useState<'views' | 'time' | 'revenue' | 'date'>('date')
   const [docAdCounts, setDocAdCounts] = useState<Record<string, number>>({})
   const [thisMonthImpressions, setThisMonthImpressions] = useState(0)
@@ -235,7 +236,7 @@ export default function DashboardPage() {
       const customToc = cleanTocCheck ? [{ title: newTocText }] : null
       const { error } = await supabase
         .from('documents')
-        .update({ title: newTitle.trim(), description: newDescription.trim() || null, author_name: newAuthorName.trim() || null, author_bio: newAuthorBio.trim() || null, custom_toc: customToc })
+        .update({ title: newTitle.trim(), description: newDescription.trim() || null, author_name: newAuthorName.trim() || null, author_bio: newAuthorBio.trim() || null, custom_toc: customToc, category: newCategory || null })
         .eq('id', docId)
       if (error) throw error
       toast.success('콘텐츠가 수정되었습니다.')
@@ -557,7 +558,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="col-span-2 flex items-center justify-center gap-2">
                         <button
-                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || ''); setNewAuthorName((doc as any).author_name || ''); setNewAuthorBio((doc as any).author_bio || ''); setNewTocText((doc as any).custom_toc && (doc as any).custom_toc.length > 0 ? (doc as any).custom_toc[0].title : '') }}
+                          onClick={() => { setEditingDescription(doc.id); setNewTitle(doc.title); setNewDescription(doc.description || ''); setNewAuthorName((doc as any).author_name || ''); setNewAuthorBio((doc as any).author_bio || ''); setNewTocText((doc as any).custom_toc && (doc as any).custom_toc.length > 0 ? (doc as any).custom_toc[0].title : ''); setNewCategory(doc.category || '') }}
                           className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-colors"
                           title="수정"
                         >
@@ -922,6 +923,30 @@ export default function DashboardPage() {
                       placeholder="콘텐츠 제목"
                       className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>카테고리</Label>
+                    <select
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      className="w-full rounded-md border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    >
+                      <option value="novel">소설</option>
+                      <option value="essay">에세이</option>
+                      <option value="webtoon">웹툰</option>
+                      <option value="comic">만화</option>
+                      <option value="business">비즈니스</option>
+                      <option value="science">과학</option>
+                      <option value="art">예술</option>
+                      <option value="education">교육</option>
+                      <option value="health">건강</option>
+                      <option value="travel">여행</option>
+                      <option value="cooking">요리</option>
+                      <option value="illustration">일러스트</option>
+                      <option value="technology">기술/IT</option>
+                      <option value="poetry">시</option>
+                      <option value="other">기타</option>
+                    </select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-author-name">창작자명</Label>
