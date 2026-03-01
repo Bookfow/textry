@@ -473,7 +473,7 @@ export default function DocumentDetailPage() {
                     <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> 약 {estimatedReadingTime >= 60 ? `${Math.floor(estimatedReadingTime / 60)}시간 ${estimatedReadingTime % 60}분` : `${estimatedReadingTime}분`}</span>
                   ) : doc.file_size > 0 && <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> {formatFileSize(doc.file_size)}</span>
                 )}
-                {doc.total_reading_time > 0 && (
+                {!doc.file_path?.includes('.pdf') && doc.total_reading_time > 0 && (
                   <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatReadingTime(doc.total_reading_time)}</span>
                 )}
                 {readerCount > 0 && (
