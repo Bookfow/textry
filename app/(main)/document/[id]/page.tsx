@@ -767,15 +767,8 @@ export default function DocumentDetailPage() {
           {activeTab === 'toc' && (
             <div>
               {(doc as any).custom_toc && (doc as any).custom_toc.length > 0 ? (
-                <div>
-                {(doc as any).custom_toc.map((item: { title: string }, i: number) => (
-                  <div
-                  key={i}
-                  className="px-3 py-1"
-                >
-                    <span className="text-sm text-[#5C4A38] dark:text-[#C4A882] font-medium">{item.title}</span>
-                  </div>
-                  ))}
+                <div className="px-3">
+                  <p className="text-sm text-[#5C4A38] dark:text-[#C4A882] font-medium whitespace-pre-wrap">{(doc as any).custom_toc.map((item: { title: string }) => item.title).join('\n')}</p>
                 </div>
               ) : tocLoading ? (
                 <div className="flex items-center justify-center py-8">
