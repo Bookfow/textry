@@ -280,7 +280,31 @@ export default function PDFViewer({
   // ━━━ 자동 스크롤 ref 동기화 ━━━
   useEffect(() => { autoScrollActiveRef.current = autoScrollActive }, [autoScrollActive])
   useEffect(() => { autoScrollSpeedRef.current = autoScrollSpeed }, [autoScrollSpeed])
+// ━━━ 스크롤 모드: 돋보기 위치 추적 ━━━
+useEffect(() => {
+  if (viewMode !== 'scroll' || !magnifierMode) return
+  const container = scrollContainerRef.current
+  if (!container) return
 
+  const updateScrollMagnifier = () => {
+    const magInner = containerRef.current?.querySelector('[data-magnifier-inner]') as HTMLElement
+    if (!magInner) return
+
+    const pageEl = container.querySelector(`[data-page-number="${scrollCurrentPage}"]`) as HTMLElement
+    if (!pageEl) return
+
+    const containerRect = container.getBoundingClientRect()
+    const pageRect = pageEl.getBoundingClientRect()
+
+    const pageOffsetY = containerRect.top - pageRect.top
+    magInner.style.transform = `translate(-50%, 0) translateY(${-pageOffsetY * MAGNIFIER_ZOOM}px)`
+  }
+
+  container.addEventListener('scroll', updateScrollMagnifier)
+  updateScrollMagnifier()
+
+  return () => container.removeEventListener('scroll', updateScrollMagnifier)
+}, [viewMode, magnifierMode, scrollCurrentPage])
   // ━━━ 뷰모드 바뀌면 자동 스크롤 중지 ━━━
   useEffect(() => {
     if (viewMode !== 'scroll') setAutoScrollActive(false)
@@ -1338,7 +1362,7 @@ export default function PDFViewer({
       </div>
 
       {/* ━━━ 고정 돋보기 (버튼 토글) ━━━ */}
-      {magnifierMode && viewMode === 'page' && (
+      {magnifierMode && (viewMode === 'page' || viewMode === 'scroll') && (
         <div
           className="absolute z-[60] overflow-hidden pointer-events-none"
           style={{
@@ -1364,7 +1388,7 @@ export default function PDFViewer({
           >
             <PDFDocument file={pdfUrl} loading="" options={pdfOptions}>
               <Page
-                pageNumber={pageNumber}
+                pageNumber={viewMode === 'scroll' ? scrollCurrentPage : pageNumber}
                 width={fitWidth * MAGNIFIER_ZOOM}
                 renderTextLayer={false}
                 renderAnnotationLayer={false}
