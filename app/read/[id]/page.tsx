@@ -33,6 +33,7 @@ import {
   Highlighter,
   Settings2,
   Crop,
+  ScanSearch,
 } from 'lucide-react'
 import { AdBanner } from '@/components/ad-banner'
 import { AdOverlay } from '@/components/ad-overlay'
@@ -1443,7 +1444,7 @@ export default function ReadPage() {
                   <button onClick={() => setMagnifierMode(!magnifierMode)}
                     className={`p-1.5 rounded-lg transition-colors ${magnifierMode ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1] hover:bg-[#2E2620]'}`}
                     title={magnifierMode ? '돋보기 OFF' : '돋보기'}>
-                    <ZoomIn className="w-4 h-4" />
+                    <ScanSearch className="w-4 h-4" />
                   </button>
                 </>
               )}
