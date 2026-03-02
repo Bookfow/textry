@@ -287,7 +287,7 @@ useEffect(() => {
   if (!container) return
 
   const updateScrollMagnifier = () => {
-    const magInner = containerRef.current?.querySelector('[data-magnifier-inner]') as HTMLElement
+    const magInner = containerRef.current?.querySelector('[data-magnifier-scroll-inner]') as HTMLElement
     if (!magInner) return
 
     const pageEl = container.querySelector(`[data-page-number="${scrollCurrentPage}"]`) as HTMLElement
@@ -296,15 +296,22 @@ useEffect(() => {
     const containerRect = container.getBoundingClientRect()
     const pageRect = pageEl.getBoundingClientRect()
 
-    const pageOffsetY = containerRect.top - pageRect.top
-    magInner.style.transform = `translate(-50%, 0) translateY(${-pageOffsetY * MAGNIFIER_ZOOM}px)`
+    const pageScrolledUp = containerRect.top - pageRect.top
+
+    const startPage = Math.max(1, scrollCurrentPage - 1)
+    const pageIndexInMag = scrollCurrentPage - startPage
+    const magPageH = fitWidth * MAGNIFIER_ZOOM * pageAspect
+    const magPrevPagesH = pageIndexInMag * magPageH
+
+    const translateY = -(magPrevPagesH + pageScrolledUp * MAGNIFIER_ZOOM)
+    magInner.style.transform = `translate(-50%, 0) translateY(${translateY}px)`
   }
 
   container.addEventListener('scroll', updateScrollMagnifier)
   updateScrollMagnifier()
 
   return () => container.removeEventListener('scroll', updateScrollMagnifier)
-}, [viewMode, magnifierMode, scrollCurrentPage])
+}, [viewMode, magnifierMode, scrollCurrentPage, numPages, fitWidth, pageAspect])
   // ━━━ 뷰모드 바뀌면 자동 스크롤 중지 ━━━
   useEffect(() => {
     if (viewMode !== 'scroll') setAutoScrollActive(false)
@@ -1362,7 +1369,7 @@ useEffect(() => {
       </div>
 
       {/* ━━━ 고정 돋보기 (버튼 토글) ━━━ */}
-      {magnifierMode && (viewMode === 'page' || viewMode === 'scroll') && (
+      {magnifierMode && viewMode === 'page' && (
         <div
           className="absolute z-[60] overflow-hidden pointer-events-none"
           style={{
@@ -1388,12 +1395,61 @@ useEffect(() => {
           >
             <PDFDocument file={pdfUrl} loading="" options={pdfOptions}>
               <Page
-                pageNumber={viewMode === 'scroll' ? scrollCurrentPage : pageNumber}
+                pageNumber={pageNumber}
                 width={fitWidth * MAGNIFIER_ZOOM}
                 renderTextLayer={false}
                 renderAnnotationLayer={false}
                 loading=""
               />
+            </PDFDocument>
+            </div>
+        </div>
+      )}
+
+      {/* ━━━ 스크롤 모드 돋보기 (3페이지 미리 렌더링) ━━━ */}
+      {magnifierMode && viewMode === 'scroll' && (
+        <div
+          className="absolute z-[60] overflow-hidden pointer-events-none"
+          style={{
+            left: '50%',
+            top: '5%',
+            transform: 'translate(-50%, 0)',
+            width: '100%',
+            height: '33.3%',
+            border: '3px solid rgba(178, 150, 125, 0.9)',
+            borderRadius: '8px',
+            boxShadow: '0 6px 32px rgba(0,0,0,0.5)',
+            backgroundColor: '#fff',
+          }}
+        >
+          <div
+            data-magnifier-scroll-inner=""
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '0',
+              transform: 'translate(-50%, 0)',
+            }}
+          >
+            <PDFDocument file={pdfUrl} loading="" options={pdfOptions}>
+              {(() => {
+                const startPage = Math.max(1, scrollCurrentPage - 1)
+                const endPage = Math.min(numPages, startPage + 2)
+                const pages = []
+                for (let p = startPage; p <= endPage; p++) {
+                  pages.push(
+                    <Page
+                      key={`mag_scroll_${p}`}
+                      pageNumber={p}
+                      width={fitWidth * MAGNIFIER_ZOOM}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                      loading=""
+                    />
+                  )
+                }
+                return pages
+              })()}
             </PDFDocument>
           </div>
         </div>
