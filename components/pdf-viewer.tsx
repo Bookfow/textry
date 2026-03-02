@@ -27,6 +27,7 @@ interface PDFViewerProps {
   onScaleChange?: (scale: number) => void
   bottomOffset?: number
   autoCrop?: boolean
+  magnifierMode?: boolean
 }
 
 // ━━━ Lazy 페이지 컴포넌트 (IntersectionObserver) ━━━
@@ -122,6 +123,7 @@ export default function PDFViewer({
   onScaleChange,
   bottomOffset = 0,
   autoCrop = false,
+  magnifierMode = false,
 }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pdfLoading, setPdfLoading] = useState(true)
@@ -131,6 +133,8 @@ export default function PDFViewer({
   const [cropBounds, setCropBounds] = useState<{top: number; left: number; bottom: number; right: number} | null>(null)
   const [cropDetecting, setCropDetecting] = useState(false)
   const [pdfDoc, setPdfDoc] = useState<any>(null)
+  const magnifierPanRef = useRef({ x: 0, y: 0 })
+  const magnifierDragRef = useRef<{ startX: number; startY: number; startPanX: number; startPanY: number } | null>(null)
 
   const pinchStartDistRef = useRef<number | null>(null)
   const pinchStartScaleRef = useRef<number>(1)
@@ -172,6 +176,9 @@ export default function PDFViewer({
   } | null>(null)
 
   useEffect(() => { scaleRef.current = scale }, [scale])
+  useEffect(() => {
+    if (magnifierMode) magnifierPanRef.current = { x: 0, y: 0 }
+  }, [magnifierMode])
   useEffect(() => { viewModeRef.current = viewMode }, [viewMode])
   useEffect(() => { pageNumberRef.current = pageNumber }, [pageNumber])
   useEffect(() => { numPagesRef.current = numPages }, [numPages])
@@ -635,17 +642,9 @@ export default function PDFViewer({
         return
       }
 
-      // 롱프레스 타이머 시작 (돋보기)
+      if (viewModeRef.current === 'scroll') return
       const tx = e.touches[0].clientX
       const ty = e.touches[0].clientY
-      longPressPosRef.current = { x: tx, y: ty }
-      longPressTimerRef.current = setTimeout(() => {
-        if (longPressPosRef.current) {
-          startMagnifier(longPressPosRef.current.x, longPressPosRef.current.y)
-        }
-      }, LONG_PRESS_MS)
-
-      if (viewModeRef.current === 'scroll') return
       touchEndRef.current = null
       touchStartRef.current = { x: tx, y: ty }
     }
@@ -804,15 +803,7 @@ export default function PDFViewer({
         return
       }
 
-      // 롱프레스 타이머 시작 (돋보기, PC)
-      if (e.button === 0) {
-        longPressPosRef.current = { x: e.clientX, y: e.clientY }
-        longPressTimerRef.current = setTimeout(() => {
-          if (longPressPosRef.current) {
-            startMagnifier(longPressPosRef.current.x, longPressPosRef.current.y)
-          }
-        }, LONG_PRESS_MS)
-      }
+      // (롱프레스 돋보기 제거됨)
     }
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -1271,20 +1262,96 @@ export default function PDFViewer({
         )}
       </div>
 
-      {/* ━━━ 돋보기 UI ━━━ */}
-      <div
-        ref={magnifierElRef}
-        className="fixed pointer-events-none z-[100]"
-        style={{
-          display: 'none',
-          borderRadius: '10px',
-          border: '3px solid rgba(178, 150, 125, 0.9)',
-          boxShadow: '0 6px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1)',
-          overflow: 'hidden',
-          backgroundRepeat: 'no-repeat',
-          backgroundColor: '#fff',
-        }}
-      />
+      {/* ━━━ 고정 돋보기 (버튼 토글) ━━━ */}
+      {magnifierMode && viewMode === 'page' && (
+        <div
+          className="absolute z-[60] overflow-hidden"
+          style={{
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '100%',
+            height: '33.3%',
+            border: '3px solid rgba(178, 150, 125, 0.9)',
+            borderRadius: '8px',
+            boxShadow: '0 6px 32px rgba(0,0,0,0.5)',
+            backgroundColor: '#fff',
+            cursor: 'grab',
+            touchAction: 'none',
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault()
+            magnifierDragRef.current = {
+              startX: e.clientX, startY: e.clientY,
+              startPanX: magnifierPanRef.current.x, startPanY: magnifierPanRef.current.y,
+            }
+            const el = e.currentTarget
+            el.style.cursor = 'grabbing'
+            const onMove = (ev: MouseEvent) => {
+              if (!magnifierDragRef.current) return
+              const dx = ev.clientX - magnifierDragRef.current.startX
+              const dy = ev.clientY - magnifierDragRef.current.startY
+              magnifierPanRef.current = {
+                x: magnifierDragRef.current.startPanX + dx,
+                y: magnifierDragRef.current.startPanY + dy,
+              }
+              const inner = el.querySelector('[data-magnifier-inner]') as HTMLElement
+              if (inner) inner.style.transform = `translate(${magnifierPanRef.current.x}px, ${magnifierPanRef.current.y}px)`
+            }
+            const onUp = () => {
+              magnifierDragRef.current = null
+              el.style.cursor = 'grab'
+              window.removeEventListener('mousemove', onMove)
+              window.removeEventListener('mouseup', onUp)
+            }
+            window.addEventListener('mousemove', onMove)
+            window.addEventListener('mouseup', onUp)
+          }}
+          onTouchStart={(e) => {
+            if (e.touches.length !== 1) return
+            const touch = e.touches[0]
+            magnifierDragRef.current = {
+              startX: touch.clientX, startY: touch.clientY,
+              startPanX: magnifierPanRef.current.x, startPanY: magnifierPanRef.current.y,
+            }
+            const el = e.currentTarget
+            const onMove = (ev: TouchEvent) => {
+              if (!magnifierDragRef.current || ev.touches.length !== 1) return
+              ev.preventDefault()
+              const dx = ev.touches[0].clientX - magnifierDragRef.current.startX
+              const dy = ev.touches[0].clientY - magnifierDragRef.current.startY
+              magnifierPanRef.current = {
+                x: magnifierDragRef.current.startPanX + dx,
+                y: magnifierDragRef.current.startPanY + dy,
+              }
+              const inner = el.querySelector('[data-magnifier-inner]') as HTMLElement
+              if (inner) inner.style.transform = `translate(${magnifierPanRef.current.x}px, ${magnifierPanRef.current.y}px)`
+            }
+            const onEnd = () => {
+              magnifierDragRef.current = null
+              window.removeEventListener('touchmove', onMove)
+              window.removeEventListener('touchend', onEnd)
+            }
+            window.addEventListener('touchmove', onMove, { passive: false })
+            window.addEventListener('touchend', onEnd)
+          }}
+        >
+          <div
+            data-magnifier-inner=""
+            style={{ transform: `translate(${magnifierPanRef.current.x}px, ${magnifierPanRef.current.y}px)` }}
+          >
+            <PDFDocument file={pdfUrl} loading="" options={pdfOptions}>
+              <Page
+                pageNumber={pageNumber}
+                width={fitWidth * MAGNIFIER_ZOOM}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+                loading=""
+              />
+            </PDFDocument>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

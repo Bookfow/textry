@@ -181,6 +181,7 @@ export default function ReadPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('page')
   const [pageInputValue, setPageInputValue] = useState('')
   const [showPageInput, setShowPageInput] = useState(false)
+  const [magnifierMode, setMagnifierMode] = useState(false)
   const [autoCrop, setAutoCrop] = useState(false)
 
   // UI 상태
@@ -1439,6 +1440,11 @@ export default function ReadPage() {
                     title={autoCrop ? '여백 제거 OFF' : '여백 자동 제거'}>
                     <Crop className="w-4 h-4" />
                   </button>
+                  <button onClick={() => setMagnifierMode(!magnifierMode)}
+                    className={`p-1.5 rounded-lg transition-colors ${magnifierMode ? 'bg-[#B2967D] text-[#1A1410]' : 'text-[#C4A882] hover:text-[#EEE4E1] hover:bg-[#2E2620]'}`}
+                    title={magnifierMode ? '돋보기 OFF' : '돋보기'}>
+                    <ZoomIn className="w-4 h-4" />
+                  </button>
                 </>
               )}
             </div>
@@ -1544,7 +1550,7 @@ export default function ReadPage() {
               pdfUrl && (
                 <PDFViewer pdfUrl={pdfUrl} pageNumber={pageNumber} scale={scale} viewMode={viewMode}
                   showSidePanel={showSidePanel} onPageChange={handlePageChange} onDocumentLoad={handleDocumentLoad} onScaleChange={handleScaleChange}
-                  bottomOffset={!isPremium && !isRewardAdFree ? 58 : 0} autoCrop={autoCrop} />
+                  bottomOffset={!isPremium && !isRewardAdFree ? 58 : 0} autoCrop={autoCrop} magnifierMode={magnifierMode} />
               )
             )}
           </div>
