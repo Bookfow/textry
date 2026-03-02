@@ -184,10 +184,20 @@ export default function PDFViewer({
     magnifierPanRef.current = { x: 0, y: 0 }
     if (pdfContentRef.current) pdfContentRef.current.style.transform = ''
 
-    if (magnifierMode && containerRef.current) {
-      const h = containerRef.current.clientHeight
-      const magCenterY = h * 0.10 + h * 0.333 / 2
-      const off = (h / 2 - magCenterY) * MAGNIFIER_ZOOM
+    if (magnifierMode && containerRef.current && pdfContentRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect()
+      const contentRect = pdfContentRef.current.getBoundingClientRect()
+
+      // 돋보기 중심 (뷰포트 기준)
+      const magTop = containerRect.top + containerRect.height * 0.10
+      const magH = containerRect.height * 0.333
+      const magCenterY = magTop + magH / 2
+
+      // 문서 중심 (뷰포트 기준)
+      const docCenterY = contentRect.top + contentRect.height / 2
+
+      // 확대된 문서에서 돋보기 위치에 맞게 이동
+      const off = (docCenterY - magCenterY) * MAGNIFIER_ZOOM
       magnifierInitOffYRef.current = off
       setMagnifierInitOffY(off)
     } else {
@@ -1113,7 +1123,7 @@ export default function PDFViewer({
   const cropOffY = isCropping ? -(cropBounds!.top * cropPageH) : 0
 
   return (
-    <div ref={containerRef} className="h-full w-full flex flex-col" style={{ overscrollBehavior: 'none' }}>
+    <div ref={containerRef} className="h-full w-full flex flex-col relative" style={{ overscrollBehavior: 'none' }}>
       <div className="flex-1 relative overflow-hidden" style={{ overscrollBehavior: 'none' }}>
 
         {/* ━━━ 투명 터치 오버레이: 스크롤 모드 제외 ━━━ */}
