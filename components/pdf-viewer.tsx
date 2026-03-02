@@ -1336,8 +1336,8 @@ export default function PDFViewer({
           className="absolute z-[60] overflow-hidden pointer-events-none"
           style={{
             left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
+            top: '25%',
+            transform: 'translate(-50%, 0)',
             width: '100%',
             height: '33.3%',
             border: '3px solid rgba(178, 150, 125, 0.9)',
