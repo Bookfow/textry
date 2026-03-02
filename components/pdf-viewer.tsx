@@ -189,15 +189,17 @@ export default function PDFViewer({
   useEffect(() => { onScaleChangeRef.current = onScaleChange }, [onScaleChange])
 
   useEffect(() => {
-    if (scale <= 1.05) {
+    if (scale <= 1.05 && !magnifierModeRef.current) {
       panTranslateRef.current = { x: 0, y: 0 }
       if (pdfContentRef.current) pdfContentRef.current.style.transform = ''
     }
   }, [scale])
 
   useEffect(() => {
-    panTranslateRef.current = { x: 0, y: 0 }
-    if (pdfContentRef.current) pdfContentRef.current.style.transform = ''
+    if (!magnifierModeRef.current) {
+      panTranslateRef.current = { x: 0, y: 0 }
+      if (pdfContentRef.current) pdfContentRef.current.style.transform = ''
+    }
   }, [pageNumber])
 
   const [scrollCurrentPage, setScrollCurrentPage] = useState(1)
