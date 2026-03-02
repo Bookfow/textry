@@ -184,26 +184,8 @@ export default function PDFViewer({
     magnifierPanRef.current = { x: 0, y: 0 }
     if (pdfContentRef.current) pdfContentRef.current.style.transform = ''
 
-    if (magnifierMode && containerRef.current && pdfContentRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect()
-      const contentRect = pdfContentRef.current.getBoundingClientRect()
-
-      // 돋보기 중심 (뷰포트 기준)
-      const magTop = containerRect.top + containerRect.height * 0.05
-      const magH = containerRect.height * 0.333
-      const magCenterY = magTop + magH / 2
-
-      // 문서 중심 (뷰포트 기준)
-      const docCenterY = contentRect.top + contentRect.height / 2
-
-      // 확대된 문서에서 돋보기 위치에 맞게 이동
-      const off = (docCenterY - magCenterY) * MAGNIFIER_ZOOM
-      magnifierInitOffYRef.current = off
-      setMagnifierInitOffY(off)
-    } else {
-      magnifierInitOffYRef.current = 0
-      setMagnifierInitOffY(0)
-    }
+    magnifierInitOffYRef.current = 0
+    setMagnifierInitOffY(0)
   }, [magnifierMode])
   useEffect(() => { viewModeRef.current = viewMode }, [viewMode])
   useEffect(() => { pageNumberRef.current = pageNumber }, [pageNumber])
@@ -752,7 +734,7 @@ export default function PDFViewer({
           pdfContentRef.current.style.transition = 'none'
         }
         const magInner = containerRef.current?.querySelector('[data-magnifier-inner]') as HTMLElement
-        if (magInner) magInner.style.transform = `translate(-50%, -50%) translate(${magnifierPanRef.current.x * MAGNIFIER_ZOOM}px, ${magnifierPanRef.current.y * MAGNIFIER_ZOOM + magnifierInitOffYRef.current}px)`
+        if (magInner) magInner.style.transform = `translate(-50%, 0) translate(${magnifierPanRef.current.x * MAGNIFIER_ZOOM}px, ${magnifierPanRef.current.y * MAGNIFIER_ZOOM}px)`
         return
       }
 
@@ -896,7 +878,7 @@ export default function PDFViewer({
           pdfContentRef.current.style.transition = 'none'
         }
         const magInner = containerRef.current?.querySelector('[data-magnifier-inner]') as HTMLElement
-        if (magInner) magInner.style.transform = `translate(-50%, -50%) translate(${magnifierPanRef.current.x * MAGNIFIER_ZOOM}px, ${magnifierPanRef.current.y * MAGNIFIER_ZOOM + magnifierInitOffYRef.current}px)`
+        if (magInner) magInner.style.transform = `translate(-50%, 0) translate(${magnifierPanRef.current.x * MAGNIFIER_ZOOM}px, ${magnifierPanRef.current.y * MAGNIFIER_ZOOM}px)`
         return
       }
 
@@ -1376,8 +1358,8 @@ export default function PDFViewer({
             style={{
               position: 'absolute',
               left: '50%',
-              top: '50%',
-              transform: `translate(-50%, -50%) translateY(${magnifierInitOffY}px)`,
+              top: '0',
+              transform: 'translate(-50%, 0)',
             }}
           >
             <PDFDocument file={pdfUrl} loading="" options={pdfOptions}>
