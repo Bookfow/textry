@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from 'react'
 import { Document as PDFDocument, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
@@ -135,6 +135,8 @@ export default function PDFViewer({
   const [pdfDoc, setPdfDoc] = useState<any>(null)
   const magnifierPanRef = useRef({ x: 0, y: 0 })
   const magnifierDragRef = useRef<{ startX: number; startY: number; startPanX: number; startPanY: number } | null>(null)
+  const magnifierInitOffYRef = useRef(0)
+  const [magnifierInitOffY, setMagnifierInitOffY] = useState(0)
 
   const pinchStartDistRef = useRef<number | null>(null)
   const pinchStartScaleRef = useRef<number>(1)
@@ -177,10 +179,21 @@ export default function PDFViewer({
 
   useEffect(() => { scaleRef.current = scale }, [scale])
   const magnifierModeRef = useRef(magnifierMode)
-  useEffect(() => {
+  useLayoutEffect(() => {
     magnifierModeRef.current = magnifierMode
     magnifierPanRef.current = { x: 0, y: 0 }
     if (pdfContentRef.current) pdfContentRef.current.style.transform = ''
+
+    if (magnifierMode && containerRef.current) {
+      const h = containerRef.current.clientHeight
+      const magCenterY = h * 0.10 + h * 0.333 / 2
+      const off = (h / 2 - magCenterY) * MAGNIFIER_ZOOM
+      magnifierInitOffYRef.current = off
+      setMagnifierInitOffY(off)
+    } else {
+      magnifierInitOffYRef.current = 0
+      setMagnifierInitOffY(0)
+    }
   }, [magnifierMode])
   useEffect(() => { viewModeRef.current = viewMode }, [viewMode])
   useEffect(() => { pageNumberRef.current = pageNumber }, [pageNumber])
@@ -729,7 +742,7 @@ export default function PDFViewer({
           pdfContentRef.current.style.transition = 'none'
         }
         const magInner = containerRef.current?.querySelector('[data-magnifier-inner]') as HTMLElement
-        if (magInner) magInner.style.transform = `translate(-50%, -50%) translate(${magnifierPanRef.current.x * MAGNIFIER_ZOOM}px, ${magnifierPanRef.current.y * MAGNIFIER_ZOOM}px)`
+        if (magInner) magInner.style.transform = `translate(-50%, -50%) translate(${magnifierPanRef.current.x * MAGNIFIER_ZOOM}px, ${magnifierPanRef.current.y * MAGNIFIER_ZOOM + magnifierInitOffYRef.current}px)`
         return
       }
 
@@ -873,7 +886,7 @@ export default function PDFViewer({
           pdfContentRef.current.style.transition = 'none'
         }
         const magInner = containerRef.current?.querySelector('[data-magnifier-inner]') as HTMLElement
-        if (magInner) magInner.style.transform = `translate(-50%, -50%) translate(${magnifierPanRef.current.x * MAGNIFIER_ZOOM}px, ${magnifierPanRef.current.y * MAGNIFIER_ZOOM}px)`
+        if (magInner) magInner.style.transform = `translate(-50%, -50%) translate(${magnifierPanRef.current.x * MAGNIFIER_ZOOM}px, ${magnifierPanRef.current.y * MAGNIFIER_ZOOM + magnifierInitOffYRef.current}px)`
         return
       }
 
@@ -1354,7 +1367,7 @@ export default function PDFViewer({
               position: 'absolute',
               left: '50%',
               top: '50%',
-              transform: 'translate(-50%, -50%)',
+              transform: `translate(-50%, -50%) translateY(${magnifierInitOffY}px)`,
             }}
           >
             <PDFDocument file={pdfUrl} loading="" options={pdfOptions}>
