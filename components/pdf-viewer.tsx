@@ -189,7 +189,7 @@ export default function PDFViewer({
       const contentRect = pdfContentRef.current.getBoundingClientRect()
 
       // 돋보기 중심 (뷰포트 기준)
-      const magTop = containerRect.top + containerRect.height * 0.10
+      const magTop = containerRect.top + containerRect.height * 0.05
       const magH = containerRect.height * 0.333
       const magCenterY = magTop + magH / 2
 
@@ -1361,7 +1361,7 @@ export default function PDFViewer({
           className="absolute z-[60] overflow-hidden pointer-events-none"
           style={{
             left: '50%',
-            top: '10%',
+            top: '5%',
             transform: 'translate(-50%, 0)',
             width: '100%',
             height: '33.3%',
